@@ -87,9 +87,9 @@ subnet ${SUBNET} netmask 255.255.255.0 {
   range ${SUBNET::-1}100 ${SUBNET::-1}200;
 }
 EOF
-dhcpd wlan0
 
 echo "Starting DHCP server .."
+dhcpd wlan0
 
 echo "Starting HostAP daemon ..."
 /usr/sbin/hostapd /etc/hostapd.conf 
