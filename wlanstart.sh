@@ -20,6 +20,7 @@ true ${CHANNEL:=11}
 true ${WPA_PASSPHRASE:=passw0rd}
 true ${HW_MODE:=g}
 true ${DRIVER:=nl80211}
+true ${HT_CAPAB:=[HT40-][SHORT-GI-20][SHORT-GI-40]}
 
 
 if [ ! -f "/etc/hostapd.conf" ] ; then
@@ -38,7 +39,7 @@ wpa_pairwise=CCMP
 rsn_pairwise=CCMP
 wpa_ptk_rekey=600
 ieee80211n=1
-ht_capab=[HT40-][SHORT-GI-20][SHORT-GI-40]
+ht_capab=${HT_CAPAB}
 wmm_enabled=1 
 EOF
 

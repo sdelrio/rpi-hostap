@@ -34,6 +34,18 @@ Make sure your USB support AP mode:
 ...
 ```
 
+Set country regulations, for excample, to Spain set:
+
+```
+# iw reg set ES
+country ES: DFS-ETSI
+        (2400 - 2483 @ 40), (N/A, 20), (N/A)
+        (5150 - 5250 @ 80), (N/A, 23), (N/A), NO-OUTDOOR
+        (5250 - 5350 @ 80), (N/A, 20), (0 ms), NO-OUTDOOR, DFS
+        (5470 - 5725 @ 160), (N/A, 26), (0 ms), DFS
+        (57000 - 66000 @ 2160), (N/A, 40), (N/A)
+```
+
 # Build / run
 
 For modification, testings, etc.. there is already a `Makefile`. So you can `make run` to start a sample ssid with a simple password.
