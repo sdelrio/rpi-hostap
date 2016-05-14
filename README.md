@@ -54,9 +54,11 @@ sudo docker run -d -t \
   sdelrio/rpi-hostap:latest
 ```
 
-But before this hostap usually requires that wlan0 interface should had been already up, so 
+But before this, hostap usually requires that wlan0 interface to be already up, so before `docker run` take the interface up:
 
+```
 /sbin/ifconfig wlan0 192.168.254.1/24 up
+```
 
 Also you should have a driver to enable hostap on your USB wifi
 
