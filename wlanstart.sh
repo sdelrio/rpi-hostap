@@ -30,7 +30,7 @@ driver=${DRIVER}
 ssid=${SSID}
 hw_mode=${HW_MODE}
 channel=${CHANNEL}
-wpa=1
+wpa=2
 wpa_passphrase=${WPA_PASSPHRASE}
 wpa_key_mgmt=WPA-PSK
 # TKIP is no secure anymore

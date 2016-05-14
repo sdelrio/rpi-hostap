@@ -1,5 +1,5 @@
 IMGNAME = rpi-hostap
-VERSION = 0.20
+VERSION = 0.21
 SUBNET  = 192.168.254.0
 APADDR  = 192.168.254.1
 .PHONY: all build test taglatest  
