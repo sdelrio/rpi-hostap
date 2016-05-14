@@ -67,4 +67,9 @@ clean:
 	@docker rmi $(IMGNAME):$(VERSION)
 taglatest:
 	docker tag -f $(IMGNAME):$(VERSION) $(IMGNAME):lastest
-release: test taglatest
+	docker tag -f $(IMGNAME):$(VERSION) sdelrio/$(IMGNAME):$(VERSION)
+	docker tag -f $(IMGNAME):$(VERSION) sdelrio/$(IMGNAME):latest
+push:
+	docker push sdelrio/$(IMGNAME)
+	docker push sdelrio/$(IMGNAME):$(VERSION)
+release: taglatest push
