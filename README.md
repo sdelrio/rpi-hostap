@@ -20,6 +20,7 @@ apt-get install firmware-ralink
 
 Make sure your USB support AP mode:
 
+```
 # iw list
 ...
         Supported interface modes:
@@ -31,6 +32,7 @@ Make sure your USB support AP mode:
                  * monitor
                  * mesh point
 ...
+```
 
 # Build / run
 
