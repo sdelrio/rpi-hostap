@@ -19,14 +19,13 @@ true ${SSID:=raspberry}
 true ${CHANNEL:=11}
 true ${WPA_PASSPHRASE:=passw0rd}
 true ${HW_MODE:=g}
-true ${DRIVER:=nl80211}
 true ${HT_CAPAB:=[HT40-][SHORT-GI-20][SHORT-GI-40]}
 
 
 if [ ! -f "/etc/hostapd.conf" ] ; then
     cat > "/etc/hostapd.conf" <<EOF
 interface=${INTERFACE}
-driver=${DRIVER}
+${DRIVER+"driver=${DRIVER}"}
 ssid=${SSID}
 hw_mode=${HW_MODE}
 channel=${CHANNEL}
@@ -40,12 +39,12 @@ rsn_pairwise=CCMP
 wpa_ptk_rekey=600
 ieee80211n=1
 ht_capab=${HT_CAPAB}
-wmm_enabled=1 
+wmm_enabled=1
 EOF
 
 fi
 
-# Setup interface and restart DHCP service 
+# Setup interface and restart DHCP service
 ip link set ${INTERFACE} up
 ip addr flush dev ${INTERFACE}
 ip addr add ${AP_ADDR}/24 dev ${INTERFACE}
@@ -54,15 +53,15 @@ ip addr add ${AP_ADDR}/24 dev ${INTERFACE}
 echo "NAT settings ip_dynaddr, ip_forward"
 
 
-for i in ip_dynaddr ip_forward ; do 
+for i in ip_dynaddr ip_forward ; do
   if [ $(cat /proc/sys/net/ipv4/$i) ]; then
-    echo $i already 1 
+    echo $i already 1
   else
     echo "1" > /proc/sys/net/ipv4/$i
   fi
 done
 
-cat /proc/sys/net/ipv4/ip_dynaddr 
+cat /proc/sys/net/ipv4/ip_dynaddr
 cat /proc/sys/net/ipv4/ip_forward
 
 if [ "${OUTGOINGS}" ] ; then
@@ -93,5 +92,4 @@ echo "Starting DHCP server .."
 dhcpd wlan0
 
 echo "Starting HostAP daemon ..."
-/usr/sbin/hostapd /etc/hostapd.conf 
-
+/usr/sbin/hostapd /etc/hostapd.conf
