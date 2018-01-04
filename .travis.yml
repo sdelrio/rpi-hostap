@@ -1,8 +1,6 @@
 sudo: required
 services: docker
 before_install:
-    - sudo apt-get update
-    - sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce
     - docker --version # for verification
 language: generic
 jobs:
@@ -19,7 +17,7 @@ jobs:
       - docker build -t $IMAGENAME -f Dockerfile .
       - >
         if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
-          docker login -u="$DOCKER_USER" -p="$DOCKER_PASS"
+           docker login -u="$DOCKER_USER" -p="$DOCKER_PASS"
            docker tag $IMAGENAME $IMAGENAME:$TAG
            docker push $IMAGENAME:$TAG
            docker push $IMAGENAME
