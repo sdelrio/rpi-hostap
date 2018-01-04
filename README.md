@@ -56,7 +56,7 @@ I've already uploaded the image to docker hubs, so you can run it from ther like
 sudo docker run -d -t \
   -e INTERFACE=wlan0 \
   -e CHANNEL=6 \
-  - e SSID=runssid \
+  -e SSID=runssid \
   -e APADDR=192.168.254.1 \
   -e SUBNET=192.168.254.0 \
   -e WPA_PASSPHRASE=passw0rd \
