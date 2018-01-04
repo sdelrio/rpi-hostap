@@ -1,4 +1,4 @@
-FROM hypriot/rpi-alpine-scratch
+FROM jonaskello/rpi-alpine-scratch-qemu
 
 MAINTAINER Sergio R. <sdelrio@users.noreply.github.com>
 
