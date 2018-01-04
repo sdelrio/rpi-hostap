@@ -72,10 +72,18 @@ But before this, hostap usually requires that wlan0 interface to be already up, 
 /sbin/ifconfig wlan0 192.168.254.1/24 up
 ```
 
-Also you should have a driver to enable hostap on your USB wifi
+Also you should have a driver to enable hostap on your USB wifi (if you are using Pi 3 integrated WiFI you won't need this).
 
 ```
 apt-get install firmware-ralink
+```
+
+
+Make sure you are not runing `wpa_supplicant` on your host machine or docker container will tell messages like `wlan0: Could not connect to kernel driver`.
+
+```
+# ps uaxf |grep wpa_supplicant
+root     22619  0.0  0.4   6616  3700 ?        Ss   22:04   0:00 /sbin/wpa_supplicant -s -B -P /run/wpa_supplicant.wlan0.pid -i wlan0 -D nl80211,wext -C /run/wpa_supplicant
 ```
 
 # Todo 
