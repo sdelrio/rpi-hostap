@@ -36,9 +36,15 @@ wpa_pairwise=CCMP
 rsn_pairwise=CCMP
 wpa_ptk_rekey=600
 wmm_enabled=1
+
+# Activate channel selection for HT High Througput (802.11an)
+
 ${HT_ENABLED+"ieee80211n=1"}
-${VHT_ENABLED+"ieee80211ac=1"}
 ${HT_CAPAB+"ht_capab=${HT_CAPAB}"}
+
+# Activate channel selection for VHT Very High Througput (802.11ac)
+
+${VHT_ENABLED+"ieee80211ac=1"}
 ${VHT_CAPAB+"vht_capab=${VHT_CAPAB}"}
 EOF
 
