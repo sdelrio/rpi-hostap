@@ -1,5 +1,6 @@
 #!/bin/bash
 
+
 # Check if running in privileged mode
 if [ ! -w "/sys" ] ; then
     echo "[Error] Not running in privileged mode."
@@ -112,5 +113,36 @@ EOF
 echo "Starting DHCP server .."
 dhcpd wlan0
 
+# Capture external docker signals
+trap 'true' SIGINT
+trap 'true' SIGTERM
+trap 'true' SIGHUP
+
 echo "Starting HostAP daemon ..."
-/usr/sbin/hostapd /etc/hostapd.conf
+/usr/sbin/hostapd /etc/hostapd.conf &
+
+wait $!
+
+echo "Removing iptables rules..."
+
+if [ "${OUTGOINGS}" ] ; then
+   ints="$(sed 's/,\+/ /g' <<<"${OUTGOINGS}")"
+   for int in ${ints}
+   do
+      echo "Removing iptables for outgoing traffics on ${int}..."
+
+      iptables -t nat -D POSTROUTING -s ${SUBNET}/24 -o ${int} -j MASQUERADE > /dev/null 2>&1 || true
+
+      iptables -D FORWARD -i ${int} -o ${INTERFACE} -m state --state RELATED,ESTABLISHED -j ACCEPT > /dev/null 2>&1 || true
+
+      iptables -D FORWARD -i ${INTERFACE} -o ${int} -j ACCEPT > /dev/null 2>&1 || true
+   done
+else
+   echo "Setting iptables for outgoing traffics on all interfaces..."
+
+   iptables -t nat -D POSTROUTING -s ${SUBNET}/24 -j MASQUERADE > /dev/null 2>&1 || true
+
+   iptables -D FORWARD -o ${INTERFACE} -m state --state RELATED,ESTABLISHED -j ACCEPT > /dev/null 2>&1 || true
+
+   iptables -D FORWARD -i ${INTERFACE} -j ACCEPT > /dev/null 2>&1 || true
+fi
