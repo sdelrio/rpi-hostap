@@ -34,7 +34,7 @@ Make sure your USB support AP mode:
 ...
 ```
 
-Set country regulations, for excample, to Spain set:
+Set country regulations, for example, to Spain set:
 
 ```
 # iw reg set ES
