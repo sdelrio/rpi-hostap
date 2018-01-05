@@ -60,7 +60,7 @@ echo "NAT settings ip_dynaddr, ip_forward"
 
 
 for i in ip_dynaddr ip_forward ; do
-  if [ $(cat /proc/sys/net/ipv4/$i) ]; then
+  if [ $(cat /proc/sys/net/ipv4/$i) -eq 1 ] ; then
     echo $i already 1
   else
     echo "1" > /proc/sys/net/ipv4/$i
