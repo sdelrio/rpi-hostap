@@ -1,5 +1,5 @@
 IMGNAME = rpi-hostap
-VERSION = 0.24
+VERSION = $(shell grep "ENV VERSION" Dockerfile| awk 'NF>1{print $$NF}')
 SUBNET  = 192.168.254.0
 APADDR  = 192.168.254.1
 .PHONY: all build test taglatest  
