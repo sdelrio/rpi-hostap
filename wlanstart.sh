@@ -111,7 +111,7 @@ subnet ${SUBNET} netmask 255.255.255.0 {
 EOF
 
 echo "Starting DHCP server .."
-dhcpd wlan0
+dhcpd ${INTERFACE}
 
 # Capture external docker signals
 trap 'true' SIGINT
