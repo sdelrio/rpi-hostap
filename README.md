@@ -1,11 +1,11 @@
-# Docker container stack: hostap + dhcp server 
+# Docker container stack: hostap + dhcp server
 
 Designed to work on **Raspberry Pi** (arm) using as base image alpine linux (very little size).
 
 # Idea
 
 
-Since my last change on ISP, they put a cable modem with a horrible Wireless, it drops lots of packets, and I didn't want to put an extra AP or wireless router. 
+Since my last change on ISP, they put a cable modem with a horrible Wireless, it drops lots of packets, and I didn't want to put an extra AP or wireless router.
 
 Most of the time use wireless devices on same room so I decided to try to convert my current Pi on a small Access Point using a small USB dongle.
 
@@ -57,7 +57,7 @@ sudo docker run -d -t \
   -e INTERFACE=wlan0 \
   -e CHANNEL=6 \
   -e SSID=runssid \
-  -e APADDR=192.168.254.1 \
+  -e AP_ADDR=192.168.254.1 \
   -e SUBNET=192.168.254.0 \
   -e WPA_PASSPHRASE=passw0rd \
   -e OUTGOINGS=eth0 \
@@ -86,7 +86,6 @@ Make sure you are not runing `wpa_supplicant` on your host machine or docker con
 root     22619  0.0  0.4   6616  3700 ?        Ss   22:04   0:00 /sbin/wpa_supplicant -s -B -P /run/wpa_supplicant.wlan0.pid -i wlan0 -D nl80211,wext -C /run/wpa_supplicant
 ```
 
-# Todo 
+# Todo
 
 Improve README.md
-
