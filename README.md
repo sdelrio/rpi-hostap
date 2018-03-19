@@ -86,6 +86,19 @@ Make sure you are not runing `wpa_supplicant` on your host machine or docker con
 root     22619  0.0  0.4   6616  3700 ?        Ss   22:04   0:00 /sbin/wpa_supplicant -s -B -P /run/wpa_supplicant.wlan0.pid -i wlan0 -D nl80211,wext -C /run/wpa_supplicant
 ```
 
+## Environment Variables
+
+| Name            | Required | Description                    | Default Value |
+|:---------------:|:--------:|:------------------------------:|:-------------:|
+| INTERFACE       | true     | The wireless interface         |               |
+| CHANNEL         | false    | WiFi Channel to use            | 11            |
+| SSID            | false    | WiFi Name                      | raspberry     |
+| AP\_ADDR        | false    | Access Point IP Address        | 192.168.254.1 |
+| SUBNET          | false    | WiFi network subnet            | 192.168.254.0 |
+| WPA\_PASSPHRASE | false    | WiFi Password                  | passw0rd      |
+| OUTGOINGS       | false    | Interfaces to external traffic |               |
+| HW\_MODE        | false    | Hardware protocol              | g             |
+
 # Todo
 
 Improve README.md
