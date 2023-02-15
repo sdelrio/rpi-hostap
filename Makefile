@@ -1,13 +1,41 @@
-IMGNAME = rpi-hostap
+IMGNAME = sdelrio/rpi-hostap
 VERSION = $(shell grep "ENV VERSION" Dockerfile| awk 'NF>1{print $$NF}')
 SUBNET  = 192.168.254.0
 APADDR  = 192.168.254.1
+PLATFORM ?= linux/amd64,linux/arm/v7,linux/arm64
 .PHONY: all build test taglatest
 
 all: build test
 
 build:
 	@docker build -t $(IMGNAME):$(VERSION) --rm . && echo Buildname: $(IMGNAME):$(VERSION)
+
+build-multiarch:
+	$(info Make: Building container images: $(IMGNAME):${VERSION})
+	docker buildx build \
+		--platform $(PLATFORM) \
+		--progress=plain \
+		--tag $(IMGNAME):$(VERSION) \
+		.
+
+build-multiarch-push:
+	$(info Make: Building container images: $(IMGNAME):${VERSION})
+	docker buildx build \
+		--platform $(PLATFORM) \
+		--progress=plain \
+		--tag $(IMGNAME):$(VERSION) \
+		--push \
+		.
+
+build-multiarch-push-latest:
+	$(info Make: Building container images: $(IMGNAME):latest)
+	docker buildx build \
+		--platform $(PLATFORM) \
+		--progress=plain \
+		--tag $(IMGNAME):latest \
+		--push \
+		.
+
 test:
 	@sudo /sbin/ifconfig wlan0 $(APADDR)/24 down
 	@sudo /sbin/ifconfig wlan0 $(APADDR)/24 up
