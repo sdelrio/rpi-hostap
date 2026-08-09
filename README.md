@@ -1,6 +1,7 @@
 # rpi-hostap
 
 [![Docker Image](https://img.shields.io/docker/v/sdelrio/rpi-hostap?label=DockerHub)](https://hub.docker.com/r/sdelrio/rpi-hostap)
+[![GHCR](https://img.shields.io/badge/GitHub-ghcr.io/sdelrio%2Frpi--hostap-blue)](https://ghcr.io/sdelrio/rpi-hostap)
 [![GitHub Release](https://img.shields.io/github/v/release/sdelrio/rpi-hostap)](https://github.com/sdelrio/rpi-hostap/releases)
 [![License](https://img.shields.io/github/license/sdelrio/rpi-hostap)](LICENSE)
 
