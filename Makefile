@@ -1,18 +1,48 @@
 IMGNAME = sdelrio/rpi-hostap
-VERSION = $(shell grep "ENV VERSION" Dockerfile| awk 'NF>1{print $$NF}')
+VERSION = $(shell grep "ENV VERSION" Dockerfile | awk -F= '{print $$NF}')
 SUBNET  = 192.168.254.0
 APADDR  = 192.168.254.1
 PLATFORM ?= linux/amd64,linux/arm/v7,linux/arm64
-.PHONY: all build test taglatest
+
+OS := $(shell uname -s)
+ifeq ($(OS),Darwin)
+  ifneq (,$(shell command -v podman 2>/dev/null))
+    PODMAN_SOCKET := $(shell podman machine inspect --format '{{.ConnectionInfo.PodmanSocket.Path}}' 2>/dev/null)
+    ifneq ($(PODMAN_SOCKET),)
+      export DOCKER_HOST = unix://$(PODMAN_SOCKET)
+    endif
+  endif
+endif
+
+# Detect build tool: prefer docker buildx, fallback to podman
+HAS_BUILDX := $(shell docker buildx version >/dev/null 2>&1 && echo 1)
+ifdef HAS_BUILDX
+  BUILDER = docker buildx
+else ifneq (,$(shell command -v podman 2>/dev/null))
+  BUILDER = podman
+else
+  BUILDER = $(error Neither docker buildx nor podman found)
+endif
+
+.PHONY: all build test taglatest prepare
 
 all: build test
 
+prepare:
+ifeq ($(OS),Darwin)
+	@if command -v podman >/dev/null 2>&1; then \
+		if podman machine inspect --format '{{.ConnectionInfo.PodmanSocket.Path}}' >/dev/null 2>&1; then \
+			echo "Docker host set to Podman socket"; \
+		fi; \
+	fi
+endif
+
 build:
-	@docker build -t $(IMGNAME):$(VERSION) --rm . && echo Buildname: $(IMGNAME):$(VERSION)
+	@$(BUILDER) build -t $(IMGNAME):$(VERSION) --rm . && echo Buildname: $(IMGNAME):$(VERSION)
 
 build-multiarch:
 	$(info Make: Building container images: $(IMGNAME):${VERSION})
-	docker buildx build \
+	$(BUILDER) build \
 		--platform $(PLATFORM) \
 		--progress=plain \
 		--tag $(IMGNAME):$(VERSION) \
@@ -20,7 +50,7 @@ build-multiarch:
 
 build-multiarch-push:
 	$(info Make: Building container images: $(IMGNAME):${VERSION})
-	docker buildx build \
+	$(BUILDER) build \
 		--platform $(PLATFORM) \
 		--progress=plain \
 		--tag $(IMGNAME):$(VERSION) \
@@ -29,7 +59,7 @@ build-multiarch-push:
 
 build-multiarch-push-latest:
 	$(info Make: Building container images: $(IMGNAME):latest)
-	docker buildx build \
+	$(BUILDER) build \
 		--platform $(PLATFORM) \
 		--progress=plain \
 		--tag $(IMGNAME):latest \
