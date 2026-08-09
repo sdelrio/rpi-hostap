@@ -79,6 +79,16 @@ apt-get install firmware-ralink
 ```
 
 
+## NAT / IP Forwarding
+
+The container enables IP forwarding at runtime, but for persistence across host reboots, enable it on the host:
+
+```bash
+sudo sed -i 's/#net.ipv4.ip_forward=1/net.ipv4.ip_forward=1/' /etc/sysctl.conf
+sudo sed -i 's/#net.ipv6.conf.all.forwarding=1/net.ipv6.conf.all.forwarding=1/' /etc/sysctl.conf
+sudo sysctl -p
+```
+
 Make sure you are not runing `wpa_supplicant` on your host machine or docker container will tell messages like `wlan0: Could not connect to kernel driver`.
 
 ```
