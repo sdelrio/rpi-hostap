@@ -4,7 +4,7 @@
 
 ### How It Works
 
-1. Push conventional commits (`fix:`, `feat:`, `BREAKING CHANGE:`) to `master`
+1. Push [conventional commits](https://www.conventionalcommits.org/) (`fix:`, `feat:`, `BREAKING CHANGE:`) to `master`
 2. Release Please automatically creates/updates a **Release PR** with:
    - Version bump in `.release-please-manifest.json` and `Dockerfile`
    - Changelog entries from commit messages
