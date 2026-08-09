@@ -70,3 +70,14 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Summary
+        run: |
+          echo "### Pushed Images" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Registry | Image |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| DockerHub | \`${{ github.repository }}:${{ steps.version.outputs.VERSION }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| DockerHub | \`${{ github.repository }}:latest\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| GHCR | \`ghcr.io/${{ github.repository }}:${{ steps.version.outputs.VERSION }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| GHCR | \`ghcr.io/${{ github.repository }}:latest\` |" >> $GITHUB_STEP_SUMMARY
