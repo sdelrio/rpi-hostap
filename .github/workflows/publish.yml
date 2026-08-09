@@ -3,6 +3,12 @@ name: Publish Container Image
 on:
   release:
     types: [released]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Container image tag to publish"
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -36,7 +42,12 @@ jobs:
 
       - name: Extract version from tag
         id: version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+        run: |
+          if [ -n "${{ inputs.tag }}" ]; then
+            echo "VERSION=${{ inputs.tag }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "VERSION=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Docker meta
         id: meta
