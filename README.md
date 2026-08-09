@@ -1,87 +1,114 @@
-# Docker container stack: hostap + dhcp server
+# rpi-hostap
 
-Designed to work on **Raspberry Pi** (arm) using as base image alpine linux (very little size).
+[![Docker Image](https://img.shields.io/docker/v/sdelrio/rpi-hostap?label=DockerHub)](https://hub.docker.com/r/sdelrio/rpi-hostap)
+[![GitHub Release](https://img.shields.io/github/v/release/sdelrio/rpi-hostap)](https://github.com/sdelrio/rpi-hostap/releases)
+[![License](https://img.shields.io/github/license/sdelrio/rpi-hostap)](LICENSE)
 
-# Idea
+Lightweight Docker container that turns a Raspberry Pi into a wireless Access Point with DHCP server. Built on Alpine Linux for minimal footprint.
 
+## Overview
 
-Since my last change on ISP, they put a cable modem with a horrible Wireless, it drops lots of packets, and I didn't want to put an extra AP or wireless router.
+Turn any Raspberry Pi with a USB WiFi dongle into a standalone Access Point. Ideal for:
 
-Most of the time use wireless devices on same room so I decided to try to convert my current Pi on a small Access Point using a small USB dongle.
+- Isolated wireless networks without internet
+- Portable hotspots for field devices
+- Lab/development environments
+- Replacing unreliable router wireless
 
+## Prerequisites
 
-# Requirements
+### WiFi Adapter
 
-On the host system, the ralink firmware (in my case) should be installed so you can use it on AP mode. On debian/raspbian:
+Your USB WiFi adapter must support **AP mode**. Verify with:
 
+```bash
+iw list | grep -A 10 "Supported interface modes"
 ```
+
+Expected output should include `* AP`.
+
+### Firmware
+
+Install the appropriate driver on the host. For Ralink adapters on Debian/Raspbian:
+
+```bash
 apt-get install firmware-ralink
 ```
 
-Make sure your USB support AP mode:
+> **Note:** Raspberry Pi 3/4 built-in WiFi does not require additional drivers.
 
-```
-# iw list
-...
-        Supported interface modes:
-                 * IBSS
-                 * managed
-                 * AP
-                 * AP/VLAN
-                 * WDS
-                 * monitor
-                 * mesh point
-...
+### Country Code
+
+Set your country's wireless regulations on the host:
+
+```bash
+iw reg set <COUNTRY_CODE>
 ```
 
-Set country regulations, for example, to Spain set:
+Example for Spain:
 
-```
-# iw reg set ES
-country ES: DFS-ETSI
-        (2400 - 2483 @ 40), (N/A, 20), (N/A)
-        (5150 - 5250 @ 80), (N/A, 23), (N/A), NO-OUTDOOR
-        (5250 - 5350 @ 80), (N/A, 20), (0 ms), NO-OUTDOOR, DFS
-        (5470 - 5725 @ 160), (N/A, 26), (0 ms), DFS
-        (57000 - 66000 @ 2160), (N/A, 40), (N/A)
+```bash
+iw reg set ES
 ```
 
-# Build / run
+### Disable wpa_supplicant
 
-For modification, testings, etc.. there is already a `Makefile`. So you can `make run` to start a sample ssid with a simple password.
+If `wpa_supplicant` is running on the host, it will conflict with the container. Stop it before running:
 
-I've already uploaded the image to docker hubs, so you can run it from ther like this:
-
+```bash
+sudo systemctl stop wpa_supplicant
+sudo systemctl disable wpa_supplicant
 ```
-sudo docker run -d -t \
-  -e INTERFACE=wlan0 \
-  -e CHANNEL=6 \
-  -e SSID=runssid \
-  -e AP_ADDR=192.168.254.1 \
-  -e SUBNET=192.168.254.0 \
-  -e WPA_PASSPHRASE=passw0rd \
-  -e OUTGOINGS=eth0 \
+
+## Quick Start
+
+1. Bring up the WiFi interface on the host:
+
+```bash
+sudo ip link set wlan0 up
+sudo ip addr add 192.168.254.1/24 dev wlan0
+```
+
+2. Run the container:
+
+```bash
+docker run -d \
+  --name rpi-hostap \
   --privileged \
   --net host \
+  -e INTERFACE=wlan0 \
+  -e SSID=MyAccessPoint \
+  -e WPA_PASSPHRASE=changeme \
+  -e OUTGOINGS=eth0 \
   sdelrio/rpi-hostap:latest
 ```
 
-But before this, hostap usually requires that wlan0 interface to be already up, so before `docker run` take the interface up:
+## Configuration
 
+### Environment Variables
+
+| Variable | Required | Description | Default |
+|:--------:|:--------:|:-----------:|:-------:|
+| `INTERFACE` | Yes | Wireless interface to use | — |
+| `SSID` | No | Network name | `raspberry` |
+| `WPA_PASSPHRASE` | No | WiFi password | `passw0rd` |
+| `CHANNEL` | No | WiFi channel | `11` |
+| `AP_ADDR` | No | Access point IP | `192.168.254.1` |
+| `SUBNET` | No | Network subnet | `192.168.254.0` |
+| `OUTGOINGS` | No | Comma-separated outgoing interfaces for NAT | All interfaces |
+| `HW_MODE` | No | Hardware mode (`g` = 2.4GHz, `a` = 5GHz) | `g` |
+
+### Build from Source
+
+```bash
+make run
 ```
-/sbin/ifconfig wlan0 192.168.254.1/24 up
-```
 
-Also you should have a driver to enable hostap on your USB wifi (if you are using Pi 3 integrated WiFI you won't need this).
+## Networking
 
-```
-apt-get install firmware-ralink
-```
+### NAT / IP Forwarding
 
-
-## NAT / IP Forwarding
-
-The container enables IP forwarding at runtime, but for persistence across host reboots, enable it on the host:
+The container enables IP forwarding at runtime. For persistence across host reboots:
 
 ```bash
 sudo sed -i 's/#net.ipv4.ip_forward=1/net.ipv4.ip_forward=1/' /etc/sysctl.conf
@@ -89,26 +116,44 @@ sudo sed -i 's/#net.ipv6.conf.all.forwarding=1/net.ipv6.conf.all.forwarding=1/' 
 sudo sysctl -p
 ```
 
-Make sure you are not runing `wpa_supplicant` on your host machine or docker container will tell messages like `wlan0: Could not connect to kernel driver`.
+### Outgoing Interfaces
 
+By default, NAT is applied to all outgoing interfaces. To restrict to specific interfaces (e.g., `eth0`):
+
+```bash
+-e OUTGOINGS=eth0
 ```
-# ps uaxf |grep wpa_supplicant
-root     22619  0.0  0.4   6616  3700 ?        Ss   22:04   0:00 /sbin/wpa_supplicant -s -B -P /run/wpa_supplicant.wlan0.pid -i wlan0 -D nl80211,wext -C /run/wpa_supplicant
+
+For multiple interfaces:
+
+```bash
+-e OUTGOINGS=eth0,wwan0
 ```
 
-## Environment Variables
+## Troubleshooting
 
-| Name            | Required | Description                    | Default Value |
-|:---------------:|:--------:|:------------------------------:|:-------------:|
-| INTERFACE       | true     | The wireless interface         |               |
-| CHANNEL         | false    | WiFi Channel to use            | 11            |
-| SSID            | false    | WiFi Name                      | raspberry     |
-| AP\_ADDR        | false    | Access Point IP Address        | 192.168.254.1 |
-| SUBNET          | false    | WiFi network subnet            | 192.168.254.0 |
-| WPA\_PASSPHRASE | false    | WiFi Password                  | passw0rd      |
-| OUTGOINGS       | false    | Interfaces to external traffic |               |
-| HW\_MODE        | false    | Hardware protocol              | g             |
+### "Could not connect to kernel driver"
 
-# Todo
+`wpa_supplicant` is using the interface. Stop it on the host:
 
-Improve README.md
+```bash
+sudo systemctl stop wpa_supplicant
+```
+
+### Container exits immediately
+
+Check logs:
+
+```bash
+docker logs rpi-hostap
+```
+
+Ensure the WiFi interface is up and not in use by another process.
+
+## Contributing
+
+See [CI.md](CI.md) for details on the release process and versioning.
+
+## License
+
+See [LICENSE](LICENSE) for details.
