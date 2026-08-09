@@ -103,17 +103,15 @@ fi
 
 echo "Configuring DHCP server .."
 
-cat > "/etc/dhcpd.conf" <<EOF
-option domain-name-servers ${PRI_DNS}, ${SEC_DNS};
-option subnet-mask 255.255.255.0;
-option routers ${AP_ADDR};
-subnet ${SUBNET} netmask 255.255.255.0 {
-  range ${SUBNET::-1}100 ${SUBNET::-1}200;
-}
+cat > "/etc/dnsmasq.conf" <<EOF
+interface=${INTERFACE}
+dhcp-range=${SUBNET::-1}100,${SUBNET::-1}200,255.255.255.0,12h
+dhcp-option=option:router,${AP_ADDR}
+dhcp-option=option:dns-server,${PRI_DNS},${SEC_DNS}
 EOF
 
 echo "Starting DHCP server .."
-dhcpd ${INTERFACE}
+dnsmasq --no-daemon &
 
 # Capture external docker signals
 trap 'true' SIGINT
