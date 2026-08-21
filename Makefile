@@ -120,9 +120,8 @@ shell:
 	--rm \
 	$(IMGNAME):$(VERSION) || sudo docker stop $(IMGNAME)_shell && docker rm $(IMGNAME)_shell
 clean:
-	@docker ps -a |grep rpi-hostap |cut -f 1 -d' '|xargs -P1 -i docker stop {}
-	@docker ps -a |grep rpi-hostap |cut -f 1 -d' '|xargs -P1 -i docker rm {}
-	@docker rmi $(IMGNAME):$(VERSION)
+	@docker ps -a --filter "name=rpi-hostap" -q | xargs -r docker rm -f 2>/dev/null || true
+	@docker rmi $(IMGNAME):$(VERSION) 2>/dev/null || true
 taglatest:
 	docker tag $(IMGNAME):$(VERSION) $(IMGNAME):latest
 	docker tag $(IMGNAME):$(VERSION) sdelrio/$(IMGNAME):$(VERSION)
