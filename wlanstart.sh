@@ -137,10 +137,26 @@ dhcp-option=option:router,${AP_ADDR}
 dhcp-option=option:dns-server,${PRI_DNS},${SEC_DNS}
 EOF
 
+echo "Starting dnsmasq daemon ..."
+dnsmasq --no-daemon &
+DNSMASQ_PID=$!
+
+if ! kill -0 "${DNSMASQ_PID}" 2>/dev/null ; then
+    echo "[Error] dnsmasq failed to start."
+    exit 1
+fi
+
 echo "Starting HostAP daemon ..."
 /usr/sbin/hostapd /etc/hostapd.conf &
+HOSTAPD_PID=$!
 
-wait $!
+if ! kill -0 "${HOSTAPD_PID}" 2>/dev/null ; then
+    echo "[Error] hostapd failed to start."
+    kill "${DNSMASQ_PID}" 2>/dev/null
+    exit 1
+fi
+
+wait "${DNSMASQ_PID}" "${HOSTAPD_PID}"
 
 echo "Removing iptables rules..."
 
