@@ -124,9 +124,9 @@ clean:
 	@docker ps -a |grep rpi-hostap |cut -f 1 -d' '|xargs -P1 -i docker rm {}
 	@docker rmi $(IMGNAME):$(VERSION)
 taglatest:
-	docker tag -f $(IMGNAME):$(VERSION) $(IMGNAME):lastest
-	docker tag -f $(IMGNAME):$(VERSION) sdelrio/$(IMGNAME):$(VERSION)
-	docker tag -f $(IMGNAME):$(VERSION) sdelrio/$(IMGNAME):latest
+	docker tag $(IMGNAME):$(VERSION) $(IMGNAME):latest
+	docker tag $(IMGNAME):$(VERSION) sdelrio/$(IMGNAME):$(VERSION)
+	docker tag $(IMGNAME):$(VERSION) sdelrio/$(IMGNAME):latest
 push:
 	docker push sdelrio/$(IMGNAME)
 	docker push sdelrio/$(IMGNAME):$(VERSION)
