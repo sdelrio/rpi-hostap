@@ -67,8 +67,9 @@ build-multiarch-push-latest:
 		.
 
 test:
-	@sudo /sbin/ifconfig wlan0 $(APADDR)/24 down
-	@sudo /sbin/ifconfig wlan0 $(APADDR)/24 up
+	@sudo /sbin/ip link set wlan0 down
+	@sudo /sbin/ip addr add $(APADDR)/24 dev wlan0 2>/dev/null || true
+	@sudo /sbin/ip link set wlan0 up
 	sudo docker run -t \
         --name $(IMGNAME)_test \
 	-e INTERFACE=wlan0 \
@@ -86,8 +87,9 @@ test:
 	$(IMGNAME):$(VERSION) \
         /bin/test.sh || sudo docker stop $(IMGNAME)_test && docker rm $(IMGNAME)_test
 run:
-	@sudo /sbin/ifconfig wlan0 $(APADDR)/24 down
-	@sudo /sbin/ifconfig wlan0 $(APADDR)/24 up
+	@sudo /sbin/ip link set wlan0 down
+	@sudo /sbin/ip addr add $(APADDR)/24 dev wlan0 2>/dev/null || true
+	@sudo /sbin/ip link set wlan0 up
 	sudo docker run -d -t \
         --name $(IMGNAME)_run \
 	-e INTERFACE=wlan0 \
@@ -104,8 +106,9 @@ stop:
 	@docker stop $(IMGNAME)_test || docker stop $(IMGNAME)_run || docker stop $(IMGNAME)_shell
 	@docker rm $(IMGNAME)_test || docker rm $(IMGNAME)_run || docker rm $(IMGNAME)_shell
 shell:
-	@sudo /sbin/ifconfig wlan0 $(APADDR)/24 down
-	@sudo /sbin/ifconfig wlan0 $(APADDR)/24 up
+	@sudo /sbin/ip link set wlan0 down
+	@sudo /sbin/ip addr add $(APADDR)/24 dev wlan0 2>/dev/null || true
+	@sudo /sbin/ip link set wlan0 up
 	@sudo docker run -t \
         --name $(IMGNAME)_shell \
 	-e INTERFACE=wlan0 \
