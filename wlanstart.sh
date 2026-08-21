@@ -23,6 +23,14 @@ true ${CHANNEL:=11}
 true ${WPA_PASSPHRASE:=passw0rd}
 true ${HW_MODE:=g}
 
+# Startup warnings for default credentials
+if [ "${SSID}" = "raspberry" ] ; then
+    echo "[Warning] Using default SSID 'raspberry'. Set SSID env var for production."
+fi
+if [ "${WPA_PASSPHRASE}" = "passw0rd" ] ; then
+    echo "[Warning] Using default WPA passphrase. Set WPA_PASSPHRASE env var for production."
+fi
+
 if [ ! -f "/etc/hostapd.conf" ] ; then
     cat > "/etc/hostapd.conf" <<EOF
 interface=${INTERFACE}
@@ -103,20 +111,31 @@ fi
 
 echo "Configuring DHCP server .."
 
+# Default DHCP lease time
+true ${DHCP_LEASE:=12h}
+
+# Compute default DHCP range if not set
+if [ -z "${DHCP_RANGE}" ] ; then
+    SUBNET_PREFIX=$(echo $SUBNET | rev | cut -d. -f2- | rev)
+    DHCP_RANGE="${SUBNET_PREFIX}.100,${SUBNET_PREFIX}.200,255.255.255.0,${DHCP_LEASE}"
+    echo "[Warning] DHCP_RANGE not set, using default: $DHCP_RANGE"
+else
+    # Validate DHCP_RANGE format: must contain exactly 3 commas (start_ip,end_ip,netmask,lease)
+    COMMA_COUNT=$(echo "${DHCP_RANGE}" | tr -cd ',' | wc -c)
+    if [ "${COMMA_COUNT}" -ne 3 ] ; then
+        echo "[Error] Invalid DHCP_RANGE format: '${DHCP_RANGE}'"
+        echo "  Expected: start_ip,end_ip,netmask,lease_time"
+        echo "  Example: 192.168.254.100,192.168.254.200,255.255.255.0,12h"
+        exit 1
+    fi
+fi
+
 cat > "/etc/dnsmasq.conf" <<EOF
 interface=${INTERFACE}
-dhcp-range=${SUBNET::-1}100,${SUBNET::-1}200,255.255.255.0,12h
+dhcp-range=${DHCP_RANGE}
 dhcp-option=option:router,${AP_ADDR}
 dhcp-option=option:dns-server,${PRI_DNS},${SEC_DNS}
 EOF
-
-echo "Starting DHCP server .."
-dnsmasq --no-daemon &
-
-# Capture external docker signals
-trap 'true' SIGINT
-trap 'true' SIGTERM
-trap 'true' SIGHUP
 
 echo "Starting HostAP daemon ..."
 /usr/sbin/hostapd /etc/hostapd.conf &

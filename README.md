@@ -98,6 +98,8 @@ docker run -d \
 | `SUBNET` | No | Network subnet | `192.168.254.0` |
 | `OUTGOINGS` | No | Comma-separated outgoing interfaces for NAT | All interfaces |
 | `HW_MODE` | No | Hardware mode (`g` = 2.4GHz, `a` = 5GHz) | `g` |
+| `DHCP_RANGE` | No | DHCP range (`start,end,mask,lease`) | Auto from SUBNET |
+| `DHCP_LEASE` | No | DHCP lease time (used with default range) | `12h` |
 
 ### Build from Source
 
