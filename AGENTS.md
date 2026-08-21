@@ -51,3 +51,4 @@ To move a GitHub issue from one status to another:
 3. Agent should always check GitHub issues before beginning work
 4. **Never push to master directly**: Always prepare a Pull Request for review
 5. **Pin GitHub Actions to SHA**: All actions in workflow files must use full-length commit SHAs (e.g., `uses: actions/checkout@<sha> # v7.0.1`). This is enforced by repository rules. To find an action's SHA: `gh api repos/<owner>/<repo>/tags --jq '.[0].commit.sha'`
+6. **Use Conventional Commits for PR titles**: PR titles must follow conventional commit format (e.g., `fix: description`, `feat: description`, `chore: description`). Include the issue number in the PR body.
