@@ -31,9 +31,17 @@ validate_channel() {
                 echo "[Error] Channel '${CHANNEL}' must be a positive integer" >&2
                 return 1
             fi
-            if [ "${CHANNEL}" -le 14 ] 2>/dev/null; then
-                echo "[Warning] Channel ${CHANNEL} may be invalid for hw_mode=a (5GHz typically > 14)" >&2
-            fi
+            case "${CHANNEL}" in
+                36|40|44|48|149|153|157|161|165)
+                    ;;
+                52|56|60|64|100|104|108|112|116|120|124|128|132|136|140|144)
+                    echo "[Warning] Channel ${CHANNEL} is a DFS channel (radar detection/CAC required), may not work on all drivers" >&2
+                    ;;
+                *)
+                    echo "[Error] Channel ${CHANNEL} not allowed for hw_mode=a (allowed: 36,40,44,48,149,153,157,161,165; DFS: 52-144)" >&2
+                    return 1
+                    ;;
+            esac
             ;;
         *)
             echo "[Warning] Unknown hw_mode='${HW_MODE}', skipping channel validation" >&2

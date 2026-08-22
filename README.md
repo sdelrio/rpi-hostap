@@ -126,6 +126,12 @@ When `COUNTRY_CODE` is set, 2.4 GHz channels (`hw_mode=g` or `b`) are validated 
 
 Unknown countries fall back to the ETSI limit (1–13). A warning is emitted if `COUNTRY_CODE` is not set.
 
+For 5 GHz (`hw_mode=a`), channels are validated against the allowed 5 GHz set:
+
+- **Non-DFS channels** (always allowed): 36, 40, 44, 48, 149, 153, 157, 161, 165
+- **DFS channels** (allowed with a radar detection/CAC warning): 52, 56, 60, 64, 100–144 (in steps of 4)
+- Any other channel is rejected with a clear error.
+
 ### Build from Source
 
 ```bash
