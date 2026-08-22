@@ -22,6 +22,7 @@ true ${SSID:=raspberry}
 true ${CHANNEL:=11}
 true ${WPA_PASSPHRASE:=passw0rd}
 true ${HW_MODE:=g}
+true ${MAX_STATIONS:=0}
 
 # Startup warnings for default credentials
 if [ "${SSID}" = "raspberry" ] ; then
@@ -29,6 +30,11 @@ if [ "${SSID}" = "raspberry" ] ; then
 fi
 if [ "${WPA_PASSPHRASE}" = "passw0rd" ] ; then
     echo "[Warning] Using default WPA passphrase. Set WPA_PASSPHRASE env var for production."
+fi
+
+_MAX_STA_CONF=""
+if [ "${MAX_STATIONS}" -gt 0 ] 2>/dev/null ; then
+    _MAX_STA_CONF="max_num_sta=${MAX_STATIONS}"
 fi
 
 if [ ! -f "/etc/hostapd.conf" ] ; then
@@ -47,6 +53,7 @@ wpa_pairwise=CCMP
 rsn_pairwise=CCMP
 wpa_ptk_rekey=600
 wmm_enabled=1
+${_MAX_STA_CONF}
 
 # Activate channel selection for HT High Througput (802.11an)
 
