@@ -22,6 +22,7 @@ run_cleanup_mocked() {
     bash -c "
 _mock_log() { echo \"\$@\" >> \"$_MOCK_LOG\"; }
 iptables() { _mock_log \"iptables \$@\"; }
+ip() { _mock_log \"ip \$@\"; }
 kill() { _mock_log \"kill \$@\"; }
 wait() { _mock_log \"wait \$@\"; }
 $(sed -n '/^parse_outgoings()/,/^}/p; /^cleanup()/,/^}/p' wlanstart.sh)
@@ -116,6 +117,19 @@ cleanup
     [[ "$output" == *"Removing iptables for outgoing traffics on eth1..."* ]]
     [[ "$output" == *"iptables -t nat -D POSTROUTING -s 192.168.254.0/24 -o eth0 -j MASQUERADE"* ]]
     [[ "$output" == *"iptables -t nat -D POSTROUTING -s 192.168.254.0/24 -o eth1 -j MASQUERADE"* ]]
+}
+
+@test "cleanup flushes interface address and brings link down" {
+    run run_cleanup_mocked
+    [[ "$output" == *"ip addr flush dev wlan0"* ]]
+    [[ "$output" == *"ip link set wlan0 down"* ]]
+}
+
+@test "cleanup skips interface teardown when INTERFACE unset" {
+    export INTERFACE=""
+    run run_cleanup_mocked
+    [[ "$output" != *"ip addr flush"* ]]
+    [[ "$output" != *"ip link set"* ]]
 }
 
 @test "cleanup exits with status 0" {

@@ -34,6 +34,12 @@ cleanup() {
         iptables -D FORWARD -i "${INTERFACE}" -j ACCEPT > /dev/null 2>&1 || true
     fi
 
+    if [ -n "${INTERFACE}" ] ; then
+        echo "Flushing interface ${INTERFACE}..."
+        ip addr flush dev "${INTERFACE}" 2>/dev/null || true
+        ip link set "${INTERFACE}" down 2>/dev/null || true
+    fi
+
     exit 0
 }
 
