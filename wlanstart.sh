@@ -79,6 +79,7 @@ true ${SEC_DNS:=8.8.4.4}
 true ${SSID:=raspberry}
 true ${WPA_PASSPHRASE:=passw0rd}
 true ${MAX_STATIONS:=0}
+true ${LOG_LEVEL:=2}
 
 # Startup warnings for default credentials
 if [ "${SSID}" = "raspberry" ] ; then
@@ -89,6 +90,10 @@ if [ "${WPA_PASSPHRASE}" = "passw0rd" ] ; then
 fi
 if [ "${MAX_STATIONS}" != "0" ] && ! [ "${MAX_STATIONS}" -gt 0 ] 2>/dev/null ; then
     echo "[Warning] Invalid MAX_STATIONS '${MAX_STATIONS}'. Must be a non-negative integer. Ignoring."
+fi
+if ! [ "${LOG_LEVEL}" -ge 0 ] 2>/dev/null || ! [ "${LOG_LEVEL}" -le 4 ] 2>/dev/null ; then
+    echo "[Warning] Invalid LOG_LEVEL '${LOG_LEVEL}'. Must be an integer between 0 (verbose debug) and 4 (minimal). Using default '2'."
+    LOG_LEVEL=2
 fi
 
 _MAX_STA_CONF=""
@@ -101,6 +106,8 @@ if [ ! -f "/etc/hostapd.conf" ] ; then
 interface=${INTERFACE}
 ${DRIVER+"driver=${DRIVER}"}
 ssid=${SSID}
+logger_syslog_level=${LOG_LEVEL}
+logger_stdout_level=${LOG_LEVEL}
 ${HIDE_SSID+"ssid_hidden=${HIDE_SSID}"}
 hw_mode=${HW_MODE}
 channel=${CHANNEL}
@@ -205,8 +212,14 @@ dhcp-option=option:router,${AP_ADDR}
 dhcp-option=option:dns-server,${PRI_DNS},${SEC_DNS}
 EOF
 
+DNSMASQ_LOG_OPTS=""
+if [ "${LOG_LEVEL}" -le 1 ] 2>/dev/null ; then
+    echo "[Info] LOG_LEVEL=${LOG_LEVEL}: enabling dnsmasq query logging"
+    DNSMASQ_LOG_OPTS="--log-queries"
+fi
+
 echo "Starting dnsmasq daemon ..."
-dnsmasq --no-daemon &
+dnsmasq --no-daemon ${DNSMASQ_LOG_OPTS} &
 DNSMASQ_PID=$!
 
 if ! kill -0 "${DNSMASQ_PID}" 2>/dev/null ; then

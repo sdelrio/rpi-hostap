@@ -103,6 +103,7 @@ docker run -d \
 | `MAX_STATIONS` | No | Max connected clients (`0` = unlimited) | `0` |
 | `HIDE_SSID` | No | Hide SSID broadcast (`1` = hidden) | `0` |
 | `AP_ISOLATION` | No | Isolate clients from each other (`1` = enabled) | `0` |
+| `LOG_LEVEL` | No | Logging verbosity, `0` = verbose debug to `4` = minimal. At `0`/`1` dnsmasq query logging is also enabled | `2` |
 
 ### Build from Source
 
