@@ -41,15 +41,43 @@ if [ ! "${INTERFACE}" ] ; then
     exit 1
 fi
 
+# Set HW_MODE and CHANNEL early for validation
+true ${HW_MODE:=g}
+true ${CHANNEL:=11}
+
+# Validate channel against hardware mode
+case "${HW_MODE}" in
+    g|b)
+        if ! [ "${CHANNEL}" -gt 0 ] 2>/dev/null; then
+            echo "[Error] Channel '${CHANNEL}' must be a positive integer"
+            exit 1
+        fi
+        if [ "${CHANNEL}" -gt 14 ] 2>/dev/null; then
+            echo "[Error] Channel ${CHANNEL} is invalid for hw_mode=${HW_MODE} (max 14)"
+            exit 1
+        fi
+        ;;
+    a)
+        if ! [ "${CHANNEL}" -gt 0 ] 2>/dev/null; then
+            echo "[Error] Channel '${CHANNEL}' must be a positive integer"
+            exit 1
+        fi
+        if [ "${CHANNEL}" -le 14 ] 2>/dev/null; then
+            echo "[Warning] Channel ${CHANNEL} may be invalid for hw_mode=a (5GHz typically > 14)"
+        fi
+        ;;
+    *)
+        echo "[Warning] Unknown hw_mode='${HW_MODE}', skipping channel validation"
+        ;;
+esac
+
 # Default values
 true ${SUBNET:=192.168.254.0}
 true ${AP_ADDR:=192.168.254.1}
 true ${PRI_DNS:=8.8.8.8}
 true ${SEC_DNS:=8.8.4.4}
 true ${SSID:=raspberry}
-true ${CHANNEL:=11}
 true ${WPA_PASSPHRASE:=passw0rd}
-true ${HW_MODE:=g}
 true ${MAX_STATIONS:=0}
 
 # Startup warnings for default credentials
