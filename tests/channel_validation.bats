@@ -70,34 +70,63 @@ setup() {
 
 # --- a mode (5 GHz) ---
 
-@test "hw_mode=a with channel 36 passes" {
+@test "hw_mode=a with all non-DFS channels passes" {
     HW_MODE="a"
-    CHANNEL="36"
-    run validate_channel
-    [ "$status" -eq 0 ]
+    for ch in 36 40 44 48 149 153 157 161 165; do
+        CHANNEL="${ch}"
+        run validate_channel
+        [ "$status" -eq 0 ]
+    done
 }
 
-@test "hw_mode=a with channel 140 passes" {
+@test "hw_mode=a with DFS channel 52 warns but passes" {
     HW_MODE="a"
-    CHANNEL="140"
+    CHANNEL="52"
     run validate_channel
     [ "$status" -eq 0 ]
+    [[ "$output" == *"Warning"*"DFS"* ]]
 }
 
-@test "hw_mode=a with channel 11 issues warning" {
+@test "hw_mode=a with DFS channel 100 warns but passes" {
+    HW_MODE="a"
+    CHANNEL="100"
+    run validate_channel
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Warning"*"DFS"* ]]
+}
+
+@test "hw_mode=a with DFS channel 144 warns but passes" {
+    HW_MODE="a"
+    CHANNEL="144"
+    run validate_channel
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Warning"*"DFS"* ]]
+}
+
+@test "hw_mode=a with invalid channel fails with clear error" {
+    HW_MODE="a"
+    for ch in 15 34 50 145 1650; do
+        CHANNEL="${ch}"
+        run validate_channel
+        [ "$status" -eq 1 ]
+        [[ "$output" == *"Error"*"not allowed for hw_mode=a"* ]]
+    done
+}
+
+@test "hw_mode=a rejects channel 11 (2.4 GHz only)" {
     HW_MODE="a"
     CHANNEL="11"
     run validate_channel
-    [ "$status" -eq 0 ]
-    [[ "$output" == *"Warning"*"may be invalid"* ]]
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"Error"*"not allowed for hw_mode=a"* ]]
 }
 
-@test "hw_mode=a with channel 1 issues warning" {
+@test "hw_mode=a rejects channel 1 (2.4 GHz only)" {
     HW_MODE="a"
     CHANNEL="1"
     run validate_channel
-    [ "$status" -eq 0 ]
-    [[ "$output" == *"Warning"*"may be invalid"* ]]
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"Error"*"not allowed for hw_mode=a"* ]]
 }
 
 # --- non-numeric channel ---
