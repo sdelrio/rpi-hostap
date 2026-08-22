@@ -11,7 +11,7 @@ setup() {
 }
 
 load_cleanup() {
-    eval "$(sed -n '/^cleanup()/,/^}/p; /^trap cleanup/p' wlanstart.sh)"
+    eval "$(sed -n '/^parse_outgoings()/,/^}/p; /^cleanup()/,/^}/p; /^trap cleanup/p' wlanstart.sh)"
 }
 
 run_cleanup_mocked() {
@@ -24,7 +24,7 @@ _mock_log() { echo \"\$@\" >> \"$_MOCK_LOG\"; }
 iptables() { _mock_log \"iptables \$@\"; }
 kill() { _mock_log \"kill \$@\"; }
 wait() { _mock_log \"wait \$@\"; }
-$(sed -n '/^cleanup()/,/^}/p' wlanstart.sh)
+$(sed -n '/^parse_outgoings()/,/^}/p; /^cleanup()/,/^}/p' wlanstart.sh)
 INTERFACE=\"$INTERFACE\"
 SUBNET=\"$SUBNET\"
 OUTGOINGS=\"$OUTGOINGS\"
@@ -34,6 +34,28 @@ cleanup
 "
     cat "$mock_log"
     rm -f "$mock_log"
+}
+
+@test "parse_outgoings parses comma-separated interfaces" {
+    load_cleanup
+    OUTGOINGS="eth0,wlan0" parse_outgoings
+    [ "${#ints[@]}" -eq 2 ]
+    [ "${ints[0]}" = "eth0" ]
+    [ "${ints[1]}" = "wlan0" ]
+}
+
+@test "parse_outgoings collapses repeated commas" {
+    load_cleanup
+    OUTGOINGS="eth0,,wlan0," parse_outgoings
+    [ "${#ints[@]}" -eq 2 ]
+    [ "${ints[0]}" = "eth0" ]
+    [ "${ints[1]}" = "wlan0" ]
+}
+
+@test "parse_outgoings yields empty array when OUTGOINGS unset" {
+    load_cleanup
+    OUTGOINGS="" parse_outgoings
+    [ "${#ints[@]}" -eq 0 ]
 }
 
 @test "cleanup function is defined" {
