@@ -117,6 +117,31 @@ if [ "${MAX_STATIONS}" != "0" ] && ! [ "${MAX_STATIONS}" -gt 0 ] 2>/dev/null ; t
     echo "[Warning] Invalid MAX_STATIONS '${MAX_STATIONS}'. Must be a non-negative integer. Ignoring."
 fi
 
+# WPA version: 2 (WPA2-PSK, default) or 3 (WPA3-SAE)
+: "${WPA_VERSION:=2}"
+case "${WPA_VERSION}" in
+    2)
+        _WPA_CONF="wpa=2
+wpa_passphrase=${WPA_PASSPHRASE}
+wpa_key_mgmt=WPA-PSK
+# TKIP is no secure anymore
+#wpa_pairwise=TKIP CCMP
+wpa_pairwise=CCMP
+rsn_pairwise=CCMP"
+        ;;
+    3)
+        echo "[Info] WPA3-SAE enabled. Requires client devices with SAE support (wpa_supplicant 2.7+)."
+        _WPA_CONF="wpa=3
+wpa_passphrase=${WPA_PASSPHRASE}
+wpa_key_mgmt=SAE
+rsn_pairwise=CCMP"
+        ;;
+    *)
+        echo "[Error] Invalid WPA_VERSION '${WPA_VERSION}'. Must be 2 (WPA2-PSK) or 3 (WPA3-SAE)."
+        exit 1
+        ;;
+esac
+
 _MAX_STA_CONF=""
 if [ "${MAX_STATIONS}" -gt 0 ] 2>/dev/null ; then
     _MAX_STA_CONF="max_num_sta=${MAX_STATIONS}"
@@ -131,13 +156,7 @@ ${HIDE_SSID+"ssid_hidden=${HIDE_SSID}"}
 hw_mode=${HW_MODE}
 channel=${CHANNEL}
 ${COUNTRY_CODE+"country_code=${COUNTRY_CODE}"}
-wpa=2
-wpa_passphrase=${WPA_PASSPHRASE}
-wpa_key_mgmt=WPA-PSK
-# TKIP is no secure anymore
-#wpa_pairwise=TKIP CCMP
-wpa_pairwise=CCMP
-rsn_pairwise=CCMP
+${_WPA_CONF}
 wpa_ptk_rekey=600
 wmm_enabled=1
 ${_MAX_STA_CONF}
