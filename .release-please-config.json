@@ -5,7 +5,18 @@
       "bump-minor-pre-major": false,
       "bump-patch-for-minor-pre-major": false,
       "prerelease": false,
-      "prerelease-type": "beta"
+      "prerelease-type": "beta",
+      "changelog-sections": [
+        { "type": "feat", "section": "✨ Features" },
+        { "type": "fix", "section": "🐛 Bug Fixes" },
+        { "type": "refactor", "section": "♻️ Code Refactoring" },
+        { "type": "perf", "section": "⚡ Performance Improvements" },
+        { "type": "docs", "section": "📝 Documentation", "hidden": true },
+        { "type": "chore", "section": "🔧 Miscellaneous", "hidden": true },
+        { "type": "test", "section": "🧪 Tests", "hidden": true },
+        { "type": "build", "section": "📦 Build System", "hidden": true },
+        { "type": "ci", "section": "🤖 Continuous Integration", "hidden": true }
+      ]
     }
   }
 }
