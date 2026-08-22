@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # Shared WPA configuration logic used by wlanstart.sh and tests.
 #
 # compute_wpa_conf reads WPA_VERSION (2 | 3 | mixed) and HW_MODE from the
