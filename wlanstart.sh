@@ -96,8 +96,8 @@ if [ "${MAX_STATIONS}" -gt 0 ] 2>/dev/null ; then
     _MAX_STA_CONF="max_num_sta=${MAX_STATIONS}"
 fi
 
-if [ ! -f "/etc/hostapd.conf" ] ; then
-    cat > "/etc/hostapd.conf" <<EOF
+# Always regenerate hostapd.conf so env var changes apply between runs
+cat > "/etc/hostapd.conf" <<EOF
 interface=${INTERFACE}
 ${DRIVER+"driver=${DRIVER}"}
 ssid=${SSID}
@@ -126,8 +126,6 @@ ${HT_CAPAB+"ht_capab=${HT_CAPAB}"}
 ${VHT_ENABLED+"ieee80211ac=1"}
 ${VHT_CAPAB+"vht_capab=${VHT_CAPAB}"}
 EOF
-
-fi
 
 # Setup interface and restart DHCP service
 ip link set ${INTERFACE} up
