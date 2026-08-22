@@ -1,5 +1,33 @@
 #!/bin/bash
 
+cleanup() {
+    echo "Shutting down..."
+    kill "${HOSTAPD_PID}" 2>/dev/null
+    kill "${DNSMASQ_PID}" 2>/dev/null
+    wait "${HOSTAPD_PID}" 2>/dev/null
+    wait "${DNSMASQ_PID}" 2>/dev/null
+
+    echo "Removing iptables rules..."
+
+    if [ "${OUTGOINGS}" ] ; then
+        ints="$(sed 's/,\+/ /g' <<<"${OUTGOINGS}")"
+        for int in ${ints} ; do
+            echo "Removing iptables for outgoing traffics on ${int}..."
+            iptables -t nat -D POSTROUTING -s ${SUBNET}/24 -o ${int} -j MASQUERADE > /dev/null 2>&1 || true
+            iptables -D FORWARD -i ${int} -o ${INTERFACE} -m state --state RELATED,ESTABLISHED -j ACCEPT > /dev/null 2>&1 || true
+            iptables -D FORWARD -i ${INTERFACE} -o ${int} -j ACCEPT > /dev/null 2>&1 || true
+        done
+    else
+        echo "Removing iptables for outgoing traffics on all interfaces..."
+        iptables -t nat -D POSTROUTING -s ${SUBNET}/24 -j MASQUERADE > /dev/null 2>&1 || true
+        iptables -D FORWARD -o ${INTERFACE} -m state --state RELATED,ESTABLISHED -j ACCEPT > /dev/null 2>&1 || true
+        iptables -D FORWARD -i ${INTERFACE} -j ACCEPT > /dev/null 2>&1 || true
+    fi
+
+    exit 0
+}
+
+trap cleanup SIGINT SIGTERM SIGHUP
 
 # Check if running in privileged mode
 if [ ! -w "/sys" ] ; then
@@ -169,27 +197,3 @@ if ! kill -0 "${HOSTAPD_PID}" 2>/dev/null ; then
 fi
 
 wait "${DNSMASQ_PID}" "${HOSTAPD_PID}"
-
-echo "Removing iptables rules..."
-
-if [ "${OUTGOINGS}" ] ; then
-   ints="$(sed 's/,\+/ /g' <<<"${OUTGOINGS}")"
-   for int in ${ints}
-   do
-      echo "Removing iptables for outgoing traffics on ${int}..."
-
-      iptables -t nat -D POSTROUTING -s ${SUBNET}/24 -o ${int} -j MASQUERADE > /dev/null 2>&1 || true
-
-      iptables -D FORWARD -i ${int} -o ${INTERFACE} -m state --state RELATED,ESTABLISHED -j ACCEPT > /dev/null 2>&1 || true
-
-      iptables -D FORWARD -i ${INTERFACE} -o ${int} -j ACCEPT > /dev/null 2>&1 || true
-   done
-else
-   echo "Setting iptables for outgoing traffics on all interfaces..."
-
-   iptables -t nat -D POSTROUTING -s ${SUBNET}/24 -j MASQUERADE > /dev/null 2>&1 || true
-
-   iptables -D FORWARD -o ${INTERFACE} -m state --state RELATED,ESTABLISHED -j ACCEPT > /dev/null 2>&1 || true
-
-   iptables -D FORWARD -i ${INTERFACE} -j ACCEPT > /dev/null 2>&1 || true
-fi
