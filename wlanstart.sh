@@ -107,12 +107,10 @@ esac
 : "${MAX_STATIONS:=0}"
 
 # Startup warnings for default credentials
-if [ "${SSID}" = "raspberry" ] ; then
-    echo "[Warning] Using default SSID 'raspberry'. Set SSID env var for production."
-fi
-if [ "${WPA_PASSPHRASE}" = "passw0rd" ] ; then
-    echo "[Warning] Using default WPA passphrase. Set WPA_PASSPHRASE env var for production."
-fi
+# Logic lives in lib/warnings.sh, shared with tests
+# shellcheck source=lib/warnings.sh
+. "$(dirname "$0")/lib/warnings.sh"
+emit_credential_warnings
 if [ "${MAX_STATIONS}" != "0" ] && ! [ "${MAX_STATIONS}" -gt 0 ] 2>/dev/null ; then
     echo "[Warning] Invalid MAX_STATIONS '${MAX_STATIONS}'. Must be a non-negative integer. Ignoring."
 fi

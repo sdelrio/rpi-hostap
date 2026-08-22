@@ -1,30 +1,16 @@
-#!/usr/bin/env bats
-
-# Helper to extract credential warning logic from wlanstart.sh
+# Shared credential warning logic from lib/warnings.sh
 
 setup() {
+    . "$(dirname "$BATS_TEST_FILENAME")/../lib/warnings.sh"
     export INTERFACE="wlan0"
     unset SSID
     unset WPA_PASSPHRASE
 }
 
 check_warnings() {
-    local warnings=""
     : "${SSID:=raspberry}"
     : "${WPA_PASSPHRASE:=passw0rd}"
-    if [ "${SSID}" = "raspberry" ] ; then
-        warnings="${warnings}[Warning] Using default SSID 'raspberry'. Set SSID env var for production.
-"
-    fi
-    if [ "${WPA_PASSPHRASE}" = "passw0rd" ] ; then
-        warnings="${warnings}[Warning] Using default WPA passphrase. Set WPA_PASSPHRASE env var for production.
-"
-    fi
-    if [ -n "${warnings}" ] ; then
-        printf "%s" "${warnings}"
-        return 0
-    fi
-    return 0
+    emit_credential_warnings
 }
 
 @test "default WPA passphrase triggers warning" {
