@@ -1,16 +1,8 @@
 #!/usr/bin/env bats
 
-# Helper to extract HIDE_SSID logic from wlanstart.sh
-# Tests the bash parameter expansion: ${HIDE_SSID+"ssid_hidden=${HIDE_SSID}"}
-
 setup() {
+    . "${BATS_TEST_DIRNAME}/../lib/ssid_hidden.sh"
     unset HIDE_SSID
-}
-
-compute_ssid_hidden_line() {
-    # Replicate the bash expansion from wlanstart.sh
-    local result="${HIDE_SSID+"ssid_hidden=${HIDE_SSID}"}"
-    echo "${result}"
 }
 
 @test "HIDE_SSID not set produces no config line" {

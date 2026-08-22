@@ -129,6 +129,12 @@ fi
 . "$(dirname "$0")/lib/ap_isolation.sh"
 _AP_ISOLATION_CONF=$(compute_ap_isolation_line)
 
+# Hidden SSID: emit ssid_hidden= only when HIDE_SSID is set
+# Logic lives in lib/ssid_hidden.sh, shared with tests
+# shellcheck source=lib/ssid_hidden.sh
+. "$(dirname "$0")/lib/ssid_hidden.sh"
+_SSID_HIDDEN_CONF=$(compute_ssid_hidden_line)
+
 _MAX_STA_CONF=""
 if [ "${MAX_STATIONS}" -gt 0 ] 2>/dev/null ; then
     _MAX_STA_CONF="max_num_sta=${MAX_STATIONS}"
@@ -139,7 +145,7 @@ cat > "/etc/hostapd.conf" <<EOF
 interface=${INTERFACE}
 ${DRIVER+"driver=${DRIVER}"}
 ssid=${SSID}
-${HIDE_SSID+"ssid_hidden=${HIDE_SSID}"}
+${_SSID_HIDDEN_CONF}
 hw_mode=${HW_MODE}
 channel=${CHANNEL}
 ${COUNTRY_CODE+"country_code=${COUNTRY_CODE}"}
