@@ -10,7 +10,7 @@ cleanup() {
     echo "Removing iptables rules..."
 
     if [ "${OUTGOINGS}" ] ; then
-        ints="$(sed 's/,\+/ /g' <<<"${OUTGOINGS}")"
+        ints="$(sed -E 's/,+/ /g' <<<"${OUTGOINGS}")"
         for int in ${ints} ; do
             echo "Removing iptables for outgoing traffics on ${int}..."
             iptables -t nat -D POSTROUTING -s ${SUBNET}/24 -o ${int} -j MASQUERADE > /dev/null 2>&1 || true
@@ -122,7 +122,7 @@ cat /proc/sys/net/ipv4/ip_dynaddr
 cat /proc/sys/net/ipv4/ip_forward
 
 if [ "${OUTGOINGS}" ] ; then
-   ints="$(sed 's/,\+/ /g' <<<"${OUTGOINGS}")"
+   ints="$(sed -E 's/,+/ /g' <<<"${OUTGOINGS}")"
    for int in ${ints}
    do
       echo "Setting iptables for outgoing traffics on ${int}..."
