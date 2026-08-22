@@ -117,30 +117,43 @@ if [ "${MAX_STATIONS}" != "0" ] && ! [ "${MAX_STATIONS}" -gt 0 ] 2>/dev/null ; t
     echo "[Warning] Invalid MAX_STATIONS '${MAX_STATIONS}'. Must be a non-negative integer. Ignoring."
 fi
 
-# WPA version: 2 (WPA2-PSK, default) or 3 (WPA3-SAE)
+# WPA version: 2 (WPA2-PSK, default), 3 (WPA3-SAE) or mixed (WPA2/WPA3 transition)
 : "${WPA_VERSION:=2}"
 case "${WPA_VERSION}" in
     2)
-        _WPA_CONF="wpa=2
-wpa_passphrase=${WPA_PASSPHRASE}
-wpa_key_mgmt=WPA-PSK
-# TKIP is no secure anymore
+        _WPA_LEVEL="wpa=2"
+        _WPA_KEY_MGMT="wpa_key_mgmt=WPA-PSK"
+        _WPA_PAIRWISE="# TKIP is no secure anymore
 #wpa_pairwise=TKIP CCMP
 wpa_pairwise=CCMP
 rsn_pairwise=CCMP"
         ;;
-    3)
-        echo "[Info] WPA3-SAE enabled. Requires client devices with SAE support (wpa_supplicant 2.7+)."
-        _WPA_CONF="wpa=3
-wpa_passphrase=${WPA_PASSPHRASE}
-wpa_key_mgmt=SAE
-rsn_pairwise=CCMP"
+    3|mixed)
+        if [ "${HW_MODE}" = "b" ] ; then
+            echo "[Warning] WPA3/SAE with hw_mode=b (802.11b) is unusual; SAE-capable devices expect g/a."
+        fi
+        _WPA_LEVEL="wpa=3"
+        _WPA_PAIRWISE="rsn_pairwise=CCMP"
+        if [ "${WPA_VERSION}" = "3" ] ; then
+            echo "[Info] WPA3-SAE enabled. Requires client devices with SAE support (wpa_supplicant 2.7+)."
+            _WPA_KEY_MGMT="wpa_key_mgmt=SAE"
+        else
+            echo "[Info] WPA2/WPA3 transition mode enabled. Legacy WPA2 clients allowed alongside SAE."
+            _WPA_KEY_MGMT="wpa_key_mgmt=WPA-PSK SAE"
+            _WPA_PAIRWISE="wpa_pairwise=CCMP
+${_WPA_PAIRWISE}"
+        fi
         ;;
     *)
-        echo "[Error] Invalid WPA_VERSION '${WPA_VERSION}'. Must be 2 (WPA2-PSK) or 3 (WPA3-SAE)."
+        echo "[Error] Invalid WPA_VERSION '${WPA_VERSION}'. Must be 2 (WPA2-PSK), 3 (WPA3-SAE) or mixed (transition)."
         exit 1
         ;;
 esac
+
+_WPA_CONF="${_WPA_LEVEL}
+wpa_passphrase=${WPA_PASSPHRASE}
+${_WPA_KEY_MGMT}
+${_WPA_PAIRWISE}"
 
 _MAX_STA_CONF=""
 if [ "${MAX_STATIONS}" -gt 0 ] 2>/dev/null ; then
