@@ -128,6 +128,15 @@ _AP_ISOLATION_CONF=$(compute_ap_isolation_line)
 . "$(dirname "$0")/lib/ssid_hidden.sh"
 _SSID_HIDDEN_CONF=$(compute_ssid_hidden_line)
 
+# MAC address filtering (off by default, enable with MAC_FILTER=1 or 2)
+# Logic lives in lib/mac_filter.sh, shared with tests
+# shellcheck source=lib/mac_filter.sh
+. "$(dirname "$0")/lib/mac_filter.sh"
+if ! validate_mac_filter ; then
+    exit 1
+fi
+_MAC_FILTER_CONF=$(compute_mac_filter_conf)
+
 _MAX_STA_CONF=$(compute_max_sta_conf)
 
 # Always regenerate hostapd.conf so env var changes apply between runs
@@ -144,6 +153,7 @@ wpa_ptk_rekey=600
 wmm_enabled=1
 ${_MAX_STA_CONF}
 ${_AP_ISOLATION_CONF}
+${_MAC_FILTER_CONF}
 
 # Activate channel selection for HT High Throughput (802.11an)
 

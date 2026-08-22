@@ -106,6 +106,28 @@ docker run -d \
 | `COUNTRY_CODE` | No | Regulatory domain (`US`/`CA`/`MX`: ch 1-11, `JP`: ch 1-14, others: ch 1-13). Sets `country_code` in hostapd.conf | `EU` |
 | `WPA_VERSION` | No | WPA version: `2` = WPA2-PSK, `3` = WPA3-SAE (requires client support), `mixed` = WPA2/WPA3 transition (legacy clients allowed) | `2` |
 | `IPV6` | No | Enable IPv6 RA/DHCPv6 for clients (`1` = enabled) | `0` |
+| `MAC_FILTER` | No | MAC address filtering: `0` = off, `1` = allowlist (only listed MACs), `2` = denylist (listed MACs rejected). Requires `MAC_ACL_FILE` | `0` |
+| `MAC_ACL_FILE` | No | Path to MAC list file (one MAC per line, mounted volume); required when `MAC_FILTER` is `1` or `2` | unset |
+
+#### MAC Address Filtering (optional)
+
+MAC filtering is **off by default**; behavior is unchanged unless you set `MAC_FILTER`. When enabled:
+
+- `MAC_FILTER=1` (allowlist): only MACs listed in the file can associate (`macaddr_acl=1` + `accept_mac_file=`).
+- `MAC_FILTER=2` (denylist): listed MACs are rejected (`macaddr_acl=1` + `deny_mac_file=`).
+- Startup fails with an error if the filter is enabled without `MAC_ACL_FILE`, and warns if the file is missing or unreadable.
+- Note that MAC filtering is a weak control on its own (MACs can be spoofed); combine it with WPA2/WPA3.
+
+```bash
+docker run ... -e MAC_FILTER=1 -v /path/to/hostapd.accept:/etc/hostapd.accept:ro ...
+```
+
+File format (one MAC per line):
+
+```
+aa:bb:cc:dd:ee:ff
+11:22:33:44:55:66
+```
 
 #### WPA3 (SAE)
 
