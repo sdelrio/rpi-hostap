@@ -123,6 +123,12 @@ if ! _WPA_CONF=$(compute_wpa_conf) ; then
     exit 1
 fi
 
+# AP isolation: emit ap_isolate= only when AP_ISOLATION is set
+# Logic lives in lib/ap_isolation.sh, shared with tests
+# shellcheck source=lib/ap_isolation.sh
+. "$(dirname "$0")/lib/ap_isolation.sh"
+_AP_ISOLATION_CONF=$(compute_ap_isolation_line)
+
 _MAX_STA_CONF=""
 if [ "${MAX_STATIONS}" -gt 0 ] 2>/dev/null ; then
     _MAX_STA_CONF="max_num_sta=${MAX_STATIONS}"
@@ -141,7 +147,7 @@ ${_WPA_CONF}
 wpa_ptk_rekey=600
 wmm_enabled=1
 ${_MAX_STA_CONF}
-${AP_ISOLATION+"ap_isolate=${AP_ISOLATION}"}
+${_AP_ISOLATION_CONF}
 
 # Activate channel selection for HT High Throughput (802.11an)
 
