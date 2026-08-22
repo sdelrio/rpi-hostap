@@ -5,6 +5,17 @@ APADDR  = 192.168.254.1
 PLATFORM ?= linux/amd64,linux/arm/v7,linux/arm64
 
 OS := $(shell uname -s)
+
+# Interface setup: ifconfig is deprecated on Linux, so use ip there.
+# Keep ifconfig for macOS (Darwin), where ip is unavailable.
+ifeq ($(OS),Darwin)
+IF_DOWN = ifconfig wlan0 $(APADDR)/24 down
+IF_UP = ifconfig wlan0 $(APADDR)/24 up
+else
+IF_DOWN = ip link set wlan0 down
+IF_UP = ip addr add $(APADDR)/24 dev wlan0 2>/dev/null || true; ip link set wlan0 up
+endif
+
 ifeq ($(OS),Darwin)
   ifneq (,$(shell command -v podman 2>/dev/null))
     PODMAN_SOCKET := $(shell podman machine inspect --format '{{.ConnectionInfo.PodmanSocket.Path}}' 2>/dev/null)
@@ -67,8 +78,8 @@ build-multiarch-push-latest:
 		.
 
 test:
-	@sudo /sbin/ifconfig wlan0 $(APADDR)/24 down
-	@sudo /sbin/ifconfig wlan0 $(APADDR)/24 up
+	@sudo $(IF_DOWN)
+	@sudo $(IF_UP)
 	sudo docker run -t \
         --name $(IMGNAME)_test \
 	-e INTERFACE=wlan0 \
@@ -86,8 +97,8 @@ test:
 	$(IMGNAME):$(VERSION) \
         /bin/test.sh || sudo docker stop $(IMGNAME)_test && docker rm $(IMGNAME)_test
 run:
-	@sudo /sbin/ifconfig wlan0 $(APADDR)/24 down
-	@sudo /sbin/ifconfig wlan0 $(APADDR)/24 up
+	@sudo $(IF_DOWN)
+	@sudo $(IF_UP)
 	sudo docker run -d -t \
         --name $(IMGNAME)_run \
 	-e INTERFACE=wlan0 \
@@ -104,8 +115,8 @@ stop:
 	@docker stop $(IMGNAME)_test || docker stop $(IMGNAME)_run || docker stop $(IMGNAME)_shell
 	@docker rm $(IMGNAME)_test || docker rm $(IMGNAME)_run || docker rm $(IMGNAME)_shell
 shell:
-	@sudo /sbin/ifconfig wlan0 $(APADDR)/24 down
-	@sudo /sbin/ifconfig wlan0 $(APADDR)/24 up
+	@sudo $(IF_DOWN)
+	@sudo $(IF_UP)
 	@sudo docker run -t \
         --name $(IMGNAME)_shell \
 	-e INTERFACE=wlan0 \
