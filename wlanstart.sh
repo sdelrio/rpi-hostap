@@ -10,8 +10,8 @@ cleanup() {
     echo "Removing iptables rules..."
 
     if [ "${OUTGOINGS}" ] ; then
-        ints="$(sed -E 's/,+/ /g' <<<"${OUTGOINGS}")"
-        for int in ${ints} ; do
+        read -r -a ints <<<"$(sed -E 's/,+/ /g' <<<"${OUTGOINGS}")"
+        for int in "${ints[@]}" ; do
             echo "Removing iptables for outgoing traffics on ${int}..."
             iptables -t nat -D POSTROUTING -s "${SUBNET}"/24 -o "${int}" -j MASQUERADE > /dev/null 2>&1 || true
             iptables -D FORWARD -i "${int}" -o "${INTERFACE}" -m state --state RELATED,ESTABLISHED -j ACCEPT > /dev/null 2>&1 || true
@@ -154,10 +154,10 @@ echo "NAT settings ip_dynaddr, ip_forward"
 
 
 for i in ip_dynaddr ip_forward ; do
-  if [ "$(cat /proc/sys/net/ipv4/$i)" -eq 1 ] ; then
-    echo "$i" already 1
+  if [ "$(cat "/proc/sys/net/ipv4/${i}")" -eq 1 ] ; then
+    echo "${i}" already 1
   else
-    echo "1" > /proc/sys/net/ipv4/$i
+    echo "1" > "/proc/sys/net/ipv4/${i}"
   fi
 done
 
@@ -165,8 +165,8 @@ cat /proc/sys/net/ipv4/ip_dynaddr
 cat /proc/sys/net/ipv4/ip_forward
 
 if [ "${OUTGOINGS}" ] ; then
-   ints="$(sed -E 's/,+/ /g' <<<"${OUTGOINGS}")"
-   for int in ${ints}
+   read -r -a ints <<<"$(sed -E 's/,+/ /g' <<<"${OUTGOINGS}")"
+   for int in "${ints[@]}"
    do
       echo "Setting iptables for outgoing traffics on ${int}..."
 
