@@ -33,6 +33,14 @@ if [ -n "$INTERFACE" ]; then
         echo "interface $INTERFACE is not up" >&2
         exit 1
     fi
+
+    # Check if the AP IP is assigned to the interface (if AP_ADDR is set)
+    if [ -n "$AP_ADDR" ]; then
+        if ! ip -4 addr show dev "$INTERFACE" | grep -q "$AP_ADDR"; then
+            echo "address $AP_ADDR is not assigned to interface $INTERFACE" >&2
+            exit 1
+        fi
+    fi
 fi
 
 exit 0
