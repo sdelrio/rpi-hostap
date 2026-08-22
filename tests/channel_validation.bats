@@ -1,49 +1,12 @@
 #!/usr/bin/env bats
 
-# Helper to extract channel/hw_mode validation logic from wlanstart.sh
-
 setup() {
+    ROOT="${BATS_TEST_DIRNAME}/.."
     unset HW_MODE
     unset CHANNEL
     unset COUNTRY_CODE
-}
-
-validate_channel() {
-    : "${HW_MODE:=g}"
-    : "${CHANNEL:=11}"
-    : "${COUNTRY_CODE:=EU}"
-
-    case "${COUNTRY_CODE}" in
-        US|CA|MX) _MAX_CHANNEL=11 ;;
-        JP)       _MAX_CHANNEL=14 ;;
-        *)        _MAX_CHANNEL=13 ;;
-    esac
-
-    case "${HW_MODE}" in
-        g|b)
-            if ! [ "${CHANNEL}" -gt 0 ] 2>/dev/null; then
-                echo "[Error] Channel '${CHANNEL}' must be a positive integer" >&2
-                return 1
-            fi
-            if [ "${CHANNEL}" -gt "${_MAX_CHANNEL}" ] 2>/dev/null; then
-                echo "[Error] Channel ${CHANNEL} not allowed for country ${COUNTRY_CODE} (max ${_MAX_CHANNEL} for hw_mode=${HW_MODE})" >&2
-                return 1
-            fi
-            ;;
-        a)
-            if ! [ "${CHANNEL}" -gt 0 ] 2>/dev/null; then
-                echo "[Error] Channel '${CHANNEL}' must be a positive integer" >&2
-                return 1
-            fi
-            if [ "${CHANNEL}" -le 14 ] 2>/dev/null; then
-                echo "[Warning] Channel ${CHANNEL} may be invalid for hw_mode=a (5GHz typically > 14)" >&2
-            fi
-            ;;
-        *)
-            echo "[Warning] Unknown hw_mode='${HW_MODE}', skipping channel validation" >&2
-            ;;
-    esac
-    return 0
+    # shellcheck source=../lib/channel.sh
+    . "${ROOT}/lib/channel.sh"
 }
 
 # --- g/b mode (2.4 GHz) ---

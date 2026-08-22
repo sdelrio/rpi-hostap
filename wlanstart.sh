@@ -62,40 +62,13 @@ if [ -z "${COUNTRY_CODE+x}" ] ; then
 fi
 : "${COUNTRY_CODE:=EU}"
 
-# Validate channel against regulatory domain
-case "${COUNTRY_CODE}" in
-    US|CA|MX) _MAX_CHANNEL=11 ;;
-    JP)       _MAX_CHANNEL=14 ;;
-    *)        _MAX_CHANNEL=13 ;;  # fallback: Europe (ETSI)
-esac
-
-# Validate channel against hardware mode
-
-# Validate channel against hardware mode
-case "${HW_MODE}" in
-    g|b)
-        if ! [ "${CHANNEL}" -gt 0 ] 2>/dev/null; then
-            echo "[Error] Channel '${CHANNEL}' must be a positive integer"
-            exit 1
-        fi
-        if [ "${CHANNEL}" -gt "${_MAX_CHANNEL}" ] 2>/dev/null; then
-            echo "[Error] Channel ${CHANNEL} not allowed for country ${COUNTRY_CODE} (max ${_MAX_CHANNEL} for hw_mode=${HW_MODE})"
-            exit 1
-        fi
-        ;;
-    a)
-        if ! [ "${CHANNEL}" -gt 0 ] 2>/dev/null; then
-            echo "[Error] Channel '${CHANNEL}' must be a positive integer"
-            exit 1
-        fi
-        if [ "${CHANNEL}" -le 14 ] 2>/dev/null; then
-            echo "[Warning] Channel ${CHANNEL} may be invalid for hw_mode=a (5GHz typically > 14)"
-        fi
-        ;;
-    *)
-        echo "[Warning] Unknown hw_mode='${HW_MODE}', skipping channel validation"
-        ;;
-esac
+# Validate channel against regulatory domain and hardware mode
+# Logic lives in lib/channel.sh, shared with tests
+# shellcheck source=lib/channel.sh
+. "$(dirname "$0")/lib/channel.sh"
+if ! validate_channel ; then
+    exit 1
+fi
 
 # Default values
 : "${SUBNET:=192.168.254.0}"
