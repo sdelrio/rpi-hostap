@@ -102,6 +102,7 @@ docker run -d \
 | `DHCP_LEASE` | No | DHCP lease time (used with default range) | `12h` |
 | `MAX_STATIONS` | No | Max connected clients (`0` = unlimited) | `0` |
 | `HIDE_SSID` | No | Hide SSID broadcast (`1` = hidden) | `0` |
+| `AP_ISOLATION` | No | Isolate clients from each other (`1` = enabled) | `0` |
 
 ### Build from Source
 
