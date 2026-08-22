@@ -90,8 +90,10 @@ cleanup
 @test "cleanup removes iptables rules with multiple OUTGOINGS" {
     export OUTGOINGS="eth0,eth1"
     run run_cleanup_mocked
-    [[ "$output" == *"Removing iptables for outgoing traffics on eth0,eth1..."* ]]
-    [[ "$output" == *"iptables -t nat -D POSTROUTING -s 192.168.254.0/24 -o eth0,eth1 -j MASQUERADE"* ]]
+    [[ "$output" == *"Removing iptables for outgoing traffics on eth0..."* ]]
+    [[ "$output" == *"Removing iptables for outgoing traffics on eth1..."* ]]
+    [[ "$output" == *"iptables -t nat -D POSTROUTING -s 192.168.254.0/24 -o eth0 -j MASQUERADE"* ]]
+    [[ "$output" == *"iptables -t nat -D POSTROUTING -s 192.168.254.0/24 -o eth1 -j MASQUERADE"* ]]
 }
 
 @test "cleanup exits with status 0" {
