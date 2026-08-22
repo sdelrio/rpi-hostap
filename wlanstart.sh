@@ -58,6 +58,7 @@ rsn_pairwise=CCMP
 wpa_ptk_rekey=600
 wmm_enabled=1
 ${_MAX_STA_CONF}
+${AP_ISOLATION+"ap_isolate=${AP_ISOLATION}"}
 
 # Activate channel selection for HT High Througput (802.11an)
 
