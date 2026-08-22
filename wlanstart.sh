@@ -84,6 +84,14 @@ fi
 # shellcheck source=lib/warnings.sh
 . "$(dirname "$0")/lib/warnings.sh"
 emit_credential_warnings
+# Validate WPA_PASSPHRASE length (8-63 chars required by WPA-PSK/SAE)
+# Logic lives in lib/passphrase.sh, shared with tests
+# shellcheck source=lib/passphrase.sh
+. "$(dirname "$0")/lib/passphrase.sh"
+if ! validate_passphrase ; then
+    exit 1
+fi
+
 # MAX_STATIONS: limit number of associated stations (0 = unlimited)
 # Logic lives in lib/stations.sh, shared with tests
 # shellcheck source=lib/stations.sh
