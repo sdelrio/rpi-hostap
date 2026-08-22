@@ -5,13 +5,7 @@
       "bump-minor-pre-major": false,
       "bump-patch-for-minor-pre-major": false,
       "prerelease": false,
-      "prerelease-type": "beta",
-      "extra-files": [
-        {
-          "type": "generic",
-          "path": "Dockerfile"
-        }
-      ]
+      "prerelease-type": "beta"
     }
   }
 }

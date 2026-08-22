@@ -1,6 +1,6 @@
 #!/bin/sh
-# Print the project version as defined by ENV VERSION in the Dockerfile.
+# Print the project version from the release-please manifest (single source of truth).
 set -eu
 
 ROOT="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)"
-grep "ENV VERSION" "$ROOT/Dockerfile" | awk -F= '{print $NF}'
+jq -r '."."' "$ROOT/.release-please-manifest.json"

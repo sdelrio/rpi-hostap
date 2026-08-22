@@ -2,8 +2,6 @@ FROM alpine:3.24.1
 
 LABEL maintainer="Sergio R. <sdelrio@users.noreply.github.com>"
 
-ENV VERSION=0.33.0
-
 RUN apk add --no-cache \
     bash=5.3.9-r1 \
     hostapd=2.11-r4 \
