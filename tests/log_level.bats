@@ -20,7 +20,6 @@ compute_dnsmasq_log_opts() {
     LOG_LEVEL=$(validate_log_level | tail -n 1)
     DNSMASQ_LOG_OPTS=""
     if [ "${LOG_LEVEL}" -le 1 ] 2>/dev/null ; then
-        echo "[Info] LOG_LEVEL=${LOG_LEVEL}: enabling dnsmasq query logging" >&2
         DNSMASQ_LOG_OPTS="--log-queries"
     fi
     echo "${DNSMASQ_LOG_OPTS}"
