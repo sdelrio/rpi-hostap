@@ -101,6 +101,7 @@ docker run -d \
 | `DHCP_RANGE` | No | DHCP range (`start,end,mask,lease`) | Auto from SUBNET |
 | `DHCP_LEASE` | No | DHCP lease time (used with default range) | `12h` |
 | `MAX_STATIONS` | No | Max connected clients (`0` = unlimited) | `0` |
+| `HIDE_SSID` | No | Hide SSID broadcast (`1` = hidden) | `0` |
 
 ### Build from Source
 
