@@ -15,7 +15,7 @@ setup() {
 
 compute_dhcp_range() {
     # Replicate the logic from wlanstart.sh
-    true ${DHCP_LEASE:=12h}
+    : "${DHCP_LEASE:=12h}"
     if [ -z "${DHCP_RANGE}" ] ; then
         SUBNET_PREFIX=$(echo $SUBNET | rev | cut -d. -f2- | rev)
         DHCP_RANGE="${SUBNET_PREFIX}.100,${SUBNET_PREFIX}.200,255.255.255.0,${DHCP_LEASE}"

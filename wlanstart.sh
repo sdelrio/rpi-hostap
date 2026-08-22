@@ -52,15 +52,15 @@ if [ ! "${INTERFACE}" ] ; then
 fi
 
 # Set HW_MODE and CHANNEL early for validation
-true "${HW_MODE:=g}"
-true "${CHANNEL:=11}"
+: "${HW_MODE:=g}"
+: "${CHANNEL:=11}"
 
 # Warn if COUNTRY_CODE was not explicitly set, then default to EU (ETSI)
 if [ -z "${COUNTRY_CODE+x}" ] ; then
     echo "[Warning] COUNTRY_CODE not set, defaulting to 'EU' (ETSI: channels 1-13)."
     echo "          Set COUNTRY_CODE (e.g. US, CA, JP) to match your local regulations."
 fi
-true "${COUNTRY_CODE:=EU}"
+: "${COUNTRY_CODE:=EU}"
 
 # Validate channel against regulatory domain
 case "${COUNTRY_CODE}" in
@@ -98,13 +98,13 @@ case "${HW_MODE}" in
 esac
 
 # Default values
-true "${SUBNET:=192.168.254.0}"
-true "${AP_ADDR:=192.168.254.1}"
-true "${PRI_DNS:=8.8.8.8}"
-true "${SEC_DNS:=8.8.4.4}"
-true "${SSID:=raspberry}"
-true "${WPA_PASSPHRASE:=passw0rd}"
-true "${MAX_STATIONS:=0}"
+: "${SUBNET:=192.168.254.0}"
+: "${AP_ADDR:=192.168.254.1}"
+: "${PRI_DNS:=8.8.8.8}"
+: "${SEC_DNS:=8.8.4.4}"
+: "${SSID:=raspberry}"
+: "${WPA_PASSPHRASE:=passw0rd}"
+: "${MAX_STATIONS:=0}"
 
 # Startup warnings for default credentials
 if [ "${SSID}" = "raspberry" ] ; then
@@ -205,7 +205,7 @@ fi
 echo "Configuring DHCP server .."
 
 # Default DHCP lease time
-true "${DHCP_LEASE:=12h}"
+: "${DHCP_LEASE:=12h}"
 
 # Compute default DHCP range if not set
 if [ -z "${DHCP_RANGE}" ] ; then

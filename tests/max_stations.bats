@@ -8,7 +8,7 @@ setup() {
 }
 
 compute_max_sta_conf() {
-    true ${MAX_STATIONS:=0}
+    : "${MAX_STATIONS:=0}"
     if [ "${MAX_STATIONS}" != "0" ] && ! [ "${MAX_STATIONS}" -gt 0 ] 2>/dev/null ; then
         echo "[Warning] Invalid MAX_STATIONS '${MAX_STATIONS}'. Must be a non-negative integer. Ignoring."
     fi

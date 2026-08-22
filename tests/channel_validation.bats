@@ -9,9 +9,9 @@ setup() {
 }
 
 validate_channel() {
-    true ${HW_MODE:=g}
-    true ${CHANNEL:=11}
-    true ${COUNTRY_CODE:=EU}
+    : "${HW_MODE:=g}"
+    : "${CHANNEL:=11}"
+    : "${COUNTRY_CODE:=EU}"
 
     case "${COUNTRY_CODE}" in
         US|CA|MX) _MAX_CHANNEL=11 ;;

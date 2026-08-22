@@ -10,8 +10,8 @@ setup() {
 
 check_warnings() {
     local warnings=""
-    true ${SSID:=raspberry}
-    true ${WPA_PASSPHRASE:=passw0rd}
+    : "${SSID:=raspberry}"
+    : "${WPA_PASSPHRASE:=passw0rd}"
     if [ "${SSID}" = "raspberry" ] ; then
         warnings="${warnings}[Warning] Using default SSID 'raspberry'. Set SSID env var for production.
 "
