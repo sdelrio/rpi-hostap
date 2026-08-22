@@ -49,9 +49,8 @@ _MULTIRUN_PID=""
 _SIGNALED=0
 
 # Invoked indirectly via trap
-# shellcheck disable=SC2329
+# shellcheck disable=SC2329,SC2317
 handle_signal() {
-    # shellcheck disable=SC2317
     _SIGNALED=1
     if [ -n "${_MULTIRUN_PID}" ] ; then
         kill "${_MULTIRUN_PID}" 2>/dev/null || true
