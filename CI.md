@@ -35,7 +35,7 @@ To jump from a pre-1.0 version (e.g., `0.31.0`) to `1.0.0`:
 
 2. Commit and push:
    ```bash
-   git add .release-please-manifest.json Dockerfile
+   git add .release-please-manifest.json
    git commit -m "chore: release v1.0.0"
    git push
    ```
