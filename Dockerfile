@@ -6,7 +6,8 @@ RUN apk add --no-cache \
     bash=5.3.9-r1 \
     hostapd=2.11-r4 \
     iptables=1.8.13-r0 \
-    dnsmasq=2.92_p2-r0
+    dnsmasq=2.92_p2-r0 \
+    multirun=1.1.3-r0
 
 ENV HEALTHCHECK_START_PERIOD=15
 

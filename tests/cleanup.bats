@@ -6,12 +6,10 @@ setup() {
     export INTERFACE="wlan0"
     export SUBNET="192.168.254.0"
     export OUTGOINGS=""
-    export HOSTAPD_PID=""
-    export DNSMASQ_PID=""
 }
 
 load_cleanup() {
-    eval "$(sed -n '/^parse_outgoings()/,/^}/p; /^cleanup()/,/^}/p; /^trap cleanup/p' wlanstart.sh)"
+    eval "$(sed -n '/^parse_outgoings()/,/^}/p; /^cleanup()/,/^}/p; /^trap /p' wlanstart.sh)"
 }
 
 run_cleanup_mocked() {
@@ -26,11 +24,9 @@ ip() { _mock_log \"ip \$@\"; }
 kill() { _mock_log \"kill \$@\"; }
 wait() { _mock_log \"wait \$@\"; }
 $(sed -n '/^parse_outgoings()/,/^}/p; /^cleanup()/,/^}/p' wlanstart.sh)
-INTERFACE=\"$INTERFACE\"
-SUBNET=\"$SUBNET\"
-OUTGOINGS=\"$OUTGOINGS\"
-HOSTAPD_PID=\"$HOSTAPD_PID\"
-DNSMASQ_PID=\"$DNSMASQ_PID\"
+INTERFACE="$INTERFACE"
+SUBNET="$SUBNET"
+OUTGOINGS="$OUTGOINGS"
 cleanup
 "
     cat "$mock_log"
@@ -68,9 +64,9 @@ cleanup
     load_cleanup
     local traps
     traps=$(trap -p)
-    [[ "$traps" == *"cleanup"*"SIGINT"* ]]
-    [[ "$traps" == *"cleanup"*"SIGTERM"* ]]
-    [[ "$traps" == *"cleanup"*"SIGHUP"* ]]
+    [[ "$traps" == *"handle_signal"*"SIGINT"* ]]
+    [[ "$traps" == *"handle_signal"*"SIGTERM"* ]]
+    [[ "$traps" == *"handle_signal"*"SIGHUP"* ]]
 }
 
 @test "cleanup prints shutdown message" {
@@ -79,20 +75,41 @@ cleanup
     [[ "$output" == *"Shutting down..."* ]]
 }
 
+@test "cleanup no longer kills daemon PIDs (multirun handles signals)" {
+    ! grep -q 'DNSMASQ_PID\|HOSTAPD_PID' wlanstart.sh
+    ! grep -qE 'wait "\$\{DNSMASQ_PID\}"' wlanstart.sh
+}
+
+@test "handle_signal forwards signal to multirun" {
+    eval "$(sed -n '/^_MULTIRUN_PID=/p; /^_SIGNALED=/p; /^handle_signal()/,/^}/p; /^trap /p' wlanstart.sh)"
+    _MULTIRUN_PID="4242"
+    _SIGNALED=0
+    run bash -c "
+kill() { echo \"kill \$@\"; }
+$(sed -n '/^handle_signal()/,/^}/p' "${BATS_TEST_DIRNAME}/../wlanstart.sh")
+_MULTIRUN_PID=4242
+_SIGNALED=0
+handle_signal
+"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"kill 4242"* ]]
+}
+
+@test "wlanstart launches daemons via multirun with exec" {
+    grep -q 'multirun "exec dnsmasq --no-daemon" "exec /usr/sbin/hostapd /etc/hostapd.conf"' wlanstart.sh
+    ! grep -q 'wait "${DNSMASQ_PID}" "${HOSTAPD_PID}"' wlanstart.sh
+}
+
 @test "cleanup prints iptables removal message" {
     load_cleanup
     run cleanup
     [[ "$output" == *"Removing iptables rules..."* ]]
 }
 
-@test "cleanup kills hostapd and dnsmasq PIDs" {
-    export HOSTAPD_PID="1234"
-    export DNSMASQ_PID="5678"
+@test "cleanup tears down iptables and interface without touching daemons" {
     run run_cleanup_mocked
-    [[ "$output" == *"kill 1234"* ]]
-    [[ "$output" == *"kill 5678"* ]]
-    [[ "$output" == *"wait 1234"* ]]
-    [[ "$output" == *"wait 5678"* ]]
+    [[ "$output" != *"kill "* ]]
+    [[ "$output" != *"wait "* ]]
 }
 
 @test "cleanup removes iptables rules without OUTGOINGS" {

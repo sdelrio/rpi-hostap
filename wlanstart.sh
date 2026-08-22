@@ -12,10 +12,6 @@ parse_outgoings() {
 
 cleanup() {
     echo "Shutting down..."
-    kill "${HOSTAPD_PID}" 2>/dev/null
-    kill "${DNSMASQ_PID}" 2>/dev/null
-    wait "${HOSTAPD_PID}" 2>/dev/null
-    wait "${DNSMASQ_PID}" 2>/dev/null
 
     echo "Removing iptables rules..."
 
@@ -44,11 +40,22 @@ cleanup() {
         ip addr flush dev "${INTERFACE}" 2>/dev/null || true
         ip link set "${INTERFACE}" down 2>/dev/null || true
     fi
-
-    exit 0
 }
 
-trap cleanup SIGINT SIGTERM SIGHUP
+# multirun manages hostapd/dnsmasq and exits when any child dies.
+# On SIGINT/SIGTERM we forward the signal to multirun, which relays it
+# to all children; teardown runs once multirun has exited.
+_MULTIRUN_PID=""
+_SIGNALED=0
+
+handle_signal() {
+    _SIGNALED=1
+    if [ -n "${_MULTIRUN_PID}" ] ; then
+        kill "${_MULTIRUN_PID}" 2>/dev/null || true
+    fi
+}
+
+trap handle_signal SIGINT SIGTERM SIGHUP
 
 # Check if running in privileged mode
 if [ ! -w "/sys" ] ; then
@@ -247,23 +254,16 @@ dhcp-option=option:dns-server,${PRI_DNS},${SEC_DNS}
 ${_IPV6_CONF}
 EOF
 
-echo "Starting dnsmasq daemon ..."
-dnsmasq --no-daemon &
-DNSMASQ_PID=$!
+echo "Starting dnsmasq and hostapd via multirun ..."
+multirun "exec dnsmasq --no-daemon" "exec /usr/sbin/hostapd /etc/hostapd.conf" &
+_MULTIRUN_PID=$!
 
-if ! kill -0 "${DNSMASQ_PID}" 2>/dev/null ; then
-    echo "[Error] dnsmasq failed to start."
-    exit 1
+wait "${_MULTIRUN_PID}"
+STATUS=$?
+
+cleanup
+
+if [ "${_SIGNALED}" = "1" ] ; then
+    exit 0
 fi
-
-echo "Starting HostAP daemon ..."
-/usr/sbin/hostapd /etc/hostapd.conf &
-HOSTAPD_PID=$!
-
-if ! kill -0 "${HOSTAPD_PID}" 2>/dev/null ; then
-    echo "[Error] hostapd failed to start."
-    kill "${DNSMASQ_PID}" 2>/dev/null
-    exit 1
-fi
-
-wait "${DNSMASQ_PID}" "${HOSTAPD_PID}"
+exit "${STATUS}"
