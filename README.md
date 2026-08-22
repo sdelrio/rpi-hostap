@@ -108,6 +108,35 @@ docker run -d \
 | `IPV6` | No | Enable IPv6 RA/DHCPv6 for clients (`1` = enabled) | `0` |
 | `MAC_FILTER` | No | MAC address filtering: `0` = off, `1` = allowlist (only listed MACs), `2` = denylist (listed MACs rejected). Requires `MAC_ACL_FILE` | `0` |
 | `MAC_ACL_FILE` | No | Path to MAC list file (one MAC per line, mounted volume); required when `MAC_FILTER` is `1` or `2` | unset |
+| `PRI_DNS` | No | Primary DNS server advertised to DHCP clients | `8.8.8.8` |
+| `SEC_DNS` | No | Secondary DNS server advertised to DHCP clients | `8.8.4.4` |
+| `DRIVER` | No | hostapd driver line override (e.g. `rtl871xdrv`); omit for the default `driver=nl80211`-based config | unset |
+| `HT_ENABLED` | No | Enable 802.11n High Throughput (`ieee80211n=1`). Set to any non-empty value to enable; see [HT/VHT tuning](#htvht-80211nac-tuning) | unset |
+| `HT_CAPAB` | No | 802.11n capabilities string (`ht_capab=` in hostapd.conf); requires `HT_ENABLED` | unset |
+| `VHT_ENABLED` | No | Enable 802.11ac Very High Throughput (`ieee80211ac=1`); requires 5 GHz (`HW_MODE=a`) | unset |
+| `VHT_CAPAB` | No | 802.11ac capabilities string (`vht_capab=` in hostapd.conf); requires `VHT_ENABLED` | unset |
+| `HEALTHCHECK_START_PERIOD` | No | Grace period (seconds) after container start during which the healthcheck always passes | `15` |
+
+#### HT/VHT (802.11n/ac) Tuning
+
+By default the AP runs without HT/VHT (802.11n/ac disabled). To enable higher throughput:
+
+```bash
+docker run ... \
+  -e HW_MODE=a -e CHANNEL=36 \
+  -e HT_ENABLED=1 \
+  -e HT_CAPAB="[HT40+][SHORT-GI-20][SHORT-GI-40]" \
+  -e VHT_ENABLED=1 \
+  -e VHT_CAPAB="[MAX-MPDU-3895][SHORT-GI-80]" \
+  ...
+```
+
+Notes:
+
+- `HT_ENABLED=1` emits `ieee80211n=1`; `HT_CAPAB` sets the optional `ht_capab=` line.
+- `VHT_ENABLED=1` emits `ieee80211ac=1` and requires 5 GHz operation (`HW_MODE=a`); `VHT_CAPAB` sets the optional `vht_capab=` line.
+- Capabilities depend on what your WiFi adapter supports — check `iw list` output (`HT capabilities` / `VHT capabilities`) before enabling.
+- Common `ht_capab` flags: `[HT40+]`/`[HT40-]` (40 MHz channels), `[SHORT-GI-20]`, `[SHORT-GI-40]`. Common `vht_capab` flags: `[SHORT-GI-80]`, `[MAX-MPDU-3895]`, `[SU-BEAMFORMER]`.
 
 #### MAC Address Filtering (optional)
 
