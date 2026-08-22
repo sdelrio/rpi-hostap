@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.35.0](https://github.com/sdelrio/rpi-hostap/compare/v0.34.0...v0.35.0) (2026-08-22)
+
+
+### ✨ Features
+
+* **channel:** validate 5GHz channels for hw_mode=a with DFS warning ([#89](https://github.com/sdelrio/rpi-hostap/issues/89)) ([#99](https://github.com/sdelrio/rpi-hostap/issues/99)) ([a91d928](https://github.com/sdelrio/rpi-hostap/commit/a91d928e99887e9b4407cd0ea82bee0af3abdd40))
+
+
+### 🩹 Fixes
+
+* flush interface address and bring link down in cleanup() ([#88](https://github.com/sdelrio/rpi-hostap/issues/88)) ([#100](https://github.com/sdelrio/rpi-hostap/issues/100)) ([d74fbd7](https://github.com/sdelrio/rpi-hostap/commit/d74fbd750bcfef0cebdcec1238746c8622a84d3a))
+* validate WPA_PASSPHRASE length (8-63 chars) before starting daemons ([#97](https://github.com/sdelrio/rpi-hostap/issues/97)) ([6bd6c01](https://github.com/sdelrio/rpi-hostap/commit/6bd6c01ceec34809635be275576e406206924d06)), closes [#90](https://github.com/sdelrio/rpi-hostap/issues/90)
+
 ## [0.34.0](https://github.com/sdelrio/rpi-hostap/compare/v0.33.0...v0.34.0) (2026-08-22)
 
 
