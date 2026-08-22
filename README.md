@@ -255,6 +255,20 @@ docker logs rpi-hostap
 
 Ensure the WiFi interface is up and not in use by another process.
 
+## Health Check
+
+The container defines a Docker `HEALTHCHECK` that runs `/bin/healthcheck.sh` every 30s (15s start period, 3 retries). The check verifies, in order:
+
+1. The container has been up longer than the grace period (`HEALTHCHECK_START_PERIOD`, default 15s); during this period it always passes.
+2. The `hostapd` process is running.
+3. The `dnsmasq` process is running.
+4. The wireless interface (`INTERFACE`) exists and is up.
+5. If `AP_ADDR` is set: the address is actually assigned to `INTERFACE` (via `ip -4 addr show`). This catches cases where IP configuration failed after hostapd started.
+
+If any check fails, the container is reported as `unhealthy`.
+
+Note: the AP's beaconing status itself is not verified — that would require enabling the hostapd control interface (`ctrl_interface`) in the generated config and querying it with `hostapd_cli`, which is intentionally not enabled to keep the container config minimal.
+
 ## Contributing
 
 See [CI.md](CI.md) for details on the release process and versioning.

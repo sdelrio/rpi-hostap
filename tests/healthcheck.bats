@@ -63,6 +63,31 @@ EOF
     [ "$status" -eq 0 ]
 }
 
+@test "healthcheck fails when AP_ADDR is not assigned to interface" {
+    export AP_ADDR="192.168.254.1"
+    mock_bin pidof 'exit 0'
+    mock_bin ip 'if [ "$1" = "-4" ]; then echo "no match"; exit 0; fi; exit 0'
+    run ./healthcheck.sh
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"192.168.254.1 is not assigned to interface wlan0"* ]]
+}
+
+@test "healthcheck passes when AP_ADDR is assigned to interface" {
+    export AP_ADDR="192.168.254.1"
+    mock_bin pidof 'exit 0'
+    mock_bin ip 'if [ "$1" = "-4" ]; then echo "inet 192.168.254.1/24"; exit 0; fi; exit 0'
+    run ./healthcheck.sh
+    [ "$status" -eq 0 ]
+}
+
+@test "healthcheck skips AP_ADDR check when unset" {
+    unset AP_ADDR
+    mock_bin pidof 'exit 0'
+    mock_bin ip 'if [ "$1" = "-4" ]; then exit 1; fi; exit 0'
+    run ./healthcheck.sh
+    [ "$status" -eq 0 ]
+}
+
 @test "healthcheck respects HEALTHCHECK_START_PERIOD env var" {
     export HEALTHCHECK_START_PERIOD=30
     echo "20.00 20.00" > "$HEALTHCHECK_UPTIME_FILE"
