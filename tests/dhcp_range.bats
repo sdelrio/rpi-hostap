@@ -1,7 +1,9 @@
 #!/usr/bin/env bats
 
-# Helper to extract DHCP logic from wlanstart.sh
-# We simulate the relevant parts without running the full script
+# Logic shared with wlanstart.sh
+REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/.." && pwd)"
+# shellcheck source=../lib/dhcp.sh
+. "${REPO_ROOT}/lib/dhcp.sh"
 
 setup() {
     export SUBNET="192.168.254.0"
@@ -13,54 +15,38 @@ setup() {
     unset DHCP_LEASE
 }
 
-compute_dhcp_range() {
-    # Replicate the logic from wlanstart.sh
-    : "${DHCP_LEASE:=12h}"
-    if [ -z "${DHCP_RANGE}" ] ; then
-        SUBNET_PREFIX=$(echo $SUBNET | rev | cut -d. -f2- | rev)
-        DHCP_RANGE="${SUBNET_PREFIX}.100,${SUBNET_PREFIX}.200,255.255.255.0,${DHCP_LEASE}"
-    else
-        COMMA_COUNT=$(echo "${DHCP_RANGE}" | tr -cd ',' | wc -c)
-        if [ "${COMMA_COUNT}" -ne 3 ] ; then
-            echo "[Error] Invalid DHCP_RANGE format: '${DHCP_RANGE}'" >&2
-            return 1
-        fi
-    fi
-    echo "${DHCP_RANGE}"
-}
-
 @test "default DHCP_RANGE computed from SUBNET 192.168.254.0" {
     run compute_dhcp_range
     [ "$status" -eq 0 ]
-    [ "$output" = "192.168.254.100,192.168.254.200,255.255.255.0,12h" ]
+    [ "${lines[@]: -1}" = "192.168.254.100,192.168.254.200,255.255.255.0,12h" ]
 }
 
 @test "default DHCP_RANGE computed from SUBNET 10.0.0.0" {
     SUBNET="10.0.0.0"
     run compute_dhcp_range
     [ "$status" -eq 0 ]
-    [ "$output" = "10.0.0.100,10.0.0.200,255.255.255.0,12h" ]
+    [ "${lines[@]: -1}" = "10.0.0.100,10.0.0.200,255.255.255.0,12h" ]
 }
 
 @test "default DHCP_RANGE computed from SUBNET 172.16.1.0" {
     SUBNET="172.16.1.0"
     run compute_dhcp_range
     [ "$status" -eq 0 ]
-    [ "$output" = "172.16.1.100,172.16.1.200,255.255.255.0,12h" ]
+    [ "${lines[@]: -1}" = "172.16.1.100,172.16.1.200,255.255.255.0,12h" ]
 }
 
 @test "explicit DHCP_RANGE is preserved" {
     DHCP_RANGE="10.10.10.50,10.10.10.150,255.255.255.0,24h"
     run compute_dhcp_range
     [ "$status" -eq 0 ]
-    [ "$output" = "10.10.10.50,10.10.10.150,255.255.255.0,24h" ]
+    [ "${lines[@]: -1}" = "10.10.10.50,10.10.10.150,255.255.255.0,24h" ]
 }
 
 @test "DHCP_LEASE used in default range" {
     DHCP_LEASE="24h"
     run compute_dhcp_range
     [ "$status" -eq 0 ]
-    [ "$output" = "192.168.254.100,192.168.254.200,255.255.255.0,24h" ]
+    [ "${lines[@]: -1}" = "192.168.254.100,192.168.254.200,255.255.255.0,24h" ]
 }
 
 @test "DHCP_LEASE ignored when DHCP_RANGE is explicit" {
@@ -68,7 +54,7 @@ compute_dhcp_range() {
     DHCP_LEASE="24h"
     run compute_dhcp_range
     [ "$status" -eq 0 ]
-    [ "$output" = "10.0.0.50,10.0.0.150,255.255.255.0,48h" ]
+    [ "${lines[@]: -1}" = "10.0.0.50,10.0.0.150,255.255.255.0,48h" ]
 }
 
 @test "invalid DHCP_RANGE with too few commas fails" {

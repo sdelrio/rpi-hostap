@@ -214,24 +214,11 @@ fi
 
 echo "Configuring DHCP server .."
 
-# Default DHCP lease time
-: "${DHCP_LEASE:=12h}"
+# Logic lives in lib/dhcp.sh, shared with tests
+# shellcheck source=lib/dhcp.sh
+. "$(dirname "$0")/lib/dhcp.sh"
 
-# Compute default DHCP range if not set
-if [ -z "${DHCP_RANGE}" ] ; then
-    SUBNET_PREFIX=$(echo "$SUBNET" | rev | cut -d. -f2- | rev)
-    DHCP_RANGE="${SUBNET_PREFIX}.100,${SUBNET_PREFIX}.200,255.255.255.0,${DHCP_LEASE}"
-    echo "[Warning] DHCP_RANGE not set, using default: $DHCP_RANGE"
-else
-    # Validate DHCP_RANGE format: must contain exactly 3 commas (start_ip,end_ip,netmask,lease)
-    COMMA_COUNT=$(echo "${DHCP_RANGE}" | tr -cd ',' | wc -c)
-    if [ "${COMMA_COUNT}" -ne 3 ] ; then
-        echo "[Error] Invalid DHCP_RANGE format: '${DHCP_RANGE}'"
-        echo "  Expected: start_ip,end_ip,netmask,lease_time"
-        echo "  Example: 192.168.254.100,192.168.254.200,255.255.255.0,12h"
-        exit 1
-    fi
-fi
+DHCP_RANGE=$(compute_dhcp_range) || exit 1
 
 cat > "/etc/dnsmasq.conf" <<EOF
 interface=${INTERFACE}
