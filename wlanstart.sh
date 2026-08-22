@@ -111,9 +111,10 @@ esac
 # shellcheck source=lib/warnings.sh
 . "$(dirname "$0")/lib/warnings.sh"
 emit_credential_warnings
-if [ "${MAX_STATIONS}" != "0" ] && ! [ "${MAX_STATIONS}" -gt 0 ] 2>/dev/null ; then
-    echo "[Warning] Invalid MAX_STATIONS '${MAX_STATIONS}'. Must be a non-negative integer. Ignoring."
-fi
+# MAX_STATIONS: limit number of associated stations (0 = unlimited)
+# Logic lives in lib/stations.sh, shared with tests
+# shellcheck source=lib/stations.sh
+. "$(dirname "$0")/lib/stations.sh"
 
 # WPA version: 2 (WPA2-PSK, default), 3 (WPA3-SAE) or mixed (WPA2/WPA3 transition)
 # Logic lives in lib/wpa.sh, shared with tests
@@ -135,10 +136,7 @@ _AP_ISOLATION_CONF=$(compute_ap_isolation_line)
 . "$(dirname "$0")/lib/ssid_hidden.sh"
 _SSID_HIDDEN_CONF=$(compute_ssid_hidden_line)
 
-_MAX_STA_CONF=""
-if [ "${MAX_STATIONS}" -gt 0 ] 2>/dev/null ; then
-    _MAX_STA_CONF="max_num_sta=${MAX_STATIONS}"
-fi
+_MAX_STA_CONF=$(compute_max_sta_conf)
 
 # Always regenerate hostapd.conf so env var changes apply between runs
 cat > "/etc/hostapd.conf" <<EOF
