@@ -119,6 +119,7 @@ fi
 
 # WPA version: 2 (WPA2-PSK, default), 3 (WPA3-SAE) or mixed (WPA2/WPA3 transition)
 # Logic lives in lib/wpa.sh, shared with tests
+# shellcheck source=lib/wpa.sh
 . "$(dirname "$0")/lib/wpa.sh"
 if ! _WPA_CONF=$(compute_wpa_conf) ; then
     exit 1
