@@ -58,6 +58,9 @@ jobs:
         run: |
           shellcheck wlanstart.sh healthcheck.sh
 
+      - name: Shellcheck get-version.sh
+        run: shellcheck scripts/get-version.sh
+
   build:
     runs-on: ubuntu-latest
     steps:

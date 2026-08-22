@@ -1,5 +1,5 @@
 IMGNAME = sdelrio/rpi-hostap
-VERSION = $(shell grep "ENV VERSION" Dockerfile | awk -F= '{print $$NF}')
+VERSION = $(shell scripts/get-version.sh)
 SUBNET  = 192.168.254.0
 APADDR  = 192.168.254.1
 PLATFORM ?= linux/amd64,linux/arm/v7,linux/arm64
