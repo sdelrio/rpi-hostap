@@ -117,6 +117,14 @@ if [ "${MAX_STATIONS}" != "0" ] && ! [ "${MAX_STATIONS}" -gt 0 ] 2>/dev/null ; t
     echo "[Warning] Invalid MAX_STATIONS '${MAX_STATIONS}'. Must be a non-negative integer. Ignoring."
 fi
 
+# WPA version: 2 (WPA2-PSK, default), 3 (WPA3-SAE) or mixed (WPA2/WPA3 transition)
+# Logic lives in lib/wpa.sh, shared with tests
+# shellcheck source=lib/wpa.sh
+. "$(dirname "$0")/lib/wpa.sh"
+if ! _WPA_CONF=$(compute_wpa_conf) ; then
+    exit 1
+fi
+
 _MAX_STA_CONF=""
 if [ "${MAX_STATIONS}" -gt 0 ] 2>/dev/null ; then
     _MAX_STA_CONF="max_num_sta=${MAX_STATIONS}"
@@ -131,13 +139,7 @@ ${HIDE_SSID+"ssid_hidden=${HIDE_SSID}"}
 hw_mode=${HW_MODE}
 channel=${CHANNEL}
 ${COUNTRY_CODE+"country_code=${COUNTRY_CODE}"}
-wpa=2
-wpa_passphrase=${WPA_PASSPHRASE}
-wpa_key_mgmt=WPA-PSK
-# TKIP is no secure anymore
-#wpa_pairwise=TKIP CCMP
-wpa_pairwise=CCMP
-rsn_pairwise=CCMP
+${_WPA_CONF}
 wpa_ptk_rekey=600
 wmm_enabled=1
 ${_MAX_STA_CONF}

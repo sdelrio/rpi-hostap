@@ -13,3 +13,10 @@ setup() {
 @test "Dockerfile contains no literal ENV VERSION (manifest is the source of truth)" {
     ! grep -q "ENV VERSION" "$ROOT/Dockerfile"
 }
+
+@test "Dockerfile copies every source dir referenced by wlanstart.sh" {
+    grep -q "COPY lib/ /bin/lib/" "$ROOT/Dockerfile"
+    for f in "$ROOT"/lib/*.sh; do
+        [ -f "$f" ]
+    done
+}

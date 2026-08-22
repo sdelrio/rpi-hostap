@@ -104,6 +104,13 @@ docker run -d \
 | `HIDE_SSID` | No | Hide SSID broadcast (`1` = hidden) | `0` |
 | `AP_ISOLATION` | No | Isolate clients from each other (`1` = enabled) | `0` |
 | `COUNTRY_CODE` | No | Regulatory domain (`US`/`CA`/`MX`: ch 1-11, `JP`: ch 1-14, others: ch 1-13). Sets `country_code` in hostapd.conf | `EU` |
+| `WPA_VERSION` | No | WPA version: `2` = WPA2-PSK, `3` = WPA3-SAE (requires client support) | `2` |
+
+#### WPA3 (SAE)
+
+Setting `WPA_VERSION=3` enables WPA3-SAE authentication. Note:
+- Client devices must support SAE (wpa_supplicant 2.7+, iOS 13+/macOS 10.15+, Android 10+).
+- Older clients that only support WPA2 will not be able to connect.
 
 #### Regional Channel Validation
 
