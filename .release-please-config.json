@@ -8,7 +8,7 @@
       "prerelease-type": "beta",
       "changelog-sections": [
         { "type": "feat", "section": "✨ Features" },
-        { "type": "fix", "section": "🐛 Bug Fixes" },
+        { "type": "fix", "section": "🩹 Fixes" },
         { "type": "refactor", "section": "♻️ Code Refactoring" },
         { "type": "perf", "section": "⚡ Performance Improvements" },
         { "type": "docs", "section": "📝 Documentation", "hidden": true },
