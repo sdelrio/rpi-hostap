@@ -12,6 +12,7 @@ ENV HEALTHCHECK_START_PERIOD=15
 
 COPY wlanstart.sh /bin/wlanstart.sh
 COPY healthcheck.sh /bin/healthcheck.sh
+COPY lib/ /bin/lib/
 RUN chmod +x /bin/healthcheck.sh
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
