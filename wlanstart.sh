@@ -48,15 +48,26 @@ true ${CHANNEL:=11}
 # Validate channel against hardware mode
 case "${HW_MODE}" in
     g|b)
-        if [ "${CHANNEL:-11}" -gt 14 ] 2>/dev/null; then
+        if ! [ "${CHANNEL}" -gt 0 ] 2>/dev/null; then
+            echo "[Error] Channel '${CHANNEL}' must be a positive integer"
+            exit 1
+        fi
+        if [ "${CHANNEL}" -gt 14 ] 2>/dev/null; then
             echo "[Error] Channel ${CHANNEL} is invalid for hw_mode=${HW_MODE} (max 14)"
             exit 1
         fi
         ;;
     a)
-        if [ "${CHANNEL:-11}" -le 14 ] 2>/dev/null; then
+        if ! [ "${CHANNEL}" -gt 0 ] 2>/dev/null; then
+            echo "[Error] Channel '${CHANNEL}' must be a positive integer"
+            exit 1
+        fi
+        if [ "${CHANNEL}" -le 14 ] 2>/dev/null; then
             echo "[Warning] Channel ${CHANNEL} may be invalid for hw_mode=a (5GHz typically > 14)"
         fi
+        ;;
+    *)
+        echo "[Warning] Unknown hw_mode='${HW_MODE}', skipping channel validation"
         ;;
 esac
 
