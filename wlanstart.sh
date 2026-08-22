@@ -45,6 +45,7 @@ if [ ! -f "/etc/hostapd.conf" ] ; then
 interface=${INTERFACE}
 ${DRIVER+"driver=${DRIVER}"}
 ssid=${SSID}
+${HIDE_SSID+"ssid_hidden=${HIDE_SSID}"}
 hw_mode=${HW_MODE}
 channel=${CHANNEL}
 wpa=2
