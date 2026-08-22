@@ -50,7 +50,8 @@ To move a GitHub issue from one status to another:
 2. When completing work: Remove `in_progress` label, optionally add `done` label
 3. Agent should always check GitHub issues before beginning work
 4. **Never push to master directly**: Always prepare a Pull Request for review
-5. **Pin GitHub Actions to SHA**: All actions in workflow files must use full-length commit SHAs (e.g., `uses: actions/checkout@<sha> # v7.0.1`). This is enforced by repository rules. To find an action's SHA: `gh api repos/<owner>/<repo>/tags --jq '.[0].commit.sha'`
+5. **Always merge PRs with squash** (`gh pr merge <number> --squash`): this repo does not allow merge commits, and squash keeps history linear with one conventional commit per PR
+6. **Pin GitHub Actions to SHA**: All actions in workflow files must use full-length commit SHAs (e.g., `uses: actions/checkout@<sha> # v7.0.1`). This is enforced by repository rules. To find an action's SHA: `gh api repos/<owner>/<repo>/tags --jq '.[0].commit.sha'`
 
 ## Creating Issues and PRs (body-file pattern)
 
@@ -65,3 +66,28 @@ gh pr create --title "Title here" --body-file /path/to/body.md
 ```
 
 This avoids all character escaping issues.
+
+## Commit Messages and PR Titles (Semantic Release)
+
+All commit messages and PR titles must follow the [Conventional Commits](https://www.conventionalcommits.org/) / semantic release format:
+
+```
+<type>(<optional scope>): <description>
+```
+
+Common types:
+- `feat`: new feature (triggers minor version bump)
+- `fix`: bug fix (triggers patch version bump)
+- `docs`: documentation only
+- `refactor`: code change that neither fixes a bug nor adds a feature
+- `chore`: maintenance, tooling, CI changes
+- `test`: adding or correcting tests
+
+Examples:
+
+```bash
+git commit -m "fix: correct typo in wlanstart.sh comments"
+gh pr create --title "feat(hostapd): add AP isolation support"
+```
+
+Breaking changes should use `!` after the type (e.g., `feat!:`) and trigger a major version bump.
