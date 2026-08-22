@@ -1,22 +1,12 @@
 #!/usr/bin/env bats
 
-# Helper to extract MAX_STATIONS logic from wlanstart.sh
+# Shared MAX_STATIONS logic from lib/stations.sh
 
 setup() {
     unset MAX_STATIONS
     unset _MAX_STA_CONF
-}
-
-compute_max_sta_conf() {
-    : "${MAX_STATIONS:=0}"
-    if [ "${MAX_STATIONS}" != "0" ] && ! [ "${MAX_STATIONS}" -gt 0 ] 2>/dev/null ; then
-        echo "[Warning] Invalid MAX_STATIONS '${MAX_STATIONS}'. Must be a non-negative integer. Ignoring."
-    fi
-    _MAX_STA_CONF=""
-    if [ "${MAX_STATIONS}" -gt 0 ] 2>/dev/null ; then
-        _MAX_STA_CONF="max_num_sta=${MAX_STATIONS}"
-    fi
-    echo "${_MAX_STA_CONF}"
+    # shellcheck source=../lib/stations.sh
+    . "$(dirname "$BATS_TEST_FILENAME")/../lib/stations.sh"
 }
 
 @test "default MAX_STATIONS=0 produces no config line" {
