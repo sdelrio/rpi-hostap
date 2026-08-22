@@ -45,6 +45,22 @@ fi
 true ${HW_MODE:=g}
 true ${CHANNEL:=11}
 
+# Warn if COUNTRY_CODE was not explicitly set, then default to EU (ETSI)
+if [ -z "${COUNTRY_CODE+x}" ] ; then
+    echo "[Warning] COUNTRY_CODE not set, defaulting to 'EU' (ETSI: channels 1-13)."
+    echo "          Set COUNTRY_CODE (e.g. US, CA, JP) to match your local regulations."
+fi
+true ${COUNTRY_CODE:=EU}
+
+# Validate channel against regulatory domain
+case "${COUNTRY_CODE}" in
+    US|CA|MX) _MAX_CHANNEL=11 ;;
+    JP)       _MAX_CHANNEL=14 ;;
+    *)        _MAX_CHANNEL=13 ;;  # fallback: Europe (ETSI)
+esac
+
+# Validate channel against hardware mode
+
 # Validate channel against hardware mode
 case "${HW_MODE}" in
     g|b)
@@ -52,8 +68,8 @@ case "${HW_MODE}" in
             echo "[Error] Channel '${CHANNEL}' must be a positive integer"
             exit 1
         fi
-        if [ "${CHANNEL}" -gt 14 ] 2>/dev/null; then
-            echo "[Error] Channel ${CHANNEL} is invalid for hw_mode=${HW_MODE} (max 14)"
+        if [ "${CHANNEL}" -gt "${_MAX_CHANNEL}" ] 2>/dev/null; then
+            echo "[Error] Channel ${CHANNEL} not allowed for country ${COUNTRY_CODE} (max ${_MAX_CHANNEL} for hw_mode=${HW_MODE})"
             exit 1
         fi
         ;;
@@ -104,6 +120,7 @@ ssid=${SSID}
 ${HIDE_SSID+"ssid_hidden=${HIDE_SSID}"}
 hw_mode=${HW_MODE}
 channel=${CHANNEL}
+${COUNTRY_CODE+"country_code=${COUNTRY_CODE}"}
 wpa=2
 wpa_passphrase=${WPA_PASSPHRASE}
 wpa_key_mgmt=WPA-PSK

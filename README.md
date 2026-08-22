@@ -103,6 +103,19 @@ docker run -d \
 | `MAX_STATIONS` | No | Max connected clients (`0` = unlimited) | `0` |
 | `HIDE_SSID` | No | Hide SSID broadcast (`1` = hidden) | `0` |
 | `AP_ISOLATION` | No | Isolate clients from each other (`1` = enabled) | `0` |
+| `COUNTRY_CODE` | No | Regulatory domain (`US`/`CA`/`MX`: ch 1-11, `JP`: ch 1-14, others: ch 1-13). Sets `country_code` in hostapd.conf | `EU` |
+
+#### Regional Channel Validation
+
+When `COUNTRY_CODE` is set, 2.4 GHz channels (`hw_mode=g` or `b`) are validated against regional limits:
+
+| Region | Countries | Allowed Channels (2.4 GHz) |
+|--------|-----------|---------------------------|
+| North America | US, CA, MX | 1–11 |
+| Europe (ETSI) | EU, UK, ES, ... (default) | 1–13 |
+| Japan | JP | 1–14 |
+
+Unknown countries fall back to the ETSI limit (1–13). A warning is emitted if `COUNTRY_CODE` is not set.
 
 ### Build from Source
 
