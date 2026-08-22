@@ -34,6 +34,11 @@ cleanup() {
         iptables -D FORWARD -i "${INTERFACE}" -j ACCEPT > /dev/null 2>&1 || true
     fi
 
+    if [ "${IPV6:-0}" = "1" ] ; then
+        echo "Removing ip6tables rules..."
+        remove_ipv6_rules
+    fi
+
     if [ -n "${INTERFACE}" ] ; then
         echo "Flushing interface ${INTERFACE}..."
         ip addr flush dev "${INTERFACE}" 2>/dev/null || true
@@ -199,6 +204,19 @@ else
    iptables -A FORWARD -i "${INTERFACE}" -j ACCEPT
 fi
 
+# Optional IPv6 support (off by default, enable with IPV6=1)
+# Logic lives in lib/ipv6.sh, shared with tests
+# shellcheck source=lib/ipv6.sh
+. "$(dirname "$0")/lib/ipv6.sh"
+
+_IPV6_CONF=""
+if [ "${IPV6:-0}" = "1" ] ; then
+    echo "Enabling IPv6 forwarding..."
+    enable_ipv6_forwarding
+    echo "Setting ip6tables rules for outgoing traffics..."
+    apply_ipv6_rules
+fi
+
 echo "Configuring DHCP server .."
 
 # Logic lives in lib/dhcp.sh, shared with tests
@@ -207,11 +225,16 @@ echo "Configuring DHCP server .."
 
 DHCP_RANGE=$(compute_dhcp_range) || exit 1
 
+if [ "${IPV6:-0}" = "1" ] ; then
+    _IPV6_CONF=$(compute_dnsmasq_ipv6_conf)
+fi
+
 cat > "/etc/dnsmasq.conf" <<EOF
 interface=${INTERFACE}
 dhcp-range=${DHCP_RANGE}
 dhcp-option=option:router,${AP_ADDR}
 dhcp-option=option:dns-server,${PRI_DNS},${SEC_DNS}
+${_IPV6_CONF}
 EOF
 
 echo "Starting dnsmasq daemon ..."

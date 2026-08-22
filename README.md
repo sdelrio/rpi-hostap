@@ -105,6 +105,7 @@ docker run -d \
 | `AP_ISOLATION` | No | Isolate clients from each other (`1` = enabled) | `0` |
 | `COUNTRY_CODE` | No | Regulatory domain (`US`/`CA`/`MX`: ch 1-11, `JP`: ch 1-14, others: ch 1-13). Sets `country_code` in hostapd.conf | `EU` |
 | `WPA_VERSION` | No | WPA version: `2` = WPA2-PSK, `3` = WPA3-SAE (requires client support), `mixed` = WPA2/WPA3 transition (legacy clients allowed) | `2` |
+| `IPV6` | No | Enable IPv6 RA/DHCPv6 for clients (`1` = enabled) | `0` |
 
 #### WPA3 (SAE)
 
@@ -149,6 +150,25 @@ sudo sed -i 's/#net.ipv4.ip_forward=1/net.ipv4.ip_forward=1/' /etc/sysctl.conf
 sudo sed -i 's/#net.ipv6.conf.all.forwarding=1/net.ipv6.conf.all.forwarding=1/' /etc/sysctl.conf
 sudo sysctl -p
 ```
+
+### IPv6 Support (optional)
+
+IPv6 is **off by default**; behavior is unchanged unless you set `IPV6=1`. When enabled:
+
+- `net.ipv6.conf.all.forwarding=1` is set at runtime (IPv6 forwarding).
+- dnsmasq advertises SLAAC/RA with stateless DHCPv6 on the AP interface:
+  `dhcp-range=::,constructor:<INTERFACE>,ra-names,stateless`
+- `ip6tables` FORWARD rules mirror the IPv4 handling (established/related in, new out). There is no IPv6 NAT — clients get addresses from the upstream network's prefix via RA, or link-local/ULA otherwise.
+
+```bash
+docker run ... -e IPV6=1 ...
+```
+
+Caveats:
+
+- Client IPv6 connectivity depends on the upstream network advertising an IPv6 prefix (Router Advertisements on the outgoing interface). Without an upstream prefix, clients will only obtain link-local addresses.
+- The container sets forwarding at runtime via `/proc/sys`; for host persistence across reboots see the sysctl commands above.
+- Some ISPs/hosters filter or rate-limit IPv6; test with `ping6` / `traceroute -6` from a client.
 
 ### Outgoing Interfaces
 
