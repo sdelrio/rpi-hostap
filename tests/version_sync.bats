@@ -5,7 +5,7 @@ setup() {
 }
 
 @test "Dockerfile VERSION matches release-please manifest" {
-    dockerfile_version=$(grep "ENV VERSION" "$ROOT/Dockerfile" | awk -F= '{print $NF}')
+    dockerfile_version=$("$ROOT/scripts/get-version.sh")
     manifest_version=$(jq -r '."."' "$ROOT/.release-please-manifest.json")
     [ -n "$dockerfile_version" ]
     [ -n "$manifest_version" ]

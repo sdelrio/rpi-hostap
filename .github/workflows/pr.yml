@@ -58,15 +58,12 @@ jobs:
         run: |
           shellcheck wlanstart.sh healthcheck.sh
 
-  version-check:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Shellcheck get-version.sh
+        run: shellcheck scripts/get-version.sh
 
       - name: Verify Dockerfile VERSION matches release-please manifest
         run: |
-          DOCKERFILE_VERSION=$(grep "ENV VERSION" Dockerfile | awk -F= '{print $NF}')
+          DOCKERFILE_VERSION=$(scripts/get-version.sh)
           MANIFEST_VERSION=$(jq -r '."."' .release-please-manifest.json)
           echo "Dockerfile: ${DOCKERFILE_VERSION}, manifest: ${MANIFEST_VERSION}"
           if [ "${DOCKERFILE_VERSION}" != "${MANIFEST_VERSION}" ]; then

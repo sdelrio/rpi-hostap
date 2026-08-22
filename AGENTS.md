@@ -71,6 +71,16 @@ gh pr create --title "Title here" --body-file /path/to/body.md
 
 This avoids all character escaping issues.
 
+## Waiting for PR Checks
+
+When waiting for CI checks on a pull request, use `gh pr checks <number> --watch` instead of sleeping and polling:
+
+```bash
+gh pr checks 70 --watch
+```
+
+If no checks are reported yet, retry after a short delay until runs appear, then use `--watch`.
+
 ## Commit Messages and PR Titles (Semantic Release)
 
 All commit messages and PR titles must follow the [Conventional Commits](https://www.conventionalcommits.org/) / semantic release format:
