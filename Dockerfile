@@ -12,4 +12,8 @@ RUN apk add --no-cache \
 
 COPY wlanstart.sh /bin/wlanstart.sh
 
+# hadolint ignore=DL3025
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+  CMD pidof hostapd > /dev/null && pidof dnsmasq > /dev/null || exit 1
+
 ENTRYPOINT [ "/bin/wlanstart.sh" ]
