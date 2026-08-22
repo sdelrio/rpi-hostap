@@ -31,6 +31,9 @@ fi
 if [ "${WPA_PASSPHRASE}" = "passw0rd" ] ; then
     echo "[Warning] Using default WPA passphrase. Set WPA_PASSPHRASE env var for production."
 fi
+if [ "${MAX_STATIONS}" != "0" ] && ! [ "${MAX_STATIONS}" -gt 0 ] 2>/dev/null ; then
+    echo "[Warning] Invalid MAX_STATIONS '${MAX_STATIONS}'. Must be a non-negative integer. Ignoring."
+fi
 
 _MAX_STA_CONF=""
 if [ "${MAX_STATIONS}" -gt 0 ] 2>/dev/null ; then
