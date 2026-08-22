@@ -67,7 +67,7 @@ jobs:
       - name: Verify Dockerfile VERSION matches release-please manifest
         run: |
           DOCKERFILE_VERSION=$(grep "ENV VERSION" Dockerfile | awk -F= '{print $NF}')
-          MANIFEST_VERSION=$(jq -r '."'."' .release-please-manifest.json)
+          MANIFEST_VERSION=$(jq -r '."."' .release-please-manifest.json)
           echo "Dockerfile: ${DOCKERFILE_VERSION}, manifest: ${MANIFEST_VERSION}"
           if [ "${DOCKERFILE_VERSION}" != "${MANIFEST_VERSION}" ]; then
             echo "::error::Dockerfile VERSION (${DOCKERFILE_VERSION}) does not match .release-please-manifest.json (${MANIFEST_VERSION})"
