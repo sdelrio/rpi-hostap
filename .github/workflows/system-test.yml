@@ -59,33 +59,31 @@ jobs:
         with:
           ref: ${{ inputs.ref || github.ref }}
 
-      - name: Install test dependencies
+      # The azure runner kernel (linux-azure) does not ship mac80211_hwsim and
+      # Microsoft does not package it in linux-modules-extra either (see
+      # actions/runner-images#1480). Switch to the generic Ubuntu kernel, which
+      # includes the module, and reboot into it.
+      - name: Install generic Linux kernel and extra modules
         run: |
           sudo apt-get update
-          sudo apt-get install -y socat iproute2 iw busybox \
-            "linux-headers-$(uname -r)"
+          sudo apt-get install -y --no-install-recommends \
+            linux-image-generic \
+            linux-modules-extra-generic \
+            socat iproute2 iw busybox
 
-      # The azure runner kernel does not ship mac80211_hwsim, so build it
-      # out-of-tree against the running kernel's headers instead.
-      - name: Build mac80211_hwsim module
-        run: |
-          find "/lib/modules/$(uname -r)" \( -name 'mac80211*' -o -name 'cfg80211*' \) | head
-          mkdir -p /tmp/hwsim && cd /tmp/hwsim
-          for f in mac80211_hwsim.c mac80211_hwsim.h ; do
-            for src in \
-              "https://raw.githubusercontent.com/torvalds/linux/v6.17/drivers/net/wireless/virtual/$f" \
-              "https://raw.githubusercontent.com/torvalds/linux/v6.17/drivers/net/wireless/$f" ; do
-              curl -fsSL "$src" -o "$f" && break || true
-            done
-            [ -s "$f" ] || { echo "failed to fetch $f" >&2; exit 1; }
-          done
-          printf 'obj-m := mac80211_hwsim.o\n' > Makefile
-          make -C "/lib/modules/$(uname -r)/build" M="$PWD" modules
+      - name: Reboot runner into generic kernel
+        run: sudo reboot
+        continue-on-error: true
+
+      - name: Wait for runner to come back online
+        run: sleep 10
 
       - name: Load simulated Wi-Fi radio
         run: |
-          sudo insmod /tmp/hwsim/mac80211_hwsim.ko radios=1
+          echo "Current Kernel: $(uname -r)"
+          sudo modprobe mac80211_hwsim radios=1
           lsmod | grep mac80211_hwsim
+          iw dev
 
       - name: Run system test
         run: sudo tests/system_test.sh
