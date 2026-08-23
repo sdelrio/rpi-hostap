@@ -12,7 +12,7 @@ on:
         default: ''
 
 concurrency:
-  group: systest-${{ github.event.pull_request.number || github.ref }}
+  group: systest-debug-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:

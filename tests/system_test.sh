@@ -45,7 +45,6 @@ cleanup() {
     [ -n "${S2C_PID}" ] && kill "${S2C_PID}" 2>/dev/null
     ip netns del "${NETNS}" 2>/dev/null || true
     ip link del "${VETH_HOST}" 2>/dev/null || true
-    ip route del 255.255.255.255/32 dev "${VETH_HOST}" 2>/dev/null || true
     iptables -t nat -D PREROUTING -i "${VETH_HOST}" -p udp --dport 67 \
         -j REDIRECT --to-ports "${RELAY_PORT}" 2>/dev/null || true
     docker rm -f "${CONTAINER_NAME}" >/dev/null 2>&1 || true
@@ -182,12 +181,6 @@ setup_dhcp_client() {
     ip netns exec "${NETNS}" ip addr add "${VETH_CLI_IP}/24" dev "${VETH_CLI}"
     ip netns exec "${NETNS}" ip link set "${VETH_CLI}" up
     ip netns exec "${NETNS}" ip link set lo up
-    # force limited broadcasts out the client segment so the S2C relay
-    # can re-inject dnsmasq replies into the netns; relax rp_filter for
-    # the asymmetric DHCP flows (source 0.0.0.0)
-    ip route replace 255.255.255.255/32 dev "${VETH_HOST}"
-    sysctl -w net.ipv4.conf.all.rp_filter=0 >/dev/null
-    sysctl -w "net.ipv4.conf.${VETH_HOST}.rp_filter=0" >/dev/null
     # dnsmasq owns wildcard :67 in this netns, so redirect client
     # broadcasts arriving on veth-h to the C2S relay's port instead.
     iptables -t nat -A PREROUTING -i "${VETH_HOST}" -p udp --dport 67 \
@@ -207,10 +200,11 @@ start_relays() {
     C2S_PID=$!
 
     # Server -> client relay: receive dnsmasq's unicast reply on the
-    # relay source port bound to veth-h and re-broadcast it into the
-    # client segment from source port 67 (as a proper server would).
+    # relay source port bound to veth-h and UNICAST it to veth-c's
+    # address (kept present by dhcp_lease_script) where udhcpc's
+    # wildcard :68 socket picks it up. No host route changes needed.
     socat "UDP4-RECVFROM:${RELAY_SRC_PORT},bind=${VETH_HOST_IP},reuseaddr,fork" \
-        "UDP4-DATAGRAM:255.255.255.255:68,broadcast,bind=${VETH_HOST_IP}:67" \
+        "UDP4-DATAGRAM:${VETH_CLI_IP}:68,bind=${VETH_HOST_IP}:67" \
         </dev/null >/tmp/s2c-relay.log 2>&1 &
     S2C_PID=$!
 
@@ -226,15 +220,19 @@ start_relays() {
 }
 
 dhcp_lease_script() {
-    cat > /tmp/udhcpc-systest.script <<'EOF'
+    # NOTE: VETH_CLI_IP must stay on veth-c at all times: the S2C relay
+    # unicasts dnsmasq replies to it (udhcpc has no usable address of
+    # its own until bound).
+    cat > /tmp/udhcpc-systest.script <<EOF
 #!/bin/sh
-case "$1" in
+case "\$1" in
     bound|renew)
-        ip addr flush dev "$interface"
-        ip addr add "$ip/${mask:-24}" dev "$interface"
+        ip addr flush dev "\$interface"
+        ip addr add "${VETH_CLI_IP}/24" dev "\$interface"
+        ip addr add "\$ip/\${mask:-24}" dev "\$interface"
         ;;
     deconfig)
-        ip addr flush dev "$interface"
+        ip addr replace "${VETH_CLI_IP}/24" dev "\$interface"
         ;;
 esac
 exit 0
