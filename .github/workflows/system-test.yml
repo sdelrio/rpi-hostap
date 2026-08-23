@@ -80,6 +80,7 @@ jobs:
 
       - name: Wait for runner to come back online
         run: sleep 10
+        continue-on-error: true
 
       - name: Load simulated Wi-Fi radio
         run: |
