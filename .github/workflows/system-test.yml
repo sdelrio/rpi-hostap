@@ -108,8 +108,18 @@ jobs:
 
       - name: Load simulated Wi-Fi radio
         run: |
-          sudo insmod /tmp/hwsim/cfg80211.ko
-          sudo insmod /tmp/hwsim/mac80211.ko
+          # load any in-kernel dependencies that exist as modules (e.g. rfkill)
+          for dep in $(find "/lib/modules/$(uname -r)" \( -name 'rfkill*.ko*' \)); do
+            sudo insmod "${dep}" 2>/dev/null || true
+          done
+          for mod in cfg80211 mac80211; do
+            sudo insmod "/tmp/hwsim/${mod}.ko" || {
+              echo "insmod ${mod} failed; dmesg:" >&2
+              sudo dmesg | tail -40 >&2
+              modinfo "/tmp/hwsim/${mod}.ko" | grep depends >&2
+              exit 1
+            }
+          done
           sudo insmod /tmp/hwsim/mac80211_hwsim.ko radios=1
           lsmod | grep -E 'cfg80211|mac80211'
           iw dev
