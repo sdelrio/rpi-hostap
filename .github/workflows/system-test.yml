@@ -136,4 +136,4 @@ jobs:
           iw dev
 
       - name: Run system test
-        run: sudo tests/system_test.sh
+        run: sudo bash tests/system_test.sh
