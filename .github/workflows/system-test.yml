@@ -80,11 +80,11 @@ jobs:
             /tmp/linux-src
           cd /tmp/linux-src
           git sparse-checkout set net/wireless net/mac80211 \
-            drivers/net/wireless/virtual crypto
+            drivers/net/wireless/virtual lib/crypto
 
-          # libarc4 (ARC4 cipher): required by mac80211 (WEP), absent on azure
+          # libarc4 (ARC4 cipher library): required by mac80211, absent on azure
           mkdir -p /tmp/crypto-src
-          cp crypto/arc4.c /tmp/crypto-src/
+          cp lib/crypto/arc4.c /tmp/crypto-src/
           cat > /tmp/crypto-src/Makefile <<'EOF'
           obj-m += libarc4.o
           libarc4-y := arc4.o
