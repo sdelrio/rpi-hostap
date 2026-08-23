@@ -197,20 +197,30 @@ start_relays() {
     # ${RELAY_PORT} and forward to dnsmasq with a fixed source IP:PORT
     # (${RELAY_SRC_PORT}) so dnsmasq unicasts its reply back to the
     # S2C relay.
+    # NOTE: background jobs must not inherit the step's stdout/stderr,
+    # otherwise the CI runner waits forever for EOF on the log stream.
     socat "UDP4-RECVFROM:${RELAY_PORT},bind=0.0.0.0,reuseaddr,fork" \
-        "UDP4-SENDTO:${AP_ADDR}:67,bind=${VETH_HOST_IP}:${RELAY_SRC_PORT}" &
+        "UDP4-SENDTO:${AP_ADDR}:67,bind=${VETH_HOST_IP}:${RELAY_SRC_PORT}" \
+        </dev/null >/tmp/c2s-relay.log 2>&1 &
     C2S_PID=$!
 
     # Server -> client relay: receive dnsmasq's unicast reply on the
     # relay source port bound to veth-h and re-broadcast it into the
     # client segment from source port 67 (as a proper server would).
     socat "UDP4-RECVFROM:${RELAY_SRC_PORT},bind=${VETH_HOST_IP},reuseaddr,fork" \
-        "UDP4-DATAGRAM:255.255.255.255:68,broadcast,bind=${VETH_HOST_IP}:67" &
+        "UDP4-DATAGRAM:255.255.255.255:68,broadcast,bind=${VETH_HOST_IP}:67" \
+        </dev/null >/tmp/s2c-relay.log 2>&1 &
     S2C_PID=$!
 
     sleep 1
-    kill -0 "${C2S_PID}" 2>/dev/null || die "client->server relay failed to start"
-    kill -0 "${S2C_PID}" 2>/dev/null || die "server->client relay failed to start"
+    if ! kill -0 "${C2S_PID}" 2>/dev/null; then
+        cat /tmp/c2s-relay.log >&2 || true
+        die "client->server relay failed to start"
+    fi
+    if ! kill -0 "${S2C_PID}" 2>/dev/null; then
+        cat /tmp/s2c-relay.log >&2 || true
+        die "server->client relay failed to start"
+    fi
 }
 
 dhcp_lease_script() {
