@@ -59,19 +59,22 @@ jobs:
         with:
           ref: ${{ inputs.ref || github.ref }}
 
-      # The azure runner kernel (linux-azure) does not ship mac80211_hwsim and
-      # Microsoft does not package it in linux-modules-extra either (see
-      # actions/runner-images#1480). Switch to the generic Ubuntu kernel, which
-      # includes the module, and reboot into it.
-      - name: Install generic Linux kernel and extra modules
+      - name: Install test dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            linux-image-generic \
-            linux-modules-extra-generic \
-            socat iproute2 iw busybox
+          sudo apt-get install -y socat iproute2 iw busybox \
+            linux-image-generic linux-modules-extra-generic
 
-      - name: Reboot runner into generic kernel
+      # The runner ships the Azure kernel, which lacks mac80211_hwsim.
+      # Remove it so GRUB defaults to the freshly installed generic kernel,
+      # which includes the module in linux-modules-extra-generic.
+      - name: Remove Azure kernel so generic becomes default
+        run: |
+          sudo apt-get remove -y --purge 'linux-*azure*'
+          sudo update-grub
+          grep menuentry /boot/grub/grub.cfg || true
+
+      - name: Reboot into generic kernel
         run: sudo reboot
         continue-on-error: true
 
@@ -82,7 +85,6 @@ jobs:
         run: |
           echo "Current Kernel: $(uname -r)"
           sudo modprobe mac80211_hwsim radios=1
-          lsmod | grep mac80211_hwsim
           iw dev
 
       - name: Run system test
