@@ -67,6 +67,9 @@ save_debug_logs() {
     } > /tmp/systest-logs/state.txt 2>&1 || true
     docker logs --tail 200 "${CONTAINER_NAME}" \
         > /tmp/systest-logs/container.log 2>&1 || true
+    # script runs under sudo; make logs readable by the runner user so
+    # the upload-artifact step can zip them
+    chmod -R go+rX /tmp/systest-logs 2>/dev/null || true
 }
 trap cleanup EXIT
 
