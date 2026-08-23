@@ -1,0 +1,225 @@
+#!/bin/bash
+#
+# End-to-end system test for rpi-hostap on GitHub runners (ubuntu-latest).
+# Simulates a Wi-Fi radio with mac80211_hwsim, runs the container and
+# validates hostapd, dnsmasq, NAT, healthcheck and a real DHCP lease
+# obtained through a socat broadcast relay.
+#
+# Must run as root on Linux.
+
+set -u
+
+CONTAINER_NAME="rpi-hostap_systest"
+IMAGE="rpi-hostap:systest"
+IFACE="wlan0"
+AP_ADDR="192.168.254.1"
+SUBNET="192.168.254.0"
+OUTGOING="eth0"
+SSID="testssid"
+CHANNEL="6"
+PASSPHRASE="passw0rd"
+
+NETNS="dhcptest"
+VETH_HOST="veth-h"
+VETH_CLI="veth-c"
+VETH_HOST_IP="192.168.253.1"
+VETH_CLI_IP="192.168.253.2"
+RELAY_PORT="1067"
+
+C2S_PID=""
+S2C_PID=""
+
+log() { echo "[systest] $*"; }
+die() { echo "[systest][FAIL] $*" >&2; exit 1; }
+
+need_root() {
+    [ "$(id -u)" -eq 0 ] || die "must run as root"
+}
+
+cleanup() {
+    log "Cleaning up..."
+    [ -n "${C2S_PID}" ] && kill "${C2S_PID}" 2>/dev/null
+    [ -n "${S2C_PID}" ] && kill "${S2C_PID}" 2>/dev/null
+    ip netns del "${NETNS}" 2>/dev/null || true
+    ip link del "${VETH_HOST}" 2>/dev/null || true
+    docker rm -f "${CONTAINER_NAME}" >/dev/null 2>&1 || true
+    modprobe -r mac80211_hwsim 2>/dev/null || true
+}
+trap cleanup EXIT
+
+retry() {
+    # retry <description> <timeout_seconds> -- cmd...
+    local desc="$1" timeout="$2"
+    shift 3
+    local deadline=$((SECONDS + timeout))
+    while [ "${SECONDS}" -lt "${deadline}" ]; do
+        if "$@" >/dev/null 2>&1; then
+            log "OK: ${desc}"
+            return 0
+        fi
+        sleep 2
+    done
+    echo "[systest][FAIL] timeout waiting for: ${desc}" >&2
+    "$@" 2>&1 | tail -5 >&2 || true
+    return 1
+}
+
+setup_radio() {
+    log "Loading mac80211_hwsim..."
+    modprobe mac80211_hwsim radios=1
+
+    local hwsim_iface
+    hwsim_iface=$(iw dev | awk '$1=="Interface"{print $2}' | head -n1)
+    [ -n "${hwsim_iface}" ] || die "no wireless interface found after loading mac80211_hwsim"
+
+    if [ "${hwsim_iface}" != "${IFACE}" ]; then
+        log "Renaming ${hwsim_iface} -> ${IFACE}"
+        ip link set "${hwsim_iface}" down
+        ip link set "${hwsim_iface}" name "${IFACE}"
+    fi
+    # Leave wlan0 down; wlanstart.sh configures it.
+}
+
+start_container() {
+    log "Building image..."
+    docker build -t "${IMAGE}" .
+
+    log "Starting container..."
+    docker run -d \
+        --privileged \
+        --net host \
+        --name "${CONTAINER_NAME}" \
+        -e INTERFACE="${IFACE}" \
+        -e SSID="${SSID}" \
+        -e CHANNEL="${CHANNEL}" \
+        -e AP_ADDR="${AP_ADDR}" \
+        -e SUBNET="${SUBNET}" \
+        -e WPA_PASSPHRASE="${PASSPHRASE}" \
+        -e OUTGOINGS="${OUTGOING}" \
+        "${IMAGE}"
+}
+
+assert_processes() {
+    docker exec "${CONTAINER_NAME}" pidof hostapd >/dev/null &&
+        docker exec "${CONTAINER_NAME}" pidof dnsmasq >/dev/null
+}
+
+assert_addr() {
+    ip -4 addr show dev "${IFACE}" | grep -q "${AP_ADDR}/24"
+}
+
+assert_dhcp_bound() {
+    ss -uln | grep -q "${AP_ADDR}:67"
+}
+
+assert_hostapd_status() {
+    docker exec "${CONTAINER_NAME}" hostapd_cli -i "${IFACE}" status 2>/dev/null |
+        grep -q "state=ENABLED" &&
+        docker exec "${CONTAINER_NAME}" hostapd_cli -i "${IFACE}" status 2>/dev/null |
+        grep -q "channel=${CHANNEL}"
+}
+
+assert_ip_forward() {
+    [ "$(cat /proc/sys/net/ipv4/ip_forward)" = "1" ]
+}
+
+assert_masquerade() {
+    iptables -t nat -C POSTROUTING -s "${SUBNET}/24" -o "${OUTGOING}" -j MASQUERADE
+}
+
+assert_healthy() {
+    [ "$(docker inspect -f '{{.State.Health.Status}}' "${CONTAINER_NAME}")" = "healthy" ]
+}
+
+run_assertions() {
+    local timeout=60
+    log "Waiting for services (up to ${timeout}s)..."
+    retry "hostapd and dnsmasq running" "${timeout}" -- assert_processes || return 1
+    retry "${AP_ADDR}/24 assigned to ${IFACE}" "${timeout}" -- assert_addr || return 1
+    retry "dnsmasq bound to ${AP_ADDR}:67" "${timeout}" -- assert_dhcp_bound || return 1
+    retry "hostapd AP enabled on channel ${CHANNEL}" "${timeout}" -- assert_hostapd_status || return 1
+    retry "ip_forward enabled" "${timeout}" -- assert_ip_forward || return 1
+    retry "MASQUERADE rule present" "${timeout}" -- assert_masquerade || return 1
+    retry "container healthy" "${timeout}" -- assert_healthy || return 1
+}
+
+setup_dhcp_client() {
+    log "Setting up DHCP client netns..."
+    ip netns add "${NETNS}"
+    ip link add "${VETH_HOST}" type veth peer name "${VETH_CLI}"
+    ip link set "${VETH_CLI}" netns "${NETNS}"
+    ip addr add "${VETH_HOST_IP}/24" dev "${VETH_HOST}"
+    ip link set "${VETH_HOST}" up
+    ip netns exec "${NETNS}" ip addr add "${VETH_CLI_IP}/24" dev "${VETH_CLI}"
+    ip netns exec "${NETNS}" ip link set "${VETH_CLI}" up
+    ip netns exec "${NETNS}" ip link set lo up
+}
+
+start_relays() {
+    # Client -> server relay: catch DHCP broadcasts arriving on veth-h,
+    # forward to dnsmasq from a non-zero source port so that dnsmasq
+    # unicasts its reply back to the relay.
+    socat UDP-LISTEN:67,broadcast,reuseaddr,fork \
+        "UDP-DATAGRAM:${AP_ADDR}:67,bind=:${RELAY_PORT}" &
+    C2S_PID=$!
+
+    # Server -> client relay: receive dnsmasq's unicast reply on the relay
+    # port bound to veth-h, re-broadcast it into the client segment (:68).
+    socat "UDP-LISTEN:${RELAY_PORT},bind=${VETH_HOST_IP},reuseaddr,fork" \
+        UDP-DATAGRAM:255.255.255.255:68,broadcast,bind="${VETH_HOST_IP}" &
+    S2C_PID=$!
+
+    sleep 1
+    kill -0 "${C2S_PID}" 2>/dev/null || die "client->server relay failed to start"
+    kill -0 "${S2C_PID}" 2>/dev/null || die "server->client relay failed to start"
+}
+
+dhcp_lease_script() {
+    cat > /tmp/udhcpc-systest.script <<'EOF'
+#!/bin/sh
+case "$1" in
+    bound|renew)
+        ip addr flush dev "$interface"
+        ip addr add "$ip/${mask:-24}" dev "$interface"
+        ;;
+    deconfig)
+        ip addr flush dev "$interface"
+        ;;
+esac
+exit 0
+EOF
+    chmod +x /tmp/udhcpc-systest.script
+}
+
+assert_dhcp_lease() {
+    dhcp_lease_script
+    log "Requesting DHCP lease via udhcpc in ${NETNS}..."
+    if ! ip netns exec "${NETNS}" busybox udhcpc \
+        -i "${VETH_CLI}" -s /tmp/udhcpc-systest.script -n -q -t 10 -T 3; then
+        echo "[systest][FAIL] udhcpc did not obtain a lease" >&2
+        return 1
+    fi
+
+    local leased
+    leased=$(ip netns exec "${NETNS}" ip -4 addr show dev "${VETH_CLI}" |
+        grep -o 'inet 192\.168\.254\.[0-9]*' | awk '{print $2}' | head -n1)
+    [ -n "${leased}" ] || { echo "[systest][FAIL] no lease address found on ${VETH_CLI}" >&2; return 1; }
+
+    log "Leased address: ${leased}"
+    local last_octet
+    last_octet=$(echo "${leased}" | awk -F. '{print $4}')
+    [ "${last_octet}" -ge 100 ] && [ "${last_octet}" -le 200 ]
+}
+
+main() {
+    need_root
+    setup_radio
+    start_container
+    run_assertions
+    setup_dhcp_client
+    start_relays
+    retry "end-to-end DHCP lease in 192.168.254.100-200" 90 -- assert_dhcp_lease || die "DHCP lease test failed"
+    log "All system tests passed."
+}
+
+main "$@"
