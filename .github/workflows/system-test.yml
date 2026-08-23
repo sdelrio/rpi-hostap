@@ -62,25 +62,27 @@ jobs:
       - name: Install test dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y socat iproute2 iw busybox
+          sudo apt-get install -y socat iproute2 iw busybox \
+            "linux-headers-$(uname -r)"
 
-      - name: Boot generic kernel (azure kernel lacks mac80211_hwsim)
+      # The azure runner kernel does not ship mac80211_hwsim, so build it
+      # out-of-tree against the running kernel's headers instead.
+      - name: Build mac80211_hwsim module
         run: |
-          sudo apt-get update
-          sudo apt-get install -y linux-image-generic
-          # GRUB boots the newest kernel by default; drop azure kernels so
-          # the generic kernel (which ships mac80211_hwsim) is selected.
-          sudo apt-get remove -y 'linux-image-*-azure' 'linux-modules-*-azure' || true
-          sudo reboot
+          find "/lib/modules/$(uname -r)" \( -name 'mac80211*' -o -name 'cfg80211*' \) | head
+          mkdir -p /tmp/hwsim && cd /tmp/hwsim
+          for src in \
+            https://raw.githubusercontent.com/torvalds/linux/v6.17/drivers/net/wireless/virtual/mac80211_hwsim.c \
+            https://raw.githubusercontent.com/torvalds/linux/v6.17/drivers/net/wireless/mac80211_hwsim.c ; do
+            curl -fsSL "$src" -o mac80211_hwsim.c && break || true
+          done
+          [ -s mac80211_hwsim.c ] || { echo "failed to fetch mac80211_hwsim.c" >&2; exit 1; }
+          printf 'obj-m := mac80211_hwsim.o\n' > Makefile
+          make -C "/lib/modules/$(uname -r)/build" M="$PWD" modules
 
       - name: Load simulated Wi-Fi radio
         run: |
-          uname -a
-          for i in $(seq 1 60); do
-            if sudo modprobe mac80211_hwsim radios=1; then break; fi
-            echo "waiting for generic kernel / module availability..."
-            sleep 10
-          done
+          sudo insmod /tmp/hwsim/mac80211_hwsim.ko radios=1
           lsmod | grep mac80211_hwsim
 
       - name: Run system test
