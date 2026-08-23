@@ -80,20 +80,29 @@ jobs:
             /tmp/linux-src
           cd /tmp/linux-src
           git sparse-checkout set net/wireless net/mac80211 drivers/net/wireless/virtual
-          mkdir -p /tmp/wl/net /tmp/wl/drivers/net
+
+          # cfg80211 + mac80211: build via a wrapper external-module tree
+          mkdir -p /tmp/wl/net
           cp -r net/wireless net/mac80211 /tmp/wl/net/
-          cp -r drivers/net/wireless/virtual /tmp/wl/drivers/net/
           cat > /tmp/wl/Makefile <<'EOF'
-          obj-m += net/wireless/ net/mac80211/ drivers/net/wireless/virtual/
+          obj-m += net/wireless/ net/mac80211/
           EOF
+
+          # mac80211_hwsim: standalone external module (single .c file)
+          mkdir -p /tmp/hwsim-src /tmp/hwsim
+          cp drivers/net/wireless/virtual/mac80211_hwsim.c \
+             drivers/net/wireless/virtual/mac80211_hwsim.h \
+             /tmp/hwsim-src/
+          printf 'obj-m := mac80211_hwsim.o\n' > /tmp/hwsim-src/Makefile
+
           KDIR="/lib/modules/${KVER}/build"
           make -C "${KDIR}" M="/tmp/wl" \
-            CONFIG_CFG80211=m CONFIG_MAC80211=m CONFIG_MAC80211_HWSIM=m \
-            modules
-          mkdir -p /tmp/hwsim
+            CONFIG_CFG80211=m CONFIG_MAC80211=m modules
+          make -C "${KDIR}" M="/tmp/hwsim-src" CONFIG_MAC80211_HWSIM=m modules
+
           cp /tmp/wl/net/wireless/cfg80211.ko \
              /tmp/wl/net/mac80211/mac80211.ko \
-             /tmp/wl/drivers/net/wireless/virtual/mac80211_hwsim.ko \
+             /tmp/hwsim-src/mac80211_hwsim.ko \
              /tmp/hwsim/
           ls -l /tmp/hwsim
 
