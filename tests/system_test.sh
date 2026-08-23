@@ -186,15 +186,15 @@ start_relays() {
     # Client -> server relay: catch DHCP broadcasts arriving on any
     # interface (veth-h), forward to dnsmasq with a fixed source
     # IP:PORT so dnsmasq unicasts its reply back to the S2C relay.
-    socat UDP-RECVFROM:67,fork,reuseaddr \
-        "UDP-SENDTO:${AP_ADDR}:67,bind=${VETH_HOST_IP}:${RELAY_PORT}" &
+    socat UDP4-RECVFROM:67,fork,reuseaddr \
+        "UDP4-SENDTO:${AP_ADDR}:67,bind=${VETH_HOST_IP}:${RELAY_PORT}" &
     C2S_PID=$!
 
     # Server -> client relay: receive dnsmasq's unicast reply on the
     # relay port bound to veth-h and re-broadcast it into the client
     # segment from source port 67 (as a proper DHCP server would).
-    socat "UDP-RECVFROM:${RELAY_PORT},bind=${VETH_HOST_IP},reuseaddr,fork" \
-        "UDP-DATAGRAM:255.255.255.255:68,broadcast,bind=${VETH_HOST_IP}:67" &
+    socat "UDP4-RECVFROM:${RELAY_PORT},bind=${VETH_HOST_IP},reuseaddr,fork" \
+        "UDP4-DATAGRAM:255.255.255.255:68,broadcast,bind=${VETH_HOST_IP}:67" &
     S2C_PID=$!
 
     sleep 1
