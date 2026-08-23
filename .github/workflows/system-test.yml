@@ -19,9 +19,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Only runs when the PR carries the "system-test" or
-  # "autorelese: pending" label (the full system test boots kernel
-  # modules and is too heavy to run on every PR push).
+  # Only runs when the PR carries the "system-test" label (the full
+  # system test boots kernel modules and is too heavy to run on every
+  # PR push).
   system-test:
     runs-on: ubuntu-latest
     # Hard server-side bound: a wedged job must fail fast instead of
@@ -29,8 +29,7 @@ jobs:
     timeout-minutes: 25
     if: |
       github.event_name == 'workflow_dispatch' ||
-      contains(github.event.pull_request.labels.*.name, 'system-test') ||
-      contains(github.event.pull_request.labels.*.name, 'autorelese: pending')
+      contains(github.event.pull_request.labels.*.name, 'system-test')
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
