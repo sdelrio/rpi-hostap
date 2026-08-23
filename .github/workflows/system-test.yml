@@ -67,7 +67,7 @@ jobs:
       - name: Install test dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y socat iproute2 iw busybox \
+          sudo apt-get install -y socat iproute2 iw busybox wpasupplicant \
             "linux-headers-$(uname -r)"
 
       # The azure runner kernel does not ship the 802.11 stack at all

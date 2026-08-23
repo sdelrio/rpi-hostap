@@ -1,9 +1,10 @@
 #!/bin/bash
 #
 # End-to-end system test for rpi-hostap on GitHub runners (ubuntu-latest).
-# Simulates a Wi-Fi radio with mac80211_hwsim, runs the container and
-# validates hostapd, dnsmasq, NAT, healthcheck and a real DHCP lease
-# obtained through a socat broadcast relay.
+# Simulates a Wi-Fi network with mac80211_hwsim (two radios: one AP, one
+# station), runs the container and validates hostapd, dnsmasq, NAT,
+# healthcheck and a real DHCP lease obtained over the simulated radio
+# link via a wpa_supplicant-managed association.
 #
 # Must run as root on Linux.
 
@@ -14,6 +15,7 @@ set -x
 CONTAINER_NAME="rpi-hostap_systest"
 IMAGE="rpi-hostap:systest"
 IFACE="wlan0"
+STA_IFACE="sta0"
 AP_ADDR="192.168.254.1"
 SUBNET="192.168.254.0"
 OUTGOING="eth0"
@@ -21,16 +23,7 @@ SSID="testssid"
 CHANNEL="6"
 PASSPHRASE="passw0rd"
 
-NETNS="dhcptest"
-VETH_HOST="veth-h"
-VETH_CLI="veth-c"
-VETH_HOST_IP="192.168.253.1"
-VETH_CLI_IP="192.168.253.2"
-RELAY_PORT="1067"
-RELAY_SRC_PORT="1068"
-
-C2S_PID=""
-S2C_PID=""
+WPAS_PID=""
 
 log() { echo "[systest] $*"; }
 die() { echo "[systest][FAIL] $*" >&2; exit 1; }
@@ -42,13 +35,10 @@ need_root() {
 cleanup() {
     log "Cleaning up..."
     save_debug_logs
-    [ -n "${C2S_PID}" ] && kill "${C2S_PID}" 2>/dev/null
-    [ -n "${S2C_PID}" ] && kill "${S2C_PID}" 2>/dev/null
-    pkill -f 'UDP4-RECVFROM' 2>/dev/null || true
-    ip netns del "${NETNS}" 2>/dev/null || true
-    ip link del "${VETH_HOST}" 2>/dev/null || true
-    iptables -t nat -D PREROUTING -i "${VETH_HOST}" -p udp --dport 67 \
-        -j REDIRECT --to-ports "${RELAY_PORT}" 2>/dev/null || true
+    if [ -n "${WPAS_PID}" ]; then
+        kill "${WPAS_PID}" 2>/dev/null || true
+    fi
+    pkill -f "wpa_supplicant.*${STA_IFACE}" 2>/dev/null || true
     timeout 30 docker rm -f "${CONTAINER_NAME}" >/dev/null 2>&1 || true
     timeout 30 rmmod mac80211_hwsim 2>/dev/null \
         || timeout 30 modprobe -r mac80211_hwsim 2>/dev/null \
@@ -59,15 +49,18 @@ cleanup() {
 save_debug_logs() {
     mkdir -p /tmp/systest-logs
     dmesg 2>/dev/null | tail -200 > /tmp/systest-logs/dmesg.log || true
-    for f in /tmp/udhcpc.log /tmp/c2s-relay.log /tmp/s2c-relay.log \
-        /tmp/udhcpc-systest.script /etc/hostapd.conf /etc/dnsmasq.conf; do
+    for f in /tmp/udhcpc.log /tmp/wpa.log /tmp/wpa.conf \
+        /tmp/udhcpc-systest.script; do
         [ -f "${f}" ] && cp "${f}" /tmp/systest-logs/ 2>/dev/null || true
     done
     {
         echo "=== ip addr ==="; ip addr 2>&1
         echo "=== iw dev ==="; iw dev 2>&1
+        echo "=== iw dev ${IFACE} info ==="; iw dev "${IFACE}" info 2>&1
+        echo "=== iw dev ${IFACE} link ==="; iw dev "${IFACE}" link 2>&1
+        echo "=== iw dev ${STA_IFACE} info ==="; iw dev "${STA_IFACE}" info 2>&1
+        echo "=== iw dev ${STA_IFACE} link ==="; iw dev "${STA_IFACE}" link 2>&1
         echo "=== ss -uln ==="; ss -uln 2>&1
-        echo "=== iptables nat ==="; iptables -t nat -S 2>&1
         echo "=== container state ==="
         docker inspect -f '{{.State.Status}} exit={{.State.ExitCode}}' \
             "${CONTAINER_NAME}" 2>&1 || true
@@ -94,23 +87,34 @@ retry() {
     return 1
 }
 
+wireless_ifaces() {
+    iw dev | awk '$1=="Interface"{print $2}'
+}
+
 setup_radio() {
     if [ ! -d /sys/module/mac80211_hwsim ]; then
-        log "Loading mac80211_hwsim..."
-        insmod /tmp/hwsim/mac80211_hwsim.ko radios=1 2>/dev/null \
-            || modprobe mac80211_hwsim radios=1
+        log "Loading mac80211_hwsim (2 radios: AP + station)..."
+        insmod /tmp/hwsim/mac80211_hwsim.ko radios=2 2>/dev/null \
+            || modprobe mac80211_hwsim radios=2
     fi
 
-    local hwsim_iface
-    hwsim_iface=$(iw dev | awk '$1=="Interface"{print $2}' | head -n1)
-    [ -n "${hwsim_iface}" ] || die "no wireless interface found after loading mac80211_hwsim"
+    local ap_iface sta_iface
+    ap_iface=$(wireless_ifaces | head -n1)
+    sta_iface=$(wireless_ifaces | sed -n '2p')
+    [ -n "${ap_iface}" ] || die "no wireless interface found after loading mac80211_hwsim"
+    [ -n "${sta_iface}" ] || die "expected 2 radios, found only 1 interface"
 
-    if [ "${hwsim_iface}" != "${IFACE}" ]; then
-        log "Renaming ${hwsim_iface} -> ${IFACE}"
-        ip link set "${hwsim_iface}" down
-        ip link set "${hwsim_iface}" name "${IFACE}"
+    ip link set "${ap_iface}" down
+    if [ "${ap_iface}" != "${IFACE}" ]; then
+        log "Renaming ${ap_iface} -> ${IFACE}"
+        ip link set "${ap_iface}" name "${IFACE}"
     fi
-    # Leave wlan0 down; wlanstart.sh configures it.
+    ip link set "${sta_iface}" down
+    if [ "${sta_iface}" != "${STA_IFACE}" ]; then
+        log "Renaming ${sta_iface} -> ${STA_IFACE}"
+        ip link set "${sta_iface}" name "${STA_IFACE}"
+    fi
+    # Leave both interfaces down; wlanstart.sh configures the AP one.
 }
 
 start_container() {
@@ -194,68 +198,35 @@ dump_debug() {
     docker logs --tail 100 "${CONTAINER_NAME}" 2>&1 | tail -60 >&2 || true
 }
 
-setup_dhcp_client() {
-    log "Setting up DHCP client netns..."
-    ip netns add "${NETNS}"
-    ip link add "${VETH_HOST}" type veth peer name "${VETH_CLI}"
-    ip link set "${VETH_CLI}" netns "${NETNS}"
-    ip addr add "${VETH_HOST_IP}/24" dev "${VETH_HOST}"
-    ip link set "${VETH_HOST}" up
-    ip netns exec "${NETNS}" ip addr add "${VETH_CLI_IP}/24" dev "${VETH_CLI}"
-    ip netns exec "${NETNS}" ip link set "${VETH_CLI}" up
-    ip netns exec "${NETNS}" ip link set lo up
-    # dnsmasq owns wildcard :67 in this netns, so redirect client
-    # broadcasts arriving on veth-h to the C2S relay's port instead.
-    iptables -t nat -A PREROUTING -i "${VETH_HOST}" -p udp --dport 67 \
-        -j REDIRECT --to-ports "${RELAY_PORT}"
+associate_sta() {
+    log "Associating station ${STA_IFACE} with SSID ${SSID}..."
+    ip link set "${STA_IFACE}" up
+
+    cat > /tmp/wpa.conf <<EOF
+network={
+    ssid="${SSID}"
+    psk="${PASSPHRASE}"
 }
+EOF
+    wpa_supplicant -B -D nl80211 -i "${STA_IFACE}" -c /tmp/wpa.conf \
+        -f /tmp/wpa.log
+    WPAS_PID=$!
 
-start_relays() {
-    # Client -> server relay: receive REDIRECTed DHCP broadcasts on
-    # ${RELAY_PORT} and forward to dnsmasq with a fixed source IP:PORT
-    # (${RELAY_SRC_PORT}) so dnsmasq unicasts its reply back to the
-    # S2C relay.
-    # NOTE: background jobs must not inherit the step's stdout/stderr,
-    # otherwise the CI runner waits forever for EOF on the log stream.
-    socat "UDP4-RECVFROM:${RELAY_PORT},bind=0.0.0.0,reuseaddr,fork" \
-        "UDP4-SENDTO:${AP_ADDR}:67,bind=${VETH_HOST_IP}:${RELAY_SRC_PORT}" \
-        </dev/null >/tmp/c2s-relay.log 2>&1 &
-    C2S_PID=$!
-
-    # Server -> client relay: receive dnsmasq's unicast reply on the
-    # relay source port bound to veth-h and UNICAST it to veth-c's
-    # address (kept present by dhcp_lease_script) where udhcpc's
-    # wildcard :68 socket picks it up. No host route changes needed.
-    socat "UDP4-RECVFROM:${RELAY_SRC_PORT},bind=${VETH_HOST_IP},reuseaddr,fork" \
-        "UDP4-DATAGRAM:${VETH_CLI_IP}:68,bind=${VETH_HOST_IP}:67" \
-        </dev/null >/tmp/s2c-relay.log 2>&1 &
-    S2C_PID=$!
-
-    sleep 1
-    if ! kill -0 "${C2S_PID}" 2>/dev/null; then
-        cat /tmp/c2s-relay.log >&2 || true
-        die "client->server relay failed to start"
-    fi
-    if ! kill -0 "${S2C_PID}" 2>/dev/null; then
-        cat /tmp/s2c-relay.log >&2 || true
-        die "server->client relay failed to start"
-    fi
+    retry "association with ${SSID}" 60 -- \
+        iw dev "${STA_IFACE}" link || return 1
+    iw dev "${STA_IFACE}" link | head -n5 >&2
 }
 
 dhcp_lease_script() {
-    # NOTE: VETH_CLI_IP must stay on veth-c at all times: the S2C relay
-    # unicasts dnsmasq replies to it (udhcpc has no usable address of
-    # its own until bound).
-    cat > /tmp/udhcpc-systest.script <<EOF
+    cat > /tmp/udhcpc-systest.script <<'EOF'
 #!/bin/sh
-case "\$1" in
+case "$1" in
     bound|renew)
-        ip addr flush dev "\$interface"
-        ip addr add "${VETH_CLI_IP}/24" dev "\$interface"
-        ip addr add "\$ip/\${mask:-24}" dev "\$interface"
+        ip addr flush dev "$interface"
+        ip addr add "$ip/${mask:-24}" dev "$interface"
         ;;
     deconfig)
-        ip addr replace "${VETH_CLI_IP}/24" dev "\$interface"
+        ip addr flush dev "$interface"
         ;;
 esac
 exit 0
@@ -265,9 +236,9 @@ EOF
 
 assert_dhcp_lease() {
     dhcp_lease_script
-    log "Requesting DHCP lease via udhcpc in ${NETNS}..."
-    if ! timeout 120 ip netns exec "${NETNS}" busybox udhcpc \
-        -i "${VETH_CLI}" -s /tmp/udhcpc-systest.script -n -q -t 10 -T 3 \
+    log "Requesting DHCP lease via udhcpc on ${STA_IFACE}..."
+    if ! timeout 120 busybox udhcpc \
+        -i "${STA_IFACE}" -s /tmp/udhcpc-systest.script -n -q -t 10 -T 3 \
         </dev/null >/tmp/udhcpc.log 2>&1; then
         echo "[systest][FAIL] udhcpc did not obtain a lease" >&2
         cat /tmp/udhcpc.log >&2 || true
@@ -275,9 +246,9 @@ assert_dhcp_lease() {
     fi
 
     local leased
-    leased=$(ip netns exec "${NETNS}" ip -4 addr show dev "${VETH_CLI}" |
+    leased=$(ip -4 addr show dev "${STA_IFACE}" |
         grep -o 'inet 192\.168\.254\.[0-9]*' | awk '{print $2}' | head -n1)
-    [ -n "${leased}" ] || { echo "[systest][FAIL] no lease address found on ${VETH_CLI}" >&2; return 1; }
+    [ -n "${leased}" ] || { echo "[systest][FAIL] no lease address found on ${STA_IFACE}" >&2; return 1; }
 
     log "Leased address: ${leased}"
     local last_octet
@@ -293,8 +264,7 @@ main() {
         dump_debug
         die "container assertions failed"
     fi
-    setup_dhcp_client
-    start_relays
+    associate_sta || die "station association failed"
     retry "end-to-end DHCP lease in 192.168.254.100-200" 90 -- assert_dhcp_lease || die "DHCP lease test failed"
     log "All system tests passed."
 }
