@@ -8,6 +8,8 @@
 # Must run as root on Linux.
 
 set -u
+PS4='+ $(date +%H:%M:%S) '
+set -x
 
 CONTAINER_NAME="rpi-hostap_systest"
 IMAGE="rpi-hostap:systest"
@@ -243,9 +245,11 @@ EOF
 assert_dhcp_lease() {
     dhcp_lease_script
     log "Requesting DHCP lease via udhcpc in ${NETNS}..."
-    if ! ip netns exec "${NETNS}" busybox udhcpc \
-        -i "${VETH_CLI}" -s /tmp/udhcpc-systest.script -n -q -t 10 -T 3; then
+    if ! timeout 120 ip netns exec "${NETNS}" busybox udhcpc \
+        -i "${VETH_CLI}" -s /tmp/udhcpc-systest.script -n -q -t 10 -T 3 \
+        </dev/null >/tmp/udhcpc.log 2>&1; then
         echo "[systest][FAIL] udhcpc did not obtain a lease" >&2
+        cat /tmp/udhcpc.log >&2 || true
         return 1
     fi
 
