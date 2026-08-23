@@ -92,8 +92,10 @@ wireless_ifaces() {
 }
 
 setup_radio() {
-    if [ ! -d /sys/module/mac80211_hwsim ]; then
+    if [ ! -d /sys/module/mac80211_hwsim ] ||
+        [ "$(wireless_ifaces | wc -l)" -lt 2 ]; then
         log "Loading mac80211_hwsim (2 radios: AP + station)..."
+        rmmod mac80211_hwsim 2>/dev/null || true
         insmod /tmp/hwsim/mac80211_hwsim.ko radios=2 2>/dev/null \
             || modprobe mac80211_hwsim radios=2
     fi

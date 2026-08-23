@@ -136,7 +136,7 @@ jobs:
               exit 1
             }
           done
-          sudo insmod /tmp/hwsim/mac80211_hwsim.ko radios=1
+          sudo insmod /tmp/hwsim/mac80211_hwsim.ko radios=2
           lsmod | grep -E 'cfg80211|mac80211'
           iw dev
 
