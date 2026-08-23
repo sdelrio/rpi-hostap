@@ -178,8 +178,11 @@ assert_healthy() {
 free_dns_port() {
     # The container runs with --net host, so dnsmasq binds :53 in the host
     # netns. systemd-resolved's stub listener (127.0.0.53:53) would collide.
-    # Must run AFTER the image build (apk needs working DNS).
+    # Must run AFTER the image build (apk needs working DNS). Stopping
+    # resolved also kills the runner's DNS, so repoint resolv.conf at
+    # public resolvers to keep artifact uploads working.
     systemctl stop systemd-resolved.service systemd-resolved.socket 2>/dev/null || true
+    printf 'nameserver 8.8.8.8\nnameserver 1.1.1.1\n' > /etc/resolv.conf
 }
 
 run_assertions() {
@@ -212,8 +215,8 @@ network={
     psk="${PASSPHRASE}"
 }
 EOF
-    wpa_supplicant -B -D nl80211 -i "${STA_IFACE}" -c /tmp/wpa.conf \
-        -f /tmp/wpa.log
+    wpa_supplicant -D nl80211 -i "${STA_IFACE}" -c /tmp/wpa.conf \
+        -f /tmp/wpa.log </dev/null >/dev/null 2>&1 &
     WPAS_PID=$!
 
     retry "association with ${SSID}" 60 -- \
