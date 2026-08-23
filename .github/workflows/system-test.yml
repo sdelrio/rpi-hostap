@@ -72,7 +72,7 @@ jobs:
       - name: Build wireless stack modules
         run: |
           KVER="$(uname -r)"
-          TAG="v$(echo "${KVER}" | grep -oE '^[0-9]+\.[0-9]+').0"
+          TAG="v$(echo "${KVER}" | grep -oE '^[0-9]+\.[0-9]+')"
           echo "Kernel ${KVER}, building from tag ${TAG}"
           git clone --depth 1 --filter=blob:none --sparse \
             --branch "${TAG}" \
