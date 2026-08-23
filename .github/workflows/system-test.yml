@@ -59,11 +59,14 @@ jobs:
         with:
           ref: ${{ inputs.ref || github.ref }}
 
+      - name: Install test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y socat iproute2 iw busybox \
+            "linux-modules-extra-$(uname -r)"
+
       - name: Load simulated Wi-Fi radio
         run: sudo modprobe mac80211_hwsim radios=1
-
-      - name: Install test dependencies
-        run: sudo apt-get update && sudo apt-get install -y socat iproute2 iw busybox
 
       - name: Run system test
         run: sudo tests/system_test.sh
