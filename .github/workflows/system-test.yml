@@ -79,7 +79,16 @@ jobs:
             https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git \
             /tmp/linux-src
           cd /tmp/linux-src
-          git sparse-checkout set net/wireless net/mac80211 drivers/net/wireless/virtual
+          git sparse-checkout set net/wireless net/mac80211 \
+            drivers/net/wireless/virtual crypto
+
+          # libarc4 (ARC4 cipher): required by mac80211 (WEP), absent on azure
+          mkdir -p /tmp/crypto-src
+          cp crypto/arc4.c /tmp/crypto-src/
+          cat > /tmp/crypto-src/Makefile <<'EOF'
+          obj-m += libarc4.o
+          libarc4-y := arc4.o
+          EOF
 
           # cfg80211 + mac80211: build via a wrapper external-module tree
           mkdir -p /tmp/wl/net
@@ -96,11 +105,13 @@ jobs:
           printf 'obj-m := mac80211_hwsim.o\n' > /tmp/hwsim-src/Makefile
 
           KDIR="/lib/modules/${KVER}/build"
+          make -C "${KDIR}" M="/tmp/crypto-src" modules
           make -C "${KDIR}" M="/tmp/wl" \
             CONFIG_CFG80211=m CONFIG_MAC80211=m modules
           make -C "${KDIR}" M="/tmp/hwsim-src" CONFIG_MAC80211_HWSIM=m modules
 
-          cp /tmp/wl/net/wireless/cfg80211.ko \
+          cp /tmp/crypto-src/libarc4.ko \
+             /tmp/wl/net/wireless/cfg80211.ko \
              /tmp/wl/net/mac80211/mac80211.ko \
              /tmp/hwsim-src/mac80211_hwsim.ko \
              /tmp/hwsim/
@@ -112,7 +123,7 @@ jobs:
           for dep in $(find "/lib/modules/$(uname -r)" \( -name 'rfkill*.ko*' \)); do
             sudo insmod "${dep}" 2>/dev/null || true
           done
-          for mod in cfg80211 mac80211; do
+          for mod in libarc4 cfg80211 mac80211; do
             sudo insmod "/tmp/hwsim/${mod}.ko" || {
               echo "insmod ${mod} failed; dmesg:" >&2
               sudo dmesg | tail -40 >&2
