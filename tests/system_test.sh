@@ -25,6 +25,7 @@ VETH_CLI="veth-c"
 VETH_HOST_IP="192.168.253.1"
 VETH_CLI_IP="192.168.253.2"
 RELAY_PORT="1067"
+RELAY_SRC_PORT="1068"
 
 C2S_PID=""
 S2C_PID=""
@@ -43,6 +44,8 @@ cleanup() {
     ip netns del "${NETNS}" 2>/dev/null || true
     ip link del "${VETH_HOST}" 2>/dev/null || true
     ip route del 255.255.255.255/32 dev "${VETH_HOST}" 2>/dev/null || true
+    iptables -t nat -D PREROUTING -i "${VETH_HOST}" -p udp --dport 67 \
+        -j REDIRECT --to-ports "${RELAY_PORT}" 2>/dev/null || true
     docker rm -f "${CONTAINER_NAME}" >/dev/null 2>&1 || true
     rmmod mac80211_hwsim 2>/dev/null \
         || modprobe -r mac80211_hwsim 2>/dev/null \
@@ -178,22 +181,30 @@ setup_dhcp_client() {
     ip netns exec "${NETNS}" ip link set "${VETH_CLI}" up
     ip netns exec "${NETNS}" ip link set lo up
     # force limited broadcasts out the client segment so the S2C relay
-    # can re-inject dnsmasq replies into the netns
+    # can re-inject dnsmasq replies into the netns; relax rp_filter for
+    # the asymmetric DHCP flows (source 0.0.0.0)
     ip route replace 255.255.255.255/32 dev "${VETH_HOST}"
+    sysctl -w net.ipv4.conf.all.rp_filter=0 >/dev/null
+    sysctl -w "net.ipv4.conf.${VETH_HOST}.rp_filter=0" >/dev/null
+    # dnsmasq owns wildcard :67 in this netns, so redirect client
+    # broadcasts arriving on veth-h to the C2S relay's port instead.
+    iptables -t nat -A PREROUTING -i "${VETH_HOST}" -p udp --dport 67 \
+        -j REDIRECT --to-ports "${RELAY_PORT}"
 }
 
 start_relays() {
-    # Client -> server relay: catch DHCP broadcasts arriving on any
-    # interface (veth-h), forward to dnsmasq with a fixed source
-    # IP:PORT so dnsmasq unicasts its reply back to the S2C relay.
-    socat UDP4-RECVFROM:67,fork,reuseaddr \
-        "UDP4-SENDTO:${AP_ADDR}:67,bind=${VETH_HOST_IP}:${RELAY_PORT}" &
+    # Client -> server relay: receive REDIRECTed DHCP broadcasts on
+    # ${RELAY_PORT} and forward to dnsmasq with a fixed source IP:PORT
+    # (${RELAY_SRC_PORT}) so dnsmasq unicasts its reply back to the
+    # S2C relay.
+    socat "UDP4-RECVFROM:${RELAY_PORT},bind=0.0.0.0,reuseaddr,fork" \
+        "UDP4-SENDTO:${AP_ADDR}:67,bind=${VETH_HOST_IP}:${RELAY_SRC_PORT}" &
     C2S_PID=$!
 
     # Server -> client relay: receive dnsmasq's unicast reply on the
-    # relay port bound to veth-h and re-broadcast it into the client
-    # segment from source port 67 (as a proper DHCP server would).
-    socat "UDP4-RECVFROM:${RELAY_PORT},bind=${VETH_HOST_IP},reuseaddr,fork" \
+    # relay source port bound to veth-h and re-broadcast it into the
+    # client segment from source port 67 (as a proper server would).
+    socat "UDP4-RECVFROM:${RELAY_SRC_PORT},bind=${VETH_HOST_IP},reuseaddr,fork" \
         "UDP4-DATAGRAM:255.255.255.255:68,broadcast,bind=${VETH_HOST_IP}:67" &
     S2C_PID=$!
 
