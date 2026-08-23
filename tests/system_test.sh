@@ -116,15 +116,16 @@ assert_addr() {
     ip -4 addr show dev "${IFACE}" | grep -q "${AP_ADDR}/24"
 }
 
+# dnsmasq binds a wildcard DHCP socket (device-filtered) unless
+# bind-interfaces is set, so match port only.
 assert_dhcp_bound() {
-    ss -uln | grep -q "${AP_ADDR}:67"
+    ss -uln | grep -q ':67 '
 }
 
-assert_hostapd_status() {
-    docker exec "${CONTAINER_NAME}" hostapd_cli -i "${IFACE}" status 2>/dev/null |
-        grep -q "state=ENABLED" &&
-        docker exec "${CONTAINER_NAME}" hostapd_cli -i "${IFACE}" status 2>/dev/null |
-        grep -q "channel=${CHANNEL}"
+# Verify AP mode + channel from the host side (no ctrl_interface needed).
+assert_ap_channel() {
+    iw dev "${IFACE}" info | grep -q 'type AP' &&
+        iw dev "${IFACE}" info | grep -qE "channel ${CHANNEL} "
 }
 
 assert_ip_forward() {
@@ -151,8 +152,8 @@ run_assertions() {
     log "Waiting for services (up to ${timeout}s)..."
     retry "hostapd and dnsmasq running" "${timeout}" -- assert_processes || return 1
     retry "${AP_ADDR}/24 assigned to ${IFACE}" "${timeout}" -- assert_addr || return 1
-    retry "dnsmasq bound to ${AP_ADDR}:67" "${timeout}" -- assert_dhcp_bound || return 1
-    retry "hostapd AP enabled on channel ${CHANNEL}" "${timeout}" -- assert_hostapd_status || return 1
+    retry "dnsmasq bound to port 67" "${timeout}" -- assert_dhcp_bound || return 1
+    retry "AP enabled on ${IFACE} channel ${CHANNEL}" "${timeout}" -- assert_ap_channel || return 1
     retry "ip_forward enabled" "${timeout}" -- assert_ip_forward || return 1
     retry "MASQUERADE rule present" "${timeout}" -- assert_masquerade || return 1
     retry "container healthy" "${timeout}" -- assert_healthy || return 1
