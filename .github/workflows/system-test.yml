@@ -62,14 +62,21 @@ jobs:
       - name: Install test dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y socat iproute2 iw busybox \
-            "linux-modules-extra-$(uname -r)"
+          sudo apt-get install -y socat iproute2 iw busybox
+
+      - name: Boot generic kernel (azure kernel lacks mac80211_hwsim)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y linux-image-generic
+          sudo reboot
 
       - name: Load simulated Wi-Fi radio
         run: |
-          uname -a
-          find "/lib/modules/$(uname -r)" -name '*hwsim*' || true
-          sudo depmod "$(uname -r)"
+          for i in $(seq 1 60); do
+            sudo modprobe mac80211_hwsim radios=1 && break
+            echo "waiting for reboot / module availability..."
+            sleep 10
+          done
           sudo modprobe mac80211_hwsim radios=1
 
       - name: Run system test
