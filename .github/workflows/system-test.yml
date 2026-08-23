@@ -12,7 +12,9 @@ on:
         default: ''
 
 concurrency:
-  group: systest-debug-${{ github.event.pull_request.number || github.ref }}
+  # TEMP while debugging #108: unique per run so zombie runners cannot
+  # starve the queue; restored to PR-scoped group before merge.
+  group: systest-debug-${{ github.run_id }}
   cancel-in-progress: true
 
 jobs:
