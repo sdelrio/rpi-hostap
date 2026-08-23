@@ -80,14 +80,20 @@ jobs:
             /tmp/linux-src
           cd /tmp/linux-src
           git sparse-checkout set net/wireless net/mac80211 drivers/net/wireless/virtual
+          mkdir -p /tmp/wl
+          cp -r net/wireless net/mac80211 drivers/net/wireless /tmp/wl/
+          cat > /tmp/wl/Makefile <<'EOF'
+          obj-m += net/wireless/ net/mac80211/ drivers/net/wireless/virtual/
+          EOF
           KDIR="/lib/modules/${KVER}/build"
-          make -C "${KDIR}" M="$PWD" olddefconfig modules_prepare || true
-          make -C "${KDIR}" M="$PWD" \
+          make -C "${KDIR}" M="/tmp/wl" \
             CONFIG_CFG80211=m CONFIG_MAC80211=m CONFIG_MAC80211_HWSIM=m \
             modules
           mkdir -p /tmp/hwsim
-          cp net/wireless/cfg80211.ko net/mac80211/mac80211.ko \
-             drivers/net/wireless/virtual/mac80211_hwsim.ko /tmp/hwsim/
+          cp /tmp/wl/net/wireless/cfg80211.ko \
+             /tmp/wl/net/mac80211/mac80211.ko \
+             /tmp/wl/drivers/net/wireless/virtual/mac80211_hwsim.ko \
+             /tmp/hwsim/
           ls -l /tmp/hwsim
 
       - name: Load simulated Wi-Fi radio
