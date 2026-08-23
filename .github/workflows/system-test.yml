@@ -68,16 +68,22 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y linux-image-generic
-          sudo reboot
+          sudo reboot || true
+          # Block until the machine powers off so the runner agent cannot
+          # resume remaining steps on the old kernel mid-reboot.
+          for i in $(seq 1 90); do
+            sleep 10
+          done
 
       - name: Load simulated Wi-Fi radio
         run: |
-          for i in $(seq 1 60); do
-            sudo modprobe mac80211_hwsim radios=1 && break
-            echo "waiting for reboot / module availability..."
+          uname -a
+          for i in $(seq 1 30); do
+            if sudo modprobe mac80211_hwsim radios=1; then break; fi
+            echo "waiting for module availability..."
             sleep 10
           done
-          sudo modprobe mac80211_hwsim radios=1
+          lsmod | grep mac80211_hwsim
 
       - name: Run system test
         run: sudo tests/system_test.sh
