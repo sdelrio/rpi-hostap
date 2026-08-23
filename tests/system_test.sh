@@ -42,6 +42,7 @@ cleanup() {
     [ -n "${S2C_PID}" ] && kill "${S2C_PID}" 2>/dev/null
     ip netns del "${NETNS}" 2>/dev/null || true
     ip link del "${VETH_HOST}" 2>/dev/null || true
+    ip route del 255.255.255.255/32 dev "${VETH_HOST}" 2>/dev/null || true
     docker rm -f "${CONTAINER_NAME}" >/dev/null 2>&1 || true
     rmmod mac80211_hwsim 2>/dev/null \
         || modprobe -r mac80211_hwsim 2>/dev/null \
@@ -148,6 +149,14 @@ run_assertions() {
     retry "container healthy" "${timeout}" -- assert_healthy || return 1
 }
 
+dump_debug() {
+    echo "[systest][DEBUG] container state:" >&2
+    docker inspect -f '{{.State.Status}} exit={{.State.ExitCode}}' \
+        "${CONTAINER_NAME}" 2>&1 | tail -3 >&2
+    echo "[systest][DEBUG] container logs:" >&2
+    docker logs --tail 100 "${CONTAINER_NAME}" 2>&1 | tail -60 >&2 || true
+}
+
 setup_dhcp_client() {
     log "Setting up DHCP client netns..."
     ip netns add "${NETNS}"
@@ -158,20 +167,24 @@ setup_dhcp_client() {
     ip netns exec "${NETNS}" ip addr add "${VETH_CLI_IP}/24" dev "${VETH_CLI}"
     ip netns exec "${NETNS}" ip link set "${VETH_CLI}" up
     ip netns exec "${NETNS}" ip link set lo up
+    # force limited broadcasts out the client segment so the S2C relay
+    # can re-inject dnsmasq replies into the netns
+    ip route replace 255.255.255.255/32 dev "${VETH_HOST}"
 }
 
 start_relays() {
-    # Client -> server relay: catch DHCP broadcasts arriving on veth-h,
-    # forward to dnsmasq from a non-zero source port so that dnsmasq
-    # unicasts its reply back to the relay.
-    socat UDP-LISTEN:67,broadcast,reuseaddr,fork \
-        "UDP-DATAGRAM:${AP_ADDR}:67,bind=:${RELAY_PORT}" &
+    # Client -> server relay: catch DHCP broadcasts arriving on any
+    # interface (veth-h), forward to dnsmasq with a fixed source
+    # IP:PORT so dnsmasq unicasts its reply back to the S2C relay.
+    socat UDP-RECVFROM:67,fork,reuseaddr \
+        "UDP-SENDTO:${AP_ADDR}:67,bind=${VETH_HOST_IP}:${RELAY_PORT}" &
     C2S_PID=$!
 
-    # Server -> client relay: receive dnsmasq's unicast reply on the relay
-    # port bound to veth-h, re-broadcast it into the client segment (:68).
-    socat "UDP-LISTEN:${RELAY_PORT},bind=${VETH_HOST_IP},reuseaddr,fork" \
-        UDP-DATAGRAM:255.255.255.255:68,broadcast,bind="${VETH_HOST_IP}" &
+    # Server -> client relay: receive dnsmasq's unicast reply on the
+    # relay port bound to veth-h and re-broadcast it into the client
+    # segment from source port 67 (as a proper DHCP server would).
+    socat "UDP-RECVFROM:${RELAY_PORT},bind=${VETH_HOST_IP},reuseaddr,fork" \
+        "UDP-DATAGRAM:255.255.255.255:68,broadcast,bind=${VETH_HOST_IP}:67" &
     S2C_PID=$!
 
     sleep 1
@@ -220,7 +233,10 @@ main() {
     need_root
     setup_radio
     start_container
-    run_assertions
+    if ! run_assertions; then
+        dump_debug
+        die "container assertions failed"
+    fi
     setup_dhcp_client
     start_relays
     retry "end-to-end DHCP lease in 192.168.254.100-200" 90 -- assert_dhcp_lease || die "DHCP lease test failed"
