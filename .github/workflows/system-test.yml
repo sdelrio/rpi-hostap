@@ -71,12 +71,14 @@ jobs:
         run: |
           find "/lib/modules/$(uname -r)" \( -name 'mac80211*' -o -name 'cfg80211*' \) | head
           mkdir -p /tmp/hwsim && cd /tmp/hwsim
-          for src in \
-            https://raw.githubusercontent.com/torvalds/linux/v6.17/drivers/net/wireless/virtual/mac80211_hwsim.c \
-            https://raw.githubusercontent.com/torvalds/linux/v6.17/drivers/net/wireless/mac80211_hwsim.c ; do
-            curl -fsSL "$src" -o mac80211_hwsim.c && break || true
+          for f in mac80211_hwsim.c mac80211_hwsim.h ; do
+            for src in \
+              "https://raw.githubusercontent.com/torvalds/linux/v6.17/drivers/net/wireless/virtual/$f" \
+              "https://raw.githubusercontent.com/torvalds/linux/v6.17/drivers/net/wireless/$f" ; do
+              curl -fsSL "$src" -o "$f" && break || true
+            done
+            [ -s "$f" ] || { echo "failed to fetch $f" >&2; exit 1; }
           done
-          [ -s mac80211_hwsim.c ] || { echo "failed to fetch mac80211_hwsim.c" >&2; exit 1; }
           printf 'obj-m := mac80211_hwsim.o\n' > Makefile
           make -C "/lib/modules/$(uname -r)/build" M="$PWD" modules
 
