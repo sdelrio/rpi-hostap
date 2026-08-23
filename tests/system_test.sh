@@ -90,6 +90,8 @@ start_container() {
     log "Building image..."
     docker build -t "${IMAGE}" .
 
+    free_dns_port
+
     log "Starting container..."
     docker run -d \
         --privileged \
@@ -135,6 +137,13 @@ assert_masquerade() {
 
 assert_healthy() {
     [ "$(docker inspect -f '{{.State.Health.Status}}' "${CONTAINER_NAME}")" = "healthy" ]
+}
+
+free_dns_port() {
+    # The container runs with --net host, so dnsmasq binds :53 in the host
+    # netns. systemd-resolved's stub listener (127.0.0.53:53) would collide.
+    # Must run AFTER the image build (apk needs working DNS).
+    systemctl stop systemd-resolved.service systemd-resolved.socket 2>/dev/null || true
 }
 
 run_assertions() {
