@@ -100,22 +100,24 @@ setup_radio() {
             || modprobe mac80211_hwsim radios=2
     fi
 
-    local ap_iface sta_iface
-    ap_iface=$(wireless_ifaces | head -n1)
-    sta_iface=$(wireless_ifaces | sed -n '2p')
-    [ -n "${ap_iface}" ] || die "no wireless interface found after loading mac80211_hwsim"
-    [ -n "${sta_iface}" ] || die "expected 2 radios, found only 1 interface"
+    local count
+    count=$(wireless_ifaces | wc -l)
+    [ "${count}" -ge 2 ] || die "expected 2 radios, found ${count} interfaces"
 
-    ip link set "${ap_iface}" down
-    if [ "${ap_iface}" != "${IFACE}" ]; then
-        log "Renaming ${ap_iface} -> ${IFACE}"
-        ip link set "${ap_iface}" name "${IFACE}"
-    fi
-    ip link set "${sta_iface}" down
-    if [ "${sta_iface}" != "${STA_IFACE}" ]; then
-        log "Renaming ${sta_iface} -> ${STA_IFACE}"
-        ip link set "${sta_iface}" name "${STA_IFACE}"
-    fi
+    # Rename via temporary names: two interfaces cannot swap names
+    # directly, and targets may be occupied by either interface.
+    local i=0
+    local cur
+    for cur in $(wireless_ifaces); do
+        ip link set "${cur}" down
+        ip link set "${cur}" name "hwsim-tmp-${i}"
+        i=$((i + 1))
+    done
+    ip link set "hwsim-tmp-0" name "${IFACE}"
+    ip link set "hwsim-tmp-1" name "${STA_IFACE}"
+
+    wireless_ifaces | grep -qx "${IFACE}" || die "failed to create ${IFACE}"
+    wireless_ifaces | grep -qx "${STA_IFACE}" || die "failed to create ${STA_IFACE}"
     # Leave both interfaces down; wlanstart.sh configures the AP one.
 }
 
