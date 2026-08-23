@@ -68,19 +68,17 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y linux-image-generic
-          sudo reboot || true
-          # Block until the machine powers off so the runner agent cannot
-          # resume remaining steps on the old kernel mid-reboot.
-          for i in $(seq 1 90); do
-            sleep 10
-          done
+          # GRUB boots the newest kernel by default; drop azure kernels so
+          # the generic kernel (which ships mac80211_hwsim) is selected.
+          sudo apt-get remove -y 'linux-image-*-azure' 'linux-modules-*-azure' || true
+          sudo reboot
 
       - name: Load simulated Wi-Fi radio
         run: |
           uname -a
-          for i in $(seq 1 30); do
+          for i in $(seq 1 60); do
             if sudo modprobe mac80211_hwsim radios=1; then break; fi
-            echo "waiting for module availability..."
+            echo "waiting for generic kernel / module availability..."
             sleep 10
           done
           lsmod | grep mac80211_hwsim
