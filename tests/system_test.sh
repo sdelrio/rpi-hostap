@@ -43,7 +43,9 @@ cleanup() {
     ip netns del "${NETNS}" 2>/dev/null || true
     ip link del "${VETH_HOST}" 2>/dev/null || true
     docker rm -f "${CONTAINER_NAME}" >/dev/null 2>&1 || true
-    modprobe -r mac80211_hwsim 2>/dev/null || true
+    rmmod mac80211_hwsim 2>/dev/null \
+        || modprobe -r mac80211_hwsim 2>/dev/null \
+        || true
 }
 trap cleanup EXIT
 
@@ -65,8 +67,11 @@ retry() {
 }
 
 setup_radio() {
-    log "Loading mac80211_hwsim..."
-    modprobe mac80211_hwsim radios=1
+    if [ ! -d /sys/module/mac80211_hwsim ]; then
+        log "Loading mac80211_hwsim..."
+        insmod /tmp/hwsim/mac80211_hwsim.ko radios=1 2>/dev/null \
+            || modprobe mac80211_hwsim radios=1
+    fi
 
     local hwsim_iface
     hwsim_iface=$(iw dev | awk '$1=="Interface"{print $2}' | head -n1)
