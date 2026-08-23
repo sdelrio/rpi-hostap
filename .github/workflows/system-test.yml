@@ -80,8 +80,9 @@ jobs:
             /tmp/linux-src
           cd /tmp/linux-src
           git sparse-checkout set net/wireless net/mac80211 drivers/net/wireless/virtual
-          mkdir -p /tmp/wl
-          cp -r net/wireless net/mac80211 drivers/net/wireless /tmp/wl/
+          mkdir -p /tmp/wl/net /tmp/wl/drivers/net
+          cp -r net/wireless net/mac80211 /tmp/wl/net/
+          cp -r drivers/net/wireless/virtual /tmp/wl/drivers/net/
           cat > /tmp/wl/Makefile <<'EOF'
           obj-m += net/wireless/ net/mac80211/ drivers/net/wireless/virtual/
           EOF
