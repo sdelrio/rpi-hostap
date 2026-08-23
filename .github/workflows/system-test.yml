@@ -3,7 +3,10 @@ name: System Test
 on:
   pull_request:
     branches: [master]
-    types: [opened, synchronize, reopened]
+    # "labeled" lets adding one of the trigger labels start a run
+    # without pushing a new commit; unrelated labels are filtered by
+    # the job-level condition below.
+    types: [opened, synchronize, reopened, labeled]
   workflow_dispatch:
     inputs:
       ref:
@@ -16,46 +19,18 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  changes:
-    runs-on: ubuntu-latest
-    permissions:
-      pull-requests: read
-    outputs:
-      scripts: ${{ steps.filter.outputs.scripts }}
-      dockerfile: ${{ steps.filter.outputs.dockerfile }}
-      tests: ${{ steps.filter.outputs.tests }}
-      workflow: ${{ steps.filter.outputs.workflow }}
-    if: github.event_name == 'pull_request'
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
-        id: filter
-        with:
-          filters: |
-            scripts:
-              - 'wlanstart.sh'
-              - 'healthcheck.sh'
-              - 'lib/**'
-            dockerfile:
-              - 'Dockerfile'
-            tests:
-              - 'tests/**'
-            workflow:
-              - '.github/workflows/system-test.yml'
-
+  # Only runs when the PR carries the "system-test" or
+  # "autorelese: pending" label (the full system test boots kernel
+  # modules and is too heavy to run on every PR push).
   system-test:
     runs-on: ubuntu-latest
     # Hard server-side bound: a wedged job must fail fast instead of
     # starving the concurrency group for 6 hours.
     timeout-minutes: 25
-    needs: changes
     if: |
-      always() &&
-      (github.event_name == 'workflow_dispatch' ||
-       needs.changes.outputs.tests == 'true' ||
-       needs.changes.outputs.scripts == 'true' ||
-       needs.changes.outputs.dockerfile == 'true' ||
-       needs.changes.outputs.workflow == 'true')
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.pull_request.labels.*.name, 'system-test') ||
+      contains(github.event.pull_request.labels.*.name, 'autorelese: pending')
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
