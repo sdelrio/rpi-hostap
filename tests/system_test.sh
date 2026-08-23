@@ -41,16 +41,39 @@ need_root() {
 
 cleanup() {
     log "Cleaning up..."
+    save_debug_logs
     [ -n "${C2S_PID}" ] && kill "${C2S_PID}" 2>/dev/null
     [ -n "${S2C_PID}" ] && kill "${S2C_PID}" 2>/dev/null
+    pkill -f 'UDP4-RECVFROM' 2>/dev/null || true
     ip netns del "${NETNS}" 2>/dev/null || true
     ip link del "${VETH_HOST}" 2>/dev/null || true
     iptables -t nat -D PREROUTING -i "${VETH_HOST}" -p udp --dport 67 \
         -j REDIRECT --to-ports "${RELAY_PORT}" 2>/dev/null || true
-    docker rm -f "${CONTAINER_NAME}" >/dev/null 2>&1 || true
-    rmmod mac80211_hwsim 2>/dev/null \
-        || modprobe -r mac80211_hwsim 2>/dev/null \
+    timeout 30 docker rm -f "${CONTAINER_NAME}" >/dev/null 2>&1 || true
+    timeout 30 rmmod mac80211_hwsim 2>/dev/null \
+        || timeout 30 modprobe -r mac80211_hwsim 2>/dev/null \
         || true
+}
+
+# Persist everything useful for post-mortem; uploaded as CI artifact.
+save_debug_logs() {
+    mkdir -p /tmp/systest-logs
+    dmesg 2>/dev/null | tail -200 > /tmp/systest-logs/dmesg.log || true
+    for f in /tmp/udhcpc.log /tmp/c2s-relay.log /tmp/s2c-relay.log \
+        /tmp/udhcpc-systest.script /etc/hostapd.conf /etc/dnsmasq.conf; do
+        [ -f "${f}" ] && cp "${f}" /tmp/systest-logs/ 2>/dev/null || true
+    done
+    {
+        echo "=== ip addr ==="; ip addr 2>&1
+        echo "=== iw dev ==="; iw dev 2>&1
+        echo "=== ss -uln ==="; ss -uln 2>&1
+        echo "=== iptables nat ==="; iptables -t nat -S 2>&1
+        echo "=== container state ==="
+        docker inspect -f '{{.State.Status}} exit={{.State.ExitCode}}' \
+            "${CONTAINER_NAME}" 2>&1 || true
+    } > /tmp/systest-logs/state.txt 2>&1 || true
+    docker logs --tail 200 "${CONTAINER_NAME}" \
+        > /tmp/systest-logs/container.log 2>&1 || true
 }
 trap cleanup EXIT
 

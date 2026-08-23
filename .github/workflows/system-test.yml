@@ -45,6 +45,9 @@ jobs:
 
   system-test:
     runs-on: ubuntu-latest
+    # Hard server-side bound: a wedged job must fail fast instead of
+    # starving the concurrency group for 6 hours.
+    timeout-minutes: 25
     needs: changes
     if: |
       always() &&
@@ -137,3 +140,12 @@ jobs:
 
       - name: Run system test
         run: sudo bash tests/system_test.sh
+
+      - name: Upload debug logs
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: systest-debug-logs
+          path: /tmp/systest-logs/
+          if-no-files-found: ignore
+          retention-days: 5
