@@ -1,5 +1,7 @@
 # Troubleshooting
 
+> **Audience**: beginners welcome. Each section is self-contained and assumes no prior knowledge beyond a running container.
+
 ## "Could not connect to kernel driver"
 
 `wpa_supplicant` is using the interface. Stop it on the host (see also [Prerequisites](../README.md#disable-wpa_supplicant)):
