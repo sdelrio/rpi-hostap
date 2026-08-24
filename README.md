@@ -116,6 +116,8 @@ docker run -d \
 | `VHT_ENABLED` | No | Enable 802.11ac Very High Throughput (`ieee80211ac=1`); requires 5 GHz (`HW_MODE=a`) | unset |
 | `VHT_CAPAB` | No | 802.11ac capabilities string (`vht_capab=` in hostapd.conf); requires `VHT_ENABLED` | unset |
 | `HEALTHCHECK_START_PERIOD` | No | Grace period (seconds) after container start during which the healthcheck always passes. Measured from the container's own recorded start time (`/run/hostap-started`), not host uptime | `15` |
+| `CTRL_INTERFACE` | No | Enable hostapd control interface (any non-empty value); allows `clients.sh` to list stations, see [Client Inspection](#client-inspection-optional) | unset |
+| `CTRL_IFACE_DIR` | No | Control interface socket directory used by `clients.sh` | `/var/run/hostapd` |
 
 #### HT/VHT (802.11n/ac) Tuning
 
@@ -183,6 +185,22 @@ For 5 GHz (`hw_mode=a`), channels are validated against the allowed 5 GHz set:
 - **Non-DFS channels** (always allowed): 36, 40, 44, 48, 149, 153, 157, 161, 165
 - **DFS channels** (allowed with a radar detection/CAC warning): 52, 56, 60, 64, 100–144 (in steps of 4)
 - Any other channel is rejected with a clear error.
+
+#### Client Inspection (optional)
+
+By default the hostapd control interface is not enabled, to keep the generated config minimal. Set `CTRL_INTERFACE` to any non-empty value to opt in:
+
+```bash
+docker run ... -e CTRL_INTERFACE=1 ...
+```
+
+This emits `ctrl_interface=/var/run/hostapd` and `ctrl_interface_group=0` into `hostapd.conf`. Once enabled, list currently associated stations from inside the container:
+
+```bash
+docker exec rpi-hostap clients.sh
+```
+
+Output includes MAC address, signal, connected time and tx/rx rates per station (as reported by `hostapd_cli all_sta`). The control interface directory can be overridden with `CTRL_IFACE_DIR` (default `/var/run/hostapd`).
 
 ### Build from Source
 
@@ -269,7 +287,8 @@ If any check fails, the container is reported as `unhealthy`.
 
 **Script grace vs Docker start-period**: there are two independent grace mechanisms. `HEALTHCHECK_START_PERIOD` (env var) controls the *script-side* grace window measured from the recorded start time. The Dockerfile's `HEALTHCHECK --start-period=15s` is the Docker-side outer bound during which failing checks do not count towards the `unhealthy` transition. If you raise the env var (e.g. `HEALTHCHECK_START_PERIOD=60`), the script keeps passing for 60s after start regardless of the Docker setting; the Dockerfile start-period only affects when Docker itself starts counting failures.
 
-Note: the AP's beaconing status itself is not verified — that would require enabling the hostapd control interface (`ctrl_interface`) in the generated config and querying it with `hostapd_cli`, which is intentionally not enabled to keep the container config minimal.
+| `HEALTHCHECK_START_PERIOD` | No | Grace period (seconds) after container start during which the healthcheck always passes. Measured from the container's own recorded start time (`/run/hostap-started`), not host uptime | `15` |
+Note: the AP's beaconing status itself is not verified — that would require enabling the hostapd control interface (`ctrl_interface`), available as an opt-in via `CTRL_INTERFACE` (see [Client Inspection](#client-inspection-optional)).
 
 ## Contributing
 
