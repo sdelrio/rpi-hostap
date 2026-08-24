@@ -118,6 +118,7 @@ docker run -d \
 | `HEALTHCHECK_START_PERIOD` | No | Grace period (seconds) after container start during which the healthcheck always passes. Measured from the container's own recorded start time (`/run/hostap-started`), not host uptime | `15` |
 | `CTRL_INTERFACE` | No | Enable hostapd control interface (any non-empty value); allows `clients.sh` to list stations, see [Client Inspection](#client-inspection-optional) | unset |
 | `CTRL_IFACE_DIR` | No | Control interface socket directory used by `clients.sh` | `/var/run/hostapd` |
+| `HEALTHCHECK_STARTED_FILE` | No | Path to the file where the entrypoint records the container start time used by the healthcheck grace period (internal/testing hook) | `/run/hostap-started` |
 
 #### HT/VHT (802.11n/ac) Tuning
 
@@ -139,6 +140,7 @@ Notes:
 - `VHT_ENABLED=1` emits `ieee80211ac=1` and requires 5 GHz operation (`HW_MODE=a`); `VHT_CAPAB` sets the optional `vht_capab=` line.
 - Capabilities depend on what your WiFi adapter supports — check `iw list` output (`HT capabilities` / `VHT capabilities`) before enabling.
 - Common `ht_capab` flags: `[HT40+]`/`[HT40-]` (40 MHz channels), `[SHORT-GI-20]`, `[SHORT-GI-40]`. Common `vht_capab` flags: `[SHORT-GI-80]`, `[MAX-MPDU-3895]`, `[SU-BEAMFORMER]`.
+- `HT_CAPAB`/`VHT_CAPAB` values are passed through to hostapd unvalidated; invalid strings surface as hostapd config errors in `docker logs`.
 
 #### MAC Address Filtering (optional)
 
