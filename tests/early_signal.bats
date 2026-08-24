@@ -14,10 +14,12 @@ extract_functions() {
 }
 
 @test "check_interrupted exits 0 and runs cleanup when _SIGNALED=1" {
+    local mock_log
+    mock_log=$(mktemp)
     run bash -c "
 $(extract_functions)
-iptables() { echo \"iptables \$@\"; }
-ip() { echo \"ip \$@\"; }
+iptables() { echo \"iptables \$@\" >> '${mock_log}'; }
+ip() { echo \"ip \$@\" >> '${mock_log}'; }
 export INTERFACE=wlan0 SUBNET=192.168.254.0 OUTGOINGS=
 _SIGNALED=1
 check_interrupted
@@ -26,8 +28,9 @@ echo REACHED_AFTER_CHECK
     [ "$status" -eq 0 ]
     [[ "$output" == *"Shutting down..."* ]]
     [[ "$output" == *"[Info] Shutdown requested during startup."* ]]
-    [[ "$output" == *"iptables -t nat -D POSTROUTING"* ]]
+    grep -q 'iptables -t nat -D POSTROUTING' "${mock_log}"
     [[ "$output" != *"REACHED_AFTER_CHECK"* ]]
+    rm -f "${mock_log}"
 }
 
 @test "check_interrupted writes shutdown notice to stderr" {
