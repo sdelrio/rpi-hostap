@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 # Health check script for rpi-hostap container
 # Checks if hostapd, dnsmasq are running and the interface is up
@@ -31,17 +32,21 @@ if ! pidof dnsmasq > /dev/null 2>&1; then
 fi
 
 # Check if the wireless interface is up (if INTERFACE is set)
-if [ -n "$INTERFACE" ]; then
-    # Verify the link exists AND is up (state UP), not merely present
-    if ! ip link show "$INTERFACE" 2>/dev/null | grep -q "state UP"; then
+if [ -n "${INTERFACE:-}" ]; then
+    # Verify the link exists AND is up (state UP), not merely present.
+    # Capture output before grepping so grep -q cannot SIGPIPE the producer
+    # (which would fail the pipeline under pipefail).
+    LINK_STATE=$(ip link show "$INTERFACE" 2>/dev/null || true)
+    if ! echo "$LINK_STATE" | grep -q "state UP"; then
         echo "interface $INTERFACE is not up" >&2
         exit 1
     fi
 
     # Check if the AP IP is assigned to the interface (if AP_ADDR is set)
-    if [ -n "$AP_ADDR" ]; then
+    if [ -n "${AP_ADDR:-}" ]; then
+        ADDR_OUTPUT=$(ip -4 addr show dev "$INTERFACE" 2>/dev/null || true)
         # Anchor the match so e.g. .100 doesn't satisfy a check for .1
-        if ! ip -4 addr show dev "$INTERFACE" | grep -q "inet ${AP_ADDR}/"; then
+        if ! echo "$ADDR_OUTPUT" | grep -q "inet ${AP_ADDR}/"; then
             echo "address $AP_ADDR is not assigned to interface $INTERFACE" >&2
             exit 1
         fi
@@ -52,8 +57,9 @@ fi
 # Requires HEALTHCHECK_DEEP set (wlanstart.sh then enables ctrl_interface).
 # Note: DFS CAC can take 60s+ on radar channels; raise HEALTHCHECK_START_PERIOD
 # (e.g. 90) so this check doesn't fail during channel availability scan.
-if [ -n "$HEALTHCHECK_DEEP" ]; then
-    if ! hostapd_cli -p /var/run/hostapd -i "$INTERFACE" status 2>/dev/null | grep -q "^state=ENABLED"; then
+if [ -n "${HEALTHCHECK_DEEP:-}" ]; then
+    HOSTAPD_STATUS=$(hostapd_cli -p /var/run/hostapd -i "$INTERFACE" status 2>/dev/null || true)
+    if ! echo "$HOSTAPD_STATUS" | grep -q "^state=ENABLED"; then
         echo "hostapd is not in ENABLED state" >&2
         exit 1
     fi
