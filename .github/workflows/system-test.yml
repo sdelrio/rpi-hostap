@@ -1,0 +1,125 @@
+name: System Test
+
+on:
+  pull_request:
+    branches: [master]
+    # "labeled" lets adding one of the trigger labels start a run
+    # without pushing a new commit; unrelated labels are filtered by
+    # the job-level condition below.
+    types: [opened, synchronize, reopened, labeled]
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Git ref (tag or commit id) to test'
+        required: false
+        default: ''
+
+concurrency:
+  group: systest-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Only runs when the PR carries the "system-test" label (the full
+  # system test boots kernel modules and is too heavy to run on every
+  # PR push).
+  system-test:
+    runs-on: ubuntu-latest
+    # Hard server-side bound: a wedged job must fail fast instead of
+    # starving the concurrency group for 6 hours.
+    timeout-minutes: 25
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.pull_request.labels.*.name, 'system-test')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - name: Install test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y socat iproute2 iw busybox wpasupplicant \
+            "linux-headers-$(uname -r)"
+
+      # The azure runner kernel does not ship the 802.11 stack at all
+      # (no cfg80211/mac80211/mac80211_hwsim), and hosted runners cannot
+      # resume a job across a reboot to switch kernels. Build the full
+      # wireless stack out-of-tree from the matching stable kernel tag.
+      - name: Build wireless stack modules
+        run: |
+          KVER="$(uname -r)"
+          TAG="v$(echo "${KVER}" | grep -oE '^[0-9]+\.[0-9]+')"
+          echo "Kernel ${KVER}, building from tag ${TAG}"
+          git clone --depth 1 --filter=blob:none --sparse \
+            --branch "${TAG}" \
+            https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git \
+            /tmp/linux-src
+          cd /tmp/linux-src
+          git sparse-checkout set net/wireless net/mac80211 \
+            drivers/net/wireless/virtual lib/crypto
+
+          # libarc4 (ARC4 cipher library): required by mac80211, absent on azure
+          mkdir -p /tmp/crypto-src
+          cp lib/crypto/arc4.c /tmp/crypto-src/
+          cat > /tmp/crypto-src/Makefile <<'EOF'
+          obj-m += libarc4.o
+          libarc4-y := arc4.o
+          EOF
+
+          # cfg80211 + mac80211: build via a wrapper external-module tree
+          mkdir -p /tmp/wl/net
+          cp -r net/wireless net/mac80211 /tmp/wl/net/
+          cat > /tmp/wl/Makefile <<'EOF'
+          obj-m += net/wireless/ net/mac80211/
+          EOF
+
+          # mac80211_hwsim: standalone external module (single .c file)
+          mkdir -p /tmp/hwsim-src /tmp/hwsim
+          cp drivers/net/wireless/virtual/mac80211_hwsim.c \
+             drivers/net/wireless/virtual/mac80211_hwsim.h \
+             /tmp/hwsim-src/
+          printf 'obj-m := mac80211_hwsim.o\n' > /tmp/hwsim-src/Makefile
+
+          KDIR="/lib/modules/${KVER}/build"
+          make -C "${KDIR}" M="/tmp/crypto-src" modules
+          make -C "${KDIR}" M="/tmp/wl" \
+            CONFIG_CFG80211=m CONFIG_MAC80211=m modules
+          make -C "${KDIR}" M="/tmp/hwsim-src" CONFIG_MAC80211_HWSIM=m modules
+
+          cp /tmp/crypto-src/libarc4.ko \
+             /tmp/wl/net/wireless/cfg80211.ko \
+             /tmp/wl/net/mac80211/mac80211.ko \
+             /tmp/hwsim-src/mac80211_hwsim.ko \
+             /tmp/hwsim/
+          ls -l /tmp/hwsim
+
+      - name: Load simulated Wi-Fi radio
+        run: |
+          # load any in-kernel dependencies that exist as modules (e.g. rfkill)
+          for dep in $(find "/lib/modules/$(uname -r)" \( -name 'rfkill*.ko*' \)); do
+            sudo insmod "${dep}" 2>/dev/null || true
+          done
+          for mod in libarc4 cfg80211 mac80211; do
+            sudo insmod "/tmp/hwsim/${mod}.ko" || {
+              echo "insmod ${mod} failed; dmesg:" >&2
+              sudo dmesg | tail -40 >&2
+              modinfo "/tmp/hwsim/${mod}.ko" | grep depends >&2
+              exit 1
+            }
+          done
+          sudo insmod /tmp/hwsim/mac80211_hwsim.ko radios=2
+          lsmod | grep -E 'cfg80211|mac80211'
+          iw dev
+
+      - name: Run system test
+        run: sudo bash tests/system_test.sh
+
+      - name: Upload debug logs
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: systest-debug-logs
+          path: /tmp/systest-logs/
+          if-no-files-found: ignore
+          retention-days: 5

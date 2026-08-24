@@ -35,7 +35,7 @@ else
   BUILDER = $(error Neither docker buildx nor podman found)
 endif
 
-.PHONY: all build test taglatest prepare
+.PHONY: all build test system-test taglatest prepare
 
 all: build test
 
@@ -96,6 +96,14 @@ test:
 	--rm \
 	$(IMGNAME):$(VERSION) \
         /bin/test.sh || sudo docker stop $(IMGNAME)_test && docker rm $(IMGNAME)_test
+# CI-oriented end-to-end system test (Linux only, needs mac80211_hwsim).
+system-test:
+ifeq ($(OS),Linux)
+	sudo tests/system_test.sh
+else
+	@echo "system-test is Linux-only (GitHub runners); skipping on $(OS)"
+endif
+
 run:
 	@sudo $(IF_DOWN)
 	@sudo $(IF_UP)

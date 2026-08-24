@@ -257,7 +257,8 @@ ${_IPV6_CONF}
 EOF
 
 echo "Starting dnsmasq and hostapd via multirun ..."
-multirun "exec dnsmasq --no-daemon" "exec /usr/sbin/hostapd /etc/hostapd.conf" &
+# NOTE: multirun already wraps each command in `exec`; do not add it here.
+multirun "dnsmasq --no-daemon" "/usr/sbin/hostapd /etc/hostapd.conf" &
 _MULTIRUN_PID=$!
 
 wait "${_MULTIRUN_PID}"
