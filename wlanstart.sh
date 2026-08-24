@@ -108,6 +108,20 @@ fi
 : "${WPA_PASSPHRASE:=passw0rd}"
 : "${MAX_STATIONS:=0}"
 
+# Validate AP_ADDR and SUBNET are well-formed IPv4 addresses before
+# touching the system.
+# Logic lives in lib/validation.sh, shared with tests
+# shellcheck source=lib/validation.sh
+. "$(dirname "$0")/lib/validation.sh"
+if ! validate_ipv4 "${SUBNET}" ; then
+    echo "[Error] Invalid SUBNET: '${SUBNET}' is not a valid IPv4 address." >&2
+    exit 1
+fi
+if ! validate_ipv4 "${AP_ADDR}" ; then
+    echo "[Error] Invalid AP_ADDR: '${AP_ADDR}' is not a valid IPv4 address." >&2
+    exit 1
+fi
+
 # Startup warnings for default credentials
 # Logic lives in lib/warnings.sh, shared with tests
 # shellcheck source=lib/warnings.sh
@@ -187,9 +201,18 @@ EOF
 check_interrupted
 
 # Setup interface and restart DHCP service
-ip link set "${INTERFACE}" up
-ip addr flush dev "${INTERFACE}"
-ip addr add "${AP_ADDR}"/24 dev "${INTERFACE}"
+ip link set "${INTERFACE}" up || {
+    echo "[Error] Failed to bring up interface ${INTERFACE}" >&2
+    exit 1
+}
+ip addr flush dev "${INTERFACE}" || {
+    echo "[Error] Failed to flush addresses on ${INTERFACE}" >&2
+    exit 1
+}
+ip addr add "${AP_ADDR}"/24 dev "${INTERFACE}" || {
+    echo "[Error] Failed to assign ${AP_ADDR}/24 to ${INTERFACE}" >&2
+    exit 1
+}
 check_interrupted
 
 # NAT settings
