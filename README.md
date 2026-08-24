@@ -302,7 +302,25 @@ If any check fails, the container is reported as `unhealthy`.
 **Script grace vs Docker start-period**: there are two independent grace mechanisms. `HEALTHCHECK_START_PERIOD` (env var) controls the *script-side* grace window measured from the recorded start time. The Dockerfile's `HEALTHCHECK --start-period=15s` is the Docker-side outer bound during which failing checks do not count towards the `unhealthy` transition. If you raise the env var (e.g. `HEALTHCHECK_START_PERIOD=60`), the script keeps passing for 60s after start regardless of the Docker setting; the Dockerfile start-period only affects when Docker itself starts counting failures.
 
 | `HEALTHCHECK_START_PERIOD` | No | Grace period (seconds) after container start during which the healthcheck always passes. Measured from the container's own recorded start time (`/run/hostap-started`), not host uptime | `15` |
-Note: the AP's beaconing status itself is not verified — that would require enabling the hostapd control interface (`ctrl_interface`), available as an opt-in via `CTRL_INTERFACE` (see [Client Inspection](#client-inspection-optional)).
+| `HEALTHCHECK_DEEP` | No | Opt-in deep healthcheck: after the standard checks, verify the AP is actually beaconing via `hostapd_cli status` (requires hostapd control interface). Any non-empty value enables it; also emits `ctrl_interface=/var/run/hostapd` into the generated `hostapd.conf` (see [Deep Healthcheck](#deep-healthcheck-optional)) | unset |
+
+#### Deep Healthcheck (optional)
+
+By default the AP's beaconing status is not verified — hostapd can be alive while the radio failed to start (driver rejection, DFS CAC wait). Set `HEALTHCHECK_DEEP` to any non-empty value to opt in:
+
+```bash
+docker run ... -e HEALTHCHECK_DEEP=1 ...
+```
+
+When enabled, `wlanstart.sh` emits `ctrl_interface=/var/run/hostapd` and `ctrl_interface_group=0` into the generated `hostapd.conf`, and after the existing checks `healthcheck.sh` runs `hostapd_cli -p /var/run/hostapd -i "$INTERFACE" status`, requiring `state=ENABLED`. If hostapd reports any other state, the container is reported as `unhealthy`.
+
+**DFS channels**: on radar channels (e.g. 5 GHz DFS), Channel Availability Check (CAC) can take 60s+ before the AP starts beaconing (`state=DFS`). Raise the grace period so the deep check doesn't fail during CAC:
+
+```bash
+docker run ... -e HEALTHCHECK_DEEP=1 -e HEALTHCHECK_START_PERIOD=90 ...
+```
+
+Note: enabling `CTRL_INTERFACE` (see [Client Inspection](#client-inspection-optional)) already emits the same config lines, so the two options are compatible — either one suffices for `hostapd_cli` to work.
 
 ## Contributing
 

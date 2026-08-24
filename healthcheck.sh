@@ -48,4 +48,15 @@ if [ -n "$INTERFACE" ]; then
     fi
 fi
 
+# Optional deep check: verify the AP is actually beaconing via hostapd_cli.
+# Requires HEALTHCHECK_DEEP set (wlanstart.sh then enables ctrl_interface).
+# Note: DFS CAC can take 60s+ on radar channels; raise HEALTHCHECK_START_PERIOD
+# (e.g. 90) so this check doesn't fail during channel availability scan.
+if [ -n "$HEALTHCHECK_DEEP" ]; then
+    if ! hostapd_cli -p /var/run/hostapd -i "$INTERFACE" status 2>/dev/null | grep -q "^state=ENABLED"; then
+        echo "hostapd is not in ENABLED state" >&2
+        exit 1
+    fi
+fi
+
 exit 0
