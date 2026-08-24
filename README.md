@@ -121,14 +121,7 @@ docker run -d \
 | `HEALTHCHECK_DEEP` | No | Opt-in deep healthcheck verifying the AP is actually beaconing via `hostapd_cli status`; see [Deep Healthcheck](docs/healthcheck.md#deep-healthcheck-optional) | unset |
 | `HEALTHCHECK_STARTED_FILE` | No | Path to the file where the entrypoint records the container start time used by the healthcheck grace period (internal/testing hook) | `/run/hostap-started` |
 
-Detailed topics and examples are in [docs/configuration.md](docs/configuration.md):
-
-- [HT/VHT (802.11n/ac) tuning](docs/configuration.md#htvht-80211nac-tuning)
-- [MAC address filtering](docs/configuration.md#mac-address-filtering-optional)
-- [WPA3 (SAE)](docs/configuration.md#wpa3-sae)
-- [Regional channel validation](docs/configuration.md#regional-channel-validation)
-- [Dry-run validation (`--validate`)](docs/configuration.md#dry-run-validation---validate)
-- [Client inspection](docs/configuration.md#client-inspection-optional)
+Detailed topics and examples are in [docs/configuration.md](docs/configuration.md): HT/VHT tuning, MAC filtering, WPA3/SAE, regional channel validation, dry-run validation (`--validate`) and client inspection.
 
 ### Build from Source
 
@@ -152,10 +145,10 @@ The container runs a Docker healthcheck every 30s verifying that `hostapd`, `dns
 
 All detailed documentation lives in the [docs/](docs/INDEX.md) folder:
 
-- [Configuration topics](docs/configuration.md)
+- [Configuration topics](docs/configuration.md) — [HT/VHT tuning](docs/configuration.md#htvht-80211nac-tuning), [MAC filtering](docs/configuration.md#mac-address-filtering-optional), [WPA3 (SAE)](docs/configuration.md#wpa3-sae), [regional channels](docs/configuration.md#regional-channel-validation), [`--validate`](docs/configuration.md#dry-run-validation---validate), [client inspection](docs/configuration.md#client-inspection-optional)
 - [Networking](docs/networking.md)
 - [Troubleshooting](docs/troubleshooting.md)
-- [Health Check](docs/healthcheck.md)
+- [Health Check](docs/healthcheck.md) — incl. [deep healthcheck](docs/healthcheck.md#deep-healthcheck-optional)
 
 ## Contributing
 

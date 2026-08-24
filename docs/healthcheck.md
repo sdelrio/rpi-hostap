@@ -12,10 +12,7 @@ If any check fails, the container is reported as `unhealthy`.
 
 **Script grace vs Docker start-period**: there are two independent grace mechanisms. `HEALTHCHECK_START_PERIOD` (env var) controls the *script-side* grace window measured from the recorded start time. The Dockerfile's `HEALTHCHECK --start-period=15s` is the Docker-side outer bound during which failing checks do not count towards the `unhealthy` transition. If you raise the env var (e.g. `HEALTHCHECK_START_PERIOD=60`), the script keeps passing for 60s after start regardless of the Docker setting; the Dockerfile start-period only affects when Docker itself starts counting failures.
 
-| Variable | Required | Description | Default |
-|:--------:|:--------:|:-----------:|:-------:|
-| `HEALTHCHECK_START_PERIOD` | No | Grace period (seconds) after container start during which the healthcheck always passes. Measured from the container's own recorded start time (`/run/hostap-started`), not host uptime | `15` |
-| `HEALTHCHECK_DEEP` | No | Opt-in deep healthcheck: after the standard checks, verify the AP is actually beaconing via `hostapd_cli status` (requires hostapd control interface). Any non-empty value enables it; also emits `ctrl_interface=/var/run/hostapd` into the generated `hostapd.conf` | unset |
+The relevant variables (`HEALTHCHECK_START_PERIOD`, `HEALTHCHECK_DEEP`) are listed in the [environment variables table](../README.md#environment-variables).
 
 ## Deep Healthcheck (optional)
 
