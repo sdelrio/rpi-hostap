@@ -29,14 +29,16 @@ fi
 
 # Check if the wireless interface is up (if INTERFACE is set)
 if [ -n "$INTERFACE" ]; then
-    if ! ip link show "$INTERFACE" > /dev/null 2>&1; then
+    # Verify the link exists AND is up (state UP), not merely present
+    if ! ip link show "$INTERFACE" 2>/dev/null | grep -q "state UP"; then
         echo "interface $INTERFACE is not up" >&2
         exit 1
     fi
 
     # Check if the AP IP is assigned to the interface (if AP_ADDR is set)
     if [ -n "$AP_ADDR" ]; then
-        if ! ip -4 addr show dev "$INTERFACE" | grep -q "$AP_ADDR"; then
+        # Anchor the match so e.g. .100 doesn't satisfy a check for .1
+        if ! ip -4 addr show dev "$INTERFACE" | grep -q "inet ${AP_ADDR}/"; then
             echo "address $AP_ADDR is not assigned to interface $INTERFACE" >&2
             exit 1
         fi
