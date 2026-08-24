@@ -46,20 +46,39 @@ check_interrupted() {
 
 trap handle_signal SIGINT SIGTERM SIGHUP
 
-# Record container start time so healthcheck.sh can measure the grace
-# period from the actual start (not host uptime via /proc/uptime).
-date +%s > /run/hostap-started 2>/dev/null || true
+# Dry-run validation mode (--validate, -t/--test): apply env defaults,
+# run every validator and print the generated hostapd.conf/dnsmasq.conf
+# to stdout instead of touching the system.
+VALIDATE_ONLY=0
+case "${1:-}" in
+    --validate|-t|--test)
+        VALIDATE_ONLY=1
+        shift
+        ;;
+    "")
+        ;;
+    *)
+        echo "[Error] Unknown option '${1}'. Usage: wlanstart.sh [--validate|-t|--test]" >&2
+        exit 1
+        ;;
+esac
 
-# Check if running in privileged mode
-if [ ! -w "/sys" ] ; then
-    echo "[Error] Not running in privileged mode."
-    exit 1
-fi
+if [ "${VALIDATE_ONLY}" != "1" ] ; then
+    # Record container start time so healthcheck.sh can measure the grace
+    # period from the actual start (not host uptime via /proc/uptime).
+    date +%s > /run/hostap-started 2>/dev/null || true
 
-# Check environment variables
-if [ ! "${INTERFACE}" ] ; then
-    echo "[Error] An interface must be specified."
-    exit 1
+    # Check if running in privileged mode
+    if [ ! -w "/sys" ] ; then
+        echo "[Error] Not running in privileged mode."
+        exit 1
+    fi
+
+    # Check environment variables
+    if [ ! "${INTERFACE}" ] ; then
+        echo "[Error] An interface must be specified."
+        exit 1
+    fi
 fi
 
 # Set HW_MODE and CHANNEL early for validation
@@ -77,9 +96,6 @@ fi
 # Logic lives in lib/channel.sh, shared with tests
 # shellcheck source=lib/channel.sh
 . "$(dirname "$0")/lib/channel.sh"
-if ! validate_channel ; then
-    exit 1
-fi
 
 # Default values
 : "${SUBNET:=192.168.254.0}"
@@ -90,92 +106,76 @@ fi
 : "${WPA_PASSPHRASE:=passw0rd}"
 : "${MAX_STATIONS:=0}"
 
-# Validate AP_ADDR and SUBNET are well-formed IPv4 addresses before
-# touching the system.
+# IPv4 address validation (validate_ipv4)
 # Logic lives in lib/validation.sh, shared with tests
 # shellcheck source=lib/validation.sh
 . "$(dirname "$0")/lib/validation.sh"
-if ! validate_ipv4 "${SUBNET}" ; then
-    echo "[Error] Invalid SUBNET: '${SUBNET}' is not a valid IPv4 address." >&2
-    exit 1
-fi
-if ! validate_ipv4 "${AP_ADDR}" ; then
-    echo "[Error] Invalid AP_ADDR: '${AP_ADDR}' is not a valid IPv4 address." >&2
-    exit 1
-fi
-
 # Startup warnings for default credentials
 # Logic lives in lib/warnings.sh, shared with tests
 # shellcheck source=lib/warnings.sh
 . "$(dirname "$0")/lib/warnings.sh"
-emit_credential_warnings
-# Validate WPA_PASSPHRASE length (8-63 chars required by WPA-PSK/SAE)
+# WPA_PASSPHRASE length validation
 # Logic lives in lib/passphrase.sh, shared with tests
 # shellcheck source=lib/passphrase.sh
 . "$(dirname "$0")/lib/passphrase.sh"
-if ! validate_passphrase ; then
-    exit 1
-fi
-check_interrupted
-
-# MAX_STATIONS: limit number of associated stations (0 = unlimited)
+# MAX_STATIONS
 # Logic lives in lib/stations.sh, shared with tests
 # shellcheck source=lib/stations.sh
 . "$(dirname "$0")/lib/stations.sh"
-
-# WPA version: 2 (WPA2-PSK, default), 3 (WPA3-SAE) or mixed (WPA2/WPA3 transition)
+# WPA version
 # Logic lives in lib/wpa.sh, shared with tests
 # shellcheck source=lib/wpa.sh
 . "$(dirname "$0")/lib/wpa.sh"
-if ! _WPA_CONF=$(compute_wpa_conf) ; then
-    exit 1
-fi
-
-# AP isolation: emit ap_isolate= only when AP_ISOLATION is set
+# AP isolation
 # Logic lives in lib/ap_isolation.sh, shared with tests
 # shellcheck source=lib/ap_isolation.sh
 . "$(dirname "$0")/lib/ap_isolation.sh"
-_AP_ISOLATION_CONF=$(compute_ap_isolation_line)
-
-# Hidden SSID: emit ssid_hidden= only when HIDE_SSID is set
+# Hidden SSID
 # Logic lives in lib/ssid_hidden.sh, shared with tests
 # shellcheck source=lib/ssid_hidden.sh
 . "$(dirname "$0")/lib/ssid_hidden.sh"
-_SSID_HIDDEN_CONF=$(compute_ssid_hidden_line)
-
-# MAC address filtering (off by default, enable with MAC_FILTER=1 or 2)
+# MAC address filtering
 # Logic lives in lib/mac_filter.sh, shared with tests
 # shellcheck source=lib/mac_filter.sh
 . "$(dirname "$0")/lib/mac_filter.sh"
-if ! validate_mac_filter ; then
-    exit 1
-fi
-_MAC_FILTER_CONF=$(compute_mac_filter_conf)
-
-_MAX_STA_CONF=$(compute_max_sta_conf)
-
-# Control interface: opt-in via CTRL_INTERFACE (any non-empty value)
+# Control interface
 # Logic lives in lib/ctrl_interface.sh, shared with tests
 # shellcheck source=lib/ctrl_interface.sh
 . "$(dirname "$0")/lib/ctrl_interface.sh"
-_CTRL_INTERFACE_CONF=$(compute_ctrl_interface_conf)
+# Optional IPv6 support
+# Logic lives in lib/ipv6.sh, shared with tests
+# shellcheck source=lib/ipv6.sh
+. "$(dirname "$0")/lib/ipv6.sh"
+# DHCP_RANGE computation
+# Logic lives in lib/dhcp.sh, shared with tests
+# shellcheck source=lib/dhcp.sh
+. "$(dirname "$0")/lib/dhcp.sh"
 
-# Always regenerate hostapd.conf so env var changes apply between runs
-cat > "/etc/hostapd.conf" <<EOF
+# Emit hostapd.conf to stdout from the current environment.
+emit_hostapd_conf() {
+    local wpa_conf ap_isolation_conf ssid_hidden_conf mac_filter_conf max_sta_conf ctrl_conf
+    wpa_conf=$(compute_wpa_conf) || return 1
+    ap_isolation_conf=$(compute_ap_isolation_line)
+    ssid_hidden_conf=$(compute_ssid_hidden_line)
+    mac_filter_conf=$(compute_mac_filter_conf)
+    max_sta_conf=$(compute_max_sta_conf)
+    ctrl_conf=$(compute_ctrl_interface_conf)
+
+    cat <<EOF
 interface=${INTERFACE}
 ${DRIVER+"driver=${DRIVER}"}
 ssid=${SSID}
-${_SSID_HIDDEN_CONF}
+${ssid_hidden_conf}
 hw_mode=${HW_MODE}
 channel=${CHANNEL}
 ${COUNTRY_CODE+"country_code=${COUNTRY_CODE}"}
-${_WPA_CONF}
+${wpa_conf}
 wpa_ptk_rekey=600
 wmm_enabled=1
-${_MAX_STA_CONF}
-${_AP_ISOLATION_CONF}
-${_MAC_FILTER_CONF}
-${_CTRL_INTERFACE_CONF}
+${max_sta_conf}
+${ap_isolation_conf}
+${mac_filter_conf}
+${ctrl_conf}
 
 # Activate channel selection for HT High Throughput (802.11an)
 
@@ -187,6 +187,95 @@ ${HT_CAPAB+"ht_capab=${HT_CAPAB}"}
 ${VHT_ENABLED+"ieee80211ac=1"}
 ${VHT_CAPAB+"vht_capab=${VHT_CAPAB}"}
 EOF
+}
+
+# Emit dnsmasq.conf to stdout from the current environment.
+emit_dnsmasq_conf() {
+    local dhcp_range ipv6_conf=""
+    dhcp_range=$(compute_dhcp_range) || return 1
+    if [ "${IPV6:-0}" = "1" ] ; then
+        ipv6_conf=$(compute_dnsmasq_ipv6_conf)
+    fi
+
+    cat <<EOF
+interface=${INTERFACE}
+dhcp-range=${dhcp_range}
+dhcp-option=option:router,${AP_ADDR}
+dhcp-option=option:dns-server,${PRI_DNS},${SEC_DNS}
+${ipv6_conf}
+EOF
+}
+
+# Dry-run validation mode: run every validator, collecting all failures
+# instead of stopping at the first one. On success print the generated
+# config files to stdout; on failure exit non-zero listing the errors
+# (validators already report them on stderr).
+run_validation_mode() {
+    local errors=0
+
+    if [ ! "${INTERFACE:-}" ] ; then
+        echo "[Error] An interface must be specified." >&2
+        errors=$((errors + 1))
+    fi
+
+    validate_channel || errors=$((errors + 1))
+
+    validate_ipv4_param SUBNET "${SUBNET}" || errors=$((errors + 1))
+    validate_ipv4_param AP_ADDR "${AP_ADDR}" || errors=$((errors + 1))
+
+    emit_credential_warnings >&2 || true
+    validate_passphrase || errors=$((errors + 1))
+    validate_mac_filter || errors=$((errors + 1))
+
+    if [ "${errors}" -ne 0 ] ; then
+        echo "[Error] Validation failed with ${errors} error(s)." >&2
+        return 1
+    fi
+
+    # Config generation doubles as DHCP range / WPA config validation.
+    local hostapd dnsmasq
+    hostapd=$(emit_hostapd_conf) || {
+        echo "[Error] Invalid WPA configuration." >&2
+        return 1
+    }
+    dnsmasq=$(emit_dnsmasq_conf) || {
+        echo "[Error] Invalid DHCP_RANGE." >&2
+        return 1
+    }
+
+    echo "=== /etc/hostapd.conf ==="
+    printf '%s\n' "${hostapd}"
+    echo "=== /etc/dnsmasq.conf ==="
+    printf '%s\n' "${dnsmasq}"
+}
+
+if [ "${VALIDATE_ONLY}" = "1" ] ; then
+    run_validation_mode
+    exit $?
+fi
+
+# Startup warnings for default credentials (normal mode only; validation
+# mode emits them above so they are not interleaved with stdout configs).
+emit_credential_warnings
+if ! validate_passphrase ; then
+    exit 1
+fi
+check_interrupted
+
+if ! validate_mac_filter ; then
+    exit 1
+fi
+check_interrupted
+
+if ! validate_channel ; then
+    exit 1
+fi
+
+validate_ipv4_param SUBNET "${SUBNET}" || exit 1
+validate_ipv4_param AP_ADDR "${AP_ADDR}" || exit 1
+
+# Always regenerate hostapd.conf so env var changes apply between runs
+emit_hostapd_conf > "/etc/hostapd.conf" || exit 1
 check_interrupted
 
 # Setup interface and restart DHCP service
@@ -213,11 +302,6 @@ cat /proc/sys/net/ipv4/ip_forward
 apply_nat_rules
 
 # Optional IPv6 support (off by default, enable with IPV6=1)
-# Logic lives in lib/ipv6.sh, shared with tests
-# shellcheck source=lib/ipv6.sh
-. "$(dirname "$0")/lib/ipv6.sh"
-
-_IPV6_CONF=""
 if [ "${IPV6:-0}" = "1" ] ; then
     echo "Enabling IPv6 forwarding..."
     enable_ipv6_forwarding
@@ -227,23 +311,8 @@ fi
 
 echo "Configuring DHCP server .."
 
-# Logic lives in lib/dhcp.sh, shared with tests
-# shellcheck source=lib/dhcp.sh
-. "$(dirname "$0")/lib/dhcp.sh"
-
-DHCP_RANGE=$(compute_dhcp_range) || exit 1
-
-if [ "${IPV6:-0}" = "1" ] ; then
-    _IPV6_CONF=$(compute_dnsmasq_ipv6_conf)
-fi
-
-cat > "/etc/dnsmasq.conf" <<EOF
-interface=${INTERFACE}
-dhcp-range=${DHCP_RANGE}
-dhcp-option=option:router,${AP_ADDR}
-dhcp-option=option:dns-server,${PRI_DNS},${SEC_DNS}
-${_IPV6_CONF}
-EOF
+# Always regenerate dnsmasq.conf so env var changes apply between runs
+emit_dnsmasq_conf > "/etc/dnsmasq.conf" || exit 1
 
 echo "Starting dnsmasq and hostapd via multirun ..."
 check_interrupted
