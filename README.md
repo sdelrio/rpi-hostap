@@ -111,112 +111,24 @@ docker run -d \
 | `PRI_DNS` | No | Primary DNS server advertised to DHCP clients | `8.8.8.8` |
 | `SEC_DNS` | No | Secondary DNS server advertised to DHCP clients | `8.8.4.4` |
 | `DRIVER` | No | hostapd driver line override (e.g. `rtl871xdrv`); omit for the default `driver=nl80211`-based config | unset |
-| `HT_ENABLED` | No | Enable 802.11n High Throughput (`ieee80211n=1`). Set to any non-empty value to enable; see [HT/VHT tuning](#htvht-80211nac-tuning) | unset |
+| `HT_ENABLED` | No | Enable 802.11n High Throughput (`ieee80211n=1`). Set to any non-empty value to enable; see [HT/VHT tuning](docs/configuration.md#htvht-80211nac-tuning) | unset |
 | `HT_CAPAB` | No | 802.11n capabilities string (`ht_capab=` in hostapd.conf); requires `HT_ENABLED` | unset |
 | `VHT_ENABLED` | No | Enable 802.11ac Very High Throughput (`ieee80211ac=1`); requires 5 GHz (`HW_MODE=a`) | unset |
 | `VHT_CAPAB` | No | 802.11ac capabilities string (`vht_capab=` in hostapd.conf); requires `VHT_ENABLED` | unset |
-| `HEALTHCHECK_START_PERIOD` | No | Grace period (seconds) after container start during which the healthcheck always passes. Measured from the container's own recorded start time (`/run/hostap-started`), not host uptime | `15` |
-| `CTRL_INTERFACE` | No | Enable hostapd control interface (any non-empty value); allows `clients.sh` to list stations, see [Client Inspection](#client-inspection-optional) | unset |
+| `HEALTHCHECK_START_PERIOD` | No | Grace period (seconds) after container start during which the healthcheck always passes. Measured from the container's own recorded start time (`/run/hostap-started`), not host uptime; see [Health Check](docs/healthcheck.md) | `15` |
+| `CTRL_INTERFACE` | No | Enable hostapd control interface (any non-empty value); allows `clients.sh` to list stations, see [Client Inspection](docs/configuration.md#client-inspection-optional) | unset |
 | `CTRL_IFACE_DIR` | No | Control interface socket directory used by `clients.sh` | `/var/run/hostapd` |
+| `HEALTHCHECK_DEEP` | No | Opt-in deep healthcheck verifying the AP is actually beaconing via `hostapd_cli status`; see [Deep Healthcheck](docs/healthcheck.md#deep-healthcheck-optional) | unset |
 | `HEALTHCHECK_STARTED_FILE` | No | Path to the file where the entrypoint records the container start time used by the healthcheck grace period (internal/testing hook) | `/run/hostap-started` |
 
-#### HT/VHT (802.11n/ac) Tuning
+Detailed topics and examples are in [docs/configuration.md](docs/configuration.md):
 
-By default the AP runs without HT/VHT (802.11n/ac disabled). To enable higher throughput:
-
-```bash
-docker run ... \
-  -e HW_MODE=a -e CHANNEL=36 \
-  -e HT_ENABLED=1 \
-  -e HT_CAPAB="[HT40+][SHORT-GI-20][SHORT-GI-40]" \
-  -e VHT_ENABLED=1 \
-  -e VHT_CAPAB="[MAX-MPDU-3895][SHORT-GI-80]" \
-  ...
-```
-
-Notes:
-
-- `HT_ENABLED=1` emits `ieee80211n=1`; `HT_CAPAB` sets the optional `ht_capab=` line.
-- `VHT_ENABLED=1` emits `ieee80211ac=1` and requires 5 GHz operation (`HW_MODE=a`); `VHT_CAPAB` sets the optional `vht_capab=` line.
-- Capabilities depend on what your WiFi adapter supports — check `iw list` output (`HT capabilities` / `VHT capabilities`) before enabling.
-- Common `ht_capab` flags: `[HT40+]`/`[HT40-]` (40 MHz channels), `[SHORT-GI-20]`, `[SHORT-GI-40]`. Common `vht_capab` flags: `[SHORT-GI-80]`, `[MAX-MPDU-3895]`, `[SU-BEAMFORMER]`.
-- `HT_CAPAB`/`VHT_CAPAB` values are passed through to hostapd unvalidated; invalid strings surface as hostapd config errors in `docker logs`.
-
-#### MAC Address Filtering (optional)
-
-MAC filtering is **off by default**; behavior is unchanged unless you set `MAC_FILTER`. When enabled:
-
-- `MAC_FILTER=1` (allowlist): only MACs listed in the file can associate (`macaddr_acl=1` + `accept_mac_file=`).
-- `MAC_FILTER=2` (denylist): listed MACs are rejected (`macaddr_acl=1` + `deny_mac_file=`).
-- Startup fails with an error if the filter is enabled without `MAC_ACL_FILE`, and warns if the file is missing or unreadable.
-- Note that MAC filtering is a weak control on its own (MACs can be spoofed); combine it with WPA2/WPA3.
-
-```bash
-docker run ... -e MAC_FILTER=1 -v /path/to/hostapd.accept:/etc/hostapd.accept:ro ...
-```
-
-File format (one MAC per line):
-
-```
-aa:bb:cc:dd:ee:ff
-11:22:33:44:55:66
-```
-
-#### WPA3 (SAE)
-
-Setting `WPA_VERSION=3` enables WPA3-SAE authentication. Note:
-- Client devices must support SAE (wpa_supplicant 2.7+, iOS 13+/macOS 10.15+, Android 10+).
-- Older clients that only support WPA2 will not be able to connect.
-
-Setting `WPA_VERSION=mixed` enables WPA2/WPA3 transition mode: WPA3-SAE capable devices use SAE, while legacy WPA2 clients can still connect with WPA2-PSK. Note that transition mode is considered less secure than WPA3-only.
-
-#### Regional Channel Validation
-
-When `COUNTRY_CODE` is set, 2.4 GHz channels (`hw_mode=g` or `b`) are validated against regional limits:
-
-| Region | Countries | Allowed Channels (2.4 GHz) |
-|--------|-----------|---------------------------|
-| North America | US, CA, MX | 1–11 |
-| Europe (ETSI) | EU, UK, ES, ... (default) | 1–13 |
-| Japan | JP | 1–14 |
-
-Unknown countries fall back to the ETSI limit (1–13). A warning is emitted if `COUNTRY_CODE` is not set.
-
-For 5 GHz (`hw_mode=a`), channels are validated against the allowed 5 GHz set:
-
-- **Non-DFS channels** (always allowed): 36, 40, 44, 48, 149, 153, 157, 161, 165
-- **DFS channels** (allowed with a radar detection/CAC warning): 52, 56, 60, 64, 100–144 (in steps of 4)
-- Any other channel is rejected with a clear error.
-
-#### Dry-Run Validation (`--validate`)
-
-`wlanstart.sh --validate` (aliases: `-t`, `--test`) checks the configuration without touching the system:
-
-```bash
-docker run --rm \
-  -e INTERFACE=wlan0 -e SSID=myap -e WPA_PASSPHRASE=supersecret -e COUNTRY_CODE=US \
-  <image> --validate
-```
-
-It applies the same environment defaults as a normal start, runs every validator (channel/regulatory, passphrase, MAC filter, DHCP range, IPv4 addresses) and, on success, prints the generated `hostapd.conf` and `dnsmasq.conf` to stdout. It performs no system mutations: no interface changes, sysctls, iptables rules or daemons.
-
-On invalid configuration it exits non-zero and lists all validation errors (not just the first). This is covered in CI by the bats suite (`tests/validate_mode.bats`).
-
-#### Client Inspection (optional)
-
-By default the hostapd control interface is not enabled, to keep the generated config minimal. Set `CTRL_INTERFACE` to any non-empty value to opt in:
-
-```bash
-docker run ... -e CTRL_INTERFACE=1 ...
-```
-
-This emits `ctrl_interface=/var/run/hostapd` and `ctrl_interface_group=0` into `hostapd.conf`. Once enabled, list currently associated stations from inside the container:
-
-```bash
-docker exec rpi-hostap clients.sh
-```
-
-Output includes MAC address, signal, connected time and tx/rx rates per station (as reported by `hostapd_cli all_sta`). The control interface directory can be overridden with `CTRL_IFACE_DIR` (default `/var/run/hostapd`).
+- [HT/VHT (802.11n/ac) tuning](docs/configuration.md#htvht-80211nac-tuning)
+- [MAC address filtering](docs/configuration.md#mac-address-filtering-optional)
+- [WPA3 (SAE)](docs/configuration.md#wpa3-sae)
+- [Regional channel validation](docs/configuration.md#regional-channel-validation)
+- [Dry-run validation (`--validate`)](docs/configuration.md#dry-run-validation---validate)
+- [Client inspection](docs/configuration.md#client-inspection-optional)
 
 ### Build from Source
 
@@ -226,103 +138,24 @@ make run
 
 ## Networking
 
-### NAT / IP Forwarding
-
-The container enables IP forwarding at runtime. For persistence across host reboots:
-
-```bash
-sudo sed -i 's/#net.ipv4.ip_forward=1/net.ipv4.ip_forward=1/' /etc/sysctl.conf
-sudo sed -i 's/#net.ipv6.conf.all.forwarding=1/net.ipv6.conf.all.forwarding=1/' /etc/sysctl.conf
-sudo sysctl -p
-```
-
-### IPv6 Support (optional)
-
-IPv6 is **off by default**; behavior is unchanged unless you set `IPV6=1`. When enabled:
-
-- `net.ipv6.conf.all.forwarding=1` is set at runtime (IPv6 forwarding).
-- dnsmasq advertises SLAAC/RA with stateless DHCPv6 on the AP interface:
-  `dhcp-range=::,constructor:<INTERFACE>,ra-names,stateless`
-- `ip6tables` FORWARD rules mirror the IPv4 handling (established/related in, new out). There is no IPv6 NAT — clients get addresses from the upstream network's prefix via RA, or link-local/ULA otherwise.
-
-```bash
-docker run ... -e IPV6=1 ...
-```
-
-Caveats:
-
-- Client IPv6 connectivity depends on the upstream network advertising an IPv6 prefix (Router Advertisements on the outgoing interface). Without an upstream prefix, clients will only obtain link-local addresses.
-- The container sets forwarding at runtime via `/proc/sys`; for host persistence across reboots see the sysctl commands above.
-- Some ISPs/hosters filter or rate-limit IPv6; test with `ping6` / `traceroute -6` from a client.
-
-### Outgoing Interfaces
-
-By default, NAT is applied to all outgoing interfaces. To restrict to specific interfaces (e.g., `eth0`):
-
-```bash
--e OUTGOINGS=eth0
-```
-
-For multiple interfaces:
-
-```bash
--e OUTGOINGS=eth0,wwan0
-```
+The container enables NAT/IP forwarding at runtime, optionally restricted to specific outgoing interfaces, with optional IPv6 support. See [docs/networking.md](docs/networking.md) for details.
 
 ## Troubleshooting
 
-### "Could not connect to kernel driver"
-
-`wpa_supplicant` is using the interface. Stop it on the host:
-
-```bash
-sudo systemctl stop wpa_supplicant
-```
-
-### Container exits immediately
-
-Check logs:
-
-```bash
-docker logs rpi-hostap
-```
-
-Ensure the WiFi interface is up and not in use by another process.
+Common issues (kernel driver conflicts, containers exiting immediately) are covered in [docs/troubleshooting.md](docs/troubleshooting.md).
 
 ## Health Check
 
-The container defines a Docker `HEALTHCHECK` that runs `/bin/healthcheck.sh` every 30s (15s start period, 3 retries). The check verifies, in order:
+The container runs a Docker healthcheck every 30s verifying that `hostapd`, `dnsmasq`, the wireless interface and IP assignment are healthy, with an optional deep check via `hostapd_cli`. See [docs/healthcheck.md](docs/healthcheck.md) for details.
 
-1. The container started less than `HEALTHCHECK_START_PERIOD` seconds ago (default 15s); during this grace period the check always passes. The start time is recorded by the entrypoint in `/run/hostap-started` at container boot — `/proc/uptime` is deliberately not used because inside Docker it reflects the *host's* uptime, which would disable the grace period on long-running hosts.
-2. The `hostapd` process is running.
-3. The `dnsmasq` process is running.
-4. The wireless interface (`INTERFACE`) exists and is up.
-5. If `AP_ADDR` is set: the address is actually assigned to `INTERFACE` (via `ip -4 addr show`). This catches cases where IP configuration failed after hostapd started.
+## Documentation
 
-If any check fails, the container is reported as `unhealthy`.
+All detailed documentation lives in the [docs/](docs/INDEX.md) folder:
 
-**Script grace vs Docker start-period**: there are two independent grace mechanisms. `HEALTHCHECK_START_PERIOD` (env var) controls the *script-side* grace window measured from the recorded start time. The Dockerfile's `HEALTHCHECK --start-period=15s` is the Docker-side outer bound during which failing checks do not count towards the `unhealthy` transition. If you raise the env var (e.g. `HEALTHCHECK_START_PERIOD=60`), the script keeps passing for 60s after start regardless of the Docker setting; the Dockerfile start-period only affects when Docker itself starts counting failures.
-
-| `HEALTHCHECK_START_PERIOD` | No | Grace period (seconds) after container start during which the healthcheck always passes. Measured from the container's own recorded start time (`/run/hostap-started`), not host uptime | `15` |
-| `HEALTHCHECK_DEEP` | No | Opt-in deep healthcheck: after the standard checks, verify the AP is actually beaconing via `hostapd_cli status` (requires hostapd control interface). Any non-empty value enables it; also emits `ctrl_interface=/var/run/hostapd` into the generated `hostapd.conf` (see [Deep Healthcheck](#deep-healthcheck-optional)) | unset |
-
-#### Deep Healthcheck (optional)
-
-By default the AP's beaconing status is not verified — hostapd can be alive while the radio failed to start (driver rejection, DFS CAC wait). Set `HEALTHCHECK_DEEP` to any non-empty value to opt in:
-
-```bash
-docker run ... -e HEALTHCHECK_DEEP=1 ...
-```
-
-When enabled, `wlanstart.sh` emits `ctrl_interface=/var/run/hostapd` and `ctrl_interface_group=0` into the generated `hostapd.conf`, and after the existing checks `healthcheck.sh` runs `hostapd_cli -p /var/run/hostapd -i "$INTERFACE" status`, requiring `state=ENABLED`. If hostapd reports any other state, the container is reported as `unhealthy`.
-
-**DFS channels**: on radar channels (e.g. 5 GHz DFS), Channel Availability Check (CAC) can take 60s+ before the AP starts beaconing (`state=DFS`). Raise the grace period so the deep check doesn't fail during CAC:
-
-```bash
-docker run ... -e HEALTHCHECK_DEEP=1 -e HEALTHCHECK_START_PERIOD=90 ...
-```
-
-Note: enabling `CTRL_INTERFACE` (see [Client Inspection](#client-inspection-optional)) already emits the same config lines, so the two options are compatible — either one suffices for `hostapd_cli` to work.
+- [Configuration topics](docs/configuration.md)
+- [Networking](docs/networking.md)
+- [Troubleshooting](docs/troubleshooting.md)
+- [Health Check](docs/healthcheck.md)
 
 ## Contributing
 
