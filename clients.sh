@@ -4,7 +4,7 @@
 # Requires CTRL_INTERFACE=1 so hostapd.conf exposes ctrl_interface.
 set -euo pipefail
 
-if [ -z "${INTERFACE:-}" ] ; then
+if [[ -z "${INTERFACE:-}" ]] ; then
     echo "[Error] INTERFACE must be set." >&2
     exit 1
 fi
