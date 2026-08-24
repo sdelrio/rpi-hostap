@@ -21,3 +21,7 @@ Lightweight Docker container that turns a Raspberry Pi into a wireless Access Po
 | Test a configuration without touching the system | [`wlanstart.sh --validate`](validation.md#dry-run-validation---validate) |
 | Complete `docker run` example with all option groups | [README](../README.md#full-featured-example) |
 | List connected clients | [`clients.sh`](operations.md#client-inspection-optional) |
+
+---
+
+_Last updated: 2026-08-24_

@@ -15,3 +15,7 @@ It applies the same environment defaults as a normal start, runs every validator
 On invalid configuration it exits non-zero and lists all validation errors (not just the first). This is covered in CI by the bats suite (`tests/validate_mode.bats`).
 
 Dry-run validation is also the recommended first step when [troubleshooting a container that exits immediately](troubleshooting.md#container-exits-immediately).
+
+---
+
+_Last updated: 2026-08-24_

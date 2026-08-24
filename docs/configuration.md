@@ -16,7 +16,7 @@ docker run ... \
   ...
 ```
 
-Notes:
+### Notes
 
 - `HT_ENABLED=1` emits `ieee80211n=1`; `HT_CAPAB` sets the optional `ht_capab=` line.
 - `VHT_ENABLED=1` emits `ieee80211ac=1` and requires 5 GHz operation (`HW_MODE=a`); `VHT_CAPAB` sets the optional `vht_capab=` line.
@@ -39,7 +39,9 @@ MAC filtering is **off by default**; behavior is unchanged unless you set `MAC_F
 docker run ... -e MAC_FILTER=1 -v /path/to/hostapd.accept:/etc/hostapd.accept:ro ...
 ```
 
-File format (one MAC per line):
+### File Format
+
+One MAC per line:
 
 ```
 aa:bb:cc:dd:ee:ff
@@ -48,15 +50,24 @@ aa:bb:cc:dd:ee:ff
 
 ## WPA3 (SAE)
 
+### WPA3-Only (`WPA_VERSION=3`)
+
 Setting `WPA_VERSION=3` enables WPA3-SAE authentication. Note:
+
 - Client devices must support SAE (wpa_supplicant 2.7+, iOS 13+/macOS 10.15+, Android 10+).
 - Older clients that only support WPA2 will not be able to connect.
+
+### Transition Mode (`WPA_VERSION=mixed`)
 
 Setting `WPA_VERSION=mixed` enables WPA2/WPA3 transition mode: WPA3-SAE capable devices use SAE, while legacy WPA2 clients can still connect with WPA2-PSK. Note that transition mode is considered less secure than WPA3-only.
 
 ## Regional Channel Validation
 
-When `COUNTRY_CODE` is set, 2.4 GHz channels (`hw_mode=g` or `b`) are validated against regional limits:
+When `COUNTRY_CODE` is set, channels are validated against regional limits.
+
+### 2.4 GHz Channels
+
+For 2.4 GHz (`hw_mode=g` or `b`):
 
 | Region | Countries | Allowed Channels (2.4 GHz) |
 |--------|-----------|---------------------------|
@@ -66,6 +77,8 @@ When `COUNTRY_CODE` is set, 2.4 GHz channels (`hw_mode=g` or `b`) are validated 
 
 Unknown countries fall back to the ETSI limit (1–13). A warning is emitted if `COUNTRY_CODE` is not set.
 
+### 5 GHz Channels
+
 For 5 GHz (`hw_mode=a`), channels are validated against the allowed 5 GHz set:
 
 - **Non-DFS channels** (always allowed): 36, 40, 44, 48, 149, 153, 157, 161, 165
@@ -73,3 +86,7 @@ For 5 GHz (`hw_mode=a`), channels are validated against the allowed 5 GHz set:
 - Any other channel is rejected with a clear error.
 
 See also: [DFS CAC wait times](healthcheck.md#deep-healthcheck-optional) affect the healthcheck grace period on radar channels.
+
+---
+
+_Last updated: 2026-08-24_
