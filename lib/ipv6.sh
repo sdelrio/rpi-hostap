@@ -22,7 +22,7 @@ enable_ipv6_forwarding() {
 }
 
 # apply_ipv6_rules adds ip6tables FORWARD rules mirroring the IPv4 ones.
-# ints is populated by parse_outgoings in wlanstart.sh.
+# ints is populated by parse_outgoings from lib/nat.sh.
 # shellcheck disable=SC2154
 apply_ipv6_rules() {
     if [ "${OUTGOINGS}" ] ; then

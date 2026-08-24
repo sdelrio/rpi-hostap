@@ -9,7 +9,13 @@ setup() {
 }
 
 load_cleanup() {
-    eval "$(sed -n '/^parse_outgoings()/,/^}/p; /^cleanup()/,/^}/p; /^trap /p' wlanstart.sh)"
+    # shellcheck source=../lib/nat.sh
+    . "$(dirname "$BATS_TEST_FILENAME")/../lib/nat.sh"
+    # shellcheck source=../lib/interface.sh
+    . "$(dirname "$BATS_TEST_FILENAME")/../lib/interface.sh"
+    # shellcheck source=../lib/ipv6.sh
+    . "$(dirname "$BATS_TEST_FILENAME")/../lib/ipv6.sh"
+    eval "$(sed -n '/^cleanup()/,/^}/p' wlanstart.sh)"
 }
 
 run_cleanup_mocked() {
@@ -23,10 +29,14 @@ iptables() { _mock_log \"iptables \$@\"; }
 ip() { _mock_log \"ip \$@\"; }
 kill() { _mock_log \"kill \$@\"; }
 wait() { _mock_log \"wait \$@\"; }
-$(sed -n '/^parse_outgoings()/,/^}/p; /^cleanup()/,/^}/p' wlanstart.sh)
+. '$PWD/lib/nat.sh'
+. '$PWD/lib/interface.sh'
+. '$PWD/lib/ipv6.sh'
+$(sed -n '/^cleanup()/,/^}/p' wlanstart.sh)
 INTERFACE="$INTERFACE"
 SUBNET="$SUBNET"
 OUTGOINGS="$OUTGOINGS"
+IPV6="${IPV6:-0}"
 cleanup
 "
     cat "$mock_log"
@@ -61,7 +71,7 @@ cleanup
 }
 
 @test "trap is set for SIGINT SIGTERM SIGHUP" {
-    load_cleanup
+    eval "$(sed -n '/^trap /p' wlanstart.sh)"
     local traps
     traps=$(trap -p)
     [[ "$traps" == *"handle_signal"*"SIGINT"* ]]
