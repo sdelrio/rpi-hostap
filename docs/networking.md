@@ -17,7 +17,7 @@ IPv6 is **off by default**; behavior is unchanged unless you set `IPV6=1`. When 
 - `net.ipv6.conf.all.forwarding=1` is set at runtime (IPv6 forwarding).
 - dnsmasq advertises SLAAC/RA with stateless DHCPv6 on the AP interface:
   `dhcp-range=::,constructor:<INTERFACE>,ra-names,stateless`
-- `ip6tables` FORWARD rules mirror the IPv4 handling (established/related in, new out). There is no IPv6 NAT — clients get addresses from the upstream network's prefix via RA, or link-local/ULA otherwise.
+- `ip6tables` FORWARD rules mirror the IPv4 handling (established/related in, new out). There is no IPv6 NAT - clients get addresses from the upstream network's prefix via RA, or link-local/ULA otherwise.
 
 ```bash
 docker run ... -e IPV6=1 ...

@@ -90,7 +90,7 @@ docker run -d \
 
 | Variable | Required | Description | Default |
 |:--------:|:--------:|:-----------:|:-------:|
-| `INTERFACE` | Yes | Wireless interface to use | — |
+| `INTERFACE` | Yes | Wireless interface to use | - |
 | `SSID` | No | Network name | `raspberry` |
 | `WPA_PASSPHRASE` | No | WiFi password | `passw0rd` |
 | `CHANNEL` | No | WiFi channel | `11` |
@@ -176,7 +176,7 @@ The container runs a Docker healthcheck every 30s verifying that `hostapd`, `dns
 
 ## Documentation
 
-All detailed documentation lives in the [docs/](docs/INDEX.md) folder — see its index for the full list of topics.
+All detailed documentation lives in the [docs/](docs/INDEX.md) folder - see its index for the full list of topics.
 
 ## Contributing
 

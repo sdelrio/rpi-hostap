@@ -2,7 +2,7 @@
 
 The container defines a Docker `HEALTHCHECK` that runs `/bin/healthcheck.sh` every 30s (15s start period, 3 retries). The check verifies, in order (relevant variables: [`HEALTHCHECK_START_PERIOD`](../README.md#environment-variables), [`HEALTHCHECK_DEEP`](../README.md#environment-variables)):
 
-1. The container started less than `HEALTHCHECK_START_PERIOD` seconds ago (default 15s); during this grace period the check always passes. The start time is recorded by the entrypoint in `/run/hostap-started` at container boot — `/proc/uptime` is deliberately not used because inside Docker it reflects the *host's* uptime, which would disable the grace period on long-running hosts.
+1. The container started less than `HEALTHCHECK_START_PERIOD` seconds ago (default 15s); during this grace period the check always passes. The start time is recorded by the entrypoint in `/run/hostap-started` at container boot - `/proc/uptime` is deliberately not used because inside Docker it reflects the *host's* uptime, which would disable the grace period on long-running hosts.
 2. The `hostapd` process is running.
 3. The `dnsmasq` process is running.
 4. The wireless interface (`INTERFACE`) exists and is up.
@@ -14,7 +14,7 @@ If any check fails, the container is reported as `unhealthy`.
 
 ## Deep Healthcheck (optional)
 
-By default the AP's beaconing status is not verified — hostapd can be alive while the radio failed to start (driver rejection, DFS CAC wait). Set `HEALTHCHECK_DEEP` to any non-empty value to opt in:
+By default the AP's beaconing status is not verified - hostapd can be alive while the radio failed to start (driver rejection, DFS CAC wait). Set `HEALTHCHECK_DEEP` to any non-empty value to opt in:
 
 ```bash
 docker run ... -e HEALTHCHECK_DEEP=1 ...
@@ -28,4 +28,4 @@ When enabled, `wlanstart.sh` emits `ctrl_interface=/var/run/hostapd` and `ctrl_i
 docker run ... -e HEALTHCHECK_DEEP=1 -e HEALTHCHECK_START_PERIOD=90 ...
 ```
 
-Note: enabling [`CTRL_INTERFACE`](operations.md#client-inspection-optional) already emits the same config lines, so the two options are compatible — either one suffices for `hostapd_cli` to work.
+Note: enabling [`CTRL_INTERFACE`](operations.md#client-inspection-optional) already emits the same config lines, so the two options are compatible - either one suffices for `hostapd_cli` to work.

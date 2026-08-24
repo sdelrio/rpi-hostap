@@ -20,11 +20,11 @@ Notes:
 
 - `HT_ENABLED=1` emits `ieee80211n=1`; `HT_CAPAB` sets the optional `ht_capab=` line.
 - `VHT_ENABLED=1` emits `ieee80211ac=1` and requires 5 GHz operation (`HW_MODE=a`); `VHT_CAPAB` sets the optional `vht_capab=` line.
-- Capabilities depend on what your WiFi adapter supports — check `iw list` output (`HT capabilities` / `VHT capabilities`) before enabling.
+- Capabilities depend on what your WiFi adapter supports - check `iw list` output (`HT capabilities` / `VHT capabilities`) before enabling.
 - Common `ht_capab` flags: `[HT40+]`/`[HT40-]` (40 MHz channels), `[SHORT-GI-20]`, `[SHORT-GI-40]`. Common `vht_capab` flags: `[SHORT-GI-80]`, `[MAX-MPDU-3895]`, `[SU-BEAMFORMER]`.
 - `HT_CAPAB`/`VHT_CAPAB` values are passed through to hostapd unvalidated; invalid strings surface as hostapd config errors in `docker logs`.
 
-See also: [regional channel validation](#regional-channel-validation) — channel choice interacts with your country's regulatory limits.
+See also: [regional channel validation](#regional-channel-validation) - channel choice interacts with your country's regulatory limits.
 
 ## MAC Address Filtering (optional)
 

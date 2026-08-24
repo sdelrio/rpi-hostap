@@ -18,4 +18,4 @@ docker exec rpi-hostap clients.sh
 
 Output includes MAC address, signal, connected time and tx/rx rates per station (as reported by `hostapd_cli all_sta`). The control interface directory can be overridden with `CTRL_IFACE_DIR` (default `/var/run/hostapd`).
 
-See also: the [deep healthcheck](healthcheck.md#deep-healthcheck-optional) uses the same control interface — enabling either option is sufficient for both.
+See also: the [deep healthcheck](healthcheck.md#deep-healthcheck-optional) uses the same control interface - enabling either option is sufficient for both.
