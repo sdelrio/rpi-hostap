@@ -1,8 +1,12 @@
 # Agent Task Management
 
+## Writing Style
+
+- Never use the em dash "—". Use plain dash "-" instead.
+
 ## Temporary Files
 
-Write all temporary files (PR bodies, issue bodies, scratch files, etc.) to `<repo-root>/tmp/` — e.g. `tmp/pr-<slug>.md`. This directory is gitignored; never use `/tmp` or other system paths.
+Write all temporary files (PR bodies, issue bodies, scratch files, etc.) to `<repo-root>/tmp/`, e.g. `tmp/pr-<slug>.md`. This directory is gitignored; never use `/tmp` or other system paths.
 
 ## Source of Truth
 GitHub issues are the single source of truth for all pending tasks in this repository. The agent should:
