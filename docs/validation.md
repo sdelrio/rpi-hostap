@@ -16,6 +16,8 @@ On invalid configuration it exits non-zero and lists all validation errors (not 
 
 Dry-run validation is also the recommended first step when [troubleshooting a container that exits immediately](troubleshooting.md#container-exits-immediately).
 
+See also: [regional channel validation](configuration.md#regional-channel-validation) (checked by the channel/regulatory validator), [MAC filtering](configuration.md#mac-address-filtering-optional) (file presence validated at start) and the [HT/VHT tuning notes](configuration.md#htvht-80211nac-tuning) for values passed through unvalidated.
+
 ---
 
 _Last updated: 2026-08-24_
