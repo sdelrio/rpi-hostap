@@ -15,8 +15,7 @@ COPY wlanstart.sh /bin/wlanstart.sh
 COPY healthcheck.sh /bin/healthcheck.sh
 COPY clients.sh /bin/clients.sh
 COPY lib/ /bin/lib/
-RUN chmod +x /bin/healthcheck.sh
-RUN chmod +x /bin/clients.sh
+RUN chmod +x /bin/healthcheck.sh /bin/clients.sh
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
   CMD ["/bin/healthcheck.sh"]
