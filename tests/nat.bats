@@ -59,27 +59,34 @@ setup() {
 }
 
 @test "remove_nat_rules deletes generic rules without OUTGOINGS" {
-    local log="${BATS_TEST_TMPDIR}/iptables.log"
-    iptables() {
-        if [ "$1" = "-D" ] ; then echo "$*" >> "${log}"; fi
-        return 0
-    }
-    run remove_nat_rules
+    local log
+    log=$(mktemp)
+    OUTGOINGS="" INTERFACE="wlan0" SUBNET="192.168.254.0" \
+    REPO_ROOT="$REPO_ROOT" LOG="$log" \
+    run bash -c '
+        iptables() { case "$*" in *"-D "*) echo "$*" >> "${LOG}" ;; esac ; }
+        . "${REPO_ROOT}/lib/nat.sh"
+        remove_nat_rules
+    '
     [ "$status" -eq 0 ]
-    [[ "$(cat "${log}")" == *"-t nat -D POSTROUTING -s 192.168.254.0/24 -j MASQUERADE"* ]]
-    [[ "$(cat "${log}")" == *"-D FORWARD -i wlan0 -j ACCEPT"* ]]
+    grep -q -- "-t nat -D POSTROUTING -s 192.168.254.0/24 -j MASQUERADE" "${log}"
+    grep -q -- "-D FORWARD -i wlan0 -j ACCEPT" "${log}"
+    rm -f "${log}"
 }
 
 @test "remove_nat_rules deletes rules per interface with OUTGOINGS" {
-    export OUTGOINGS="eth0,eth1"
-    local log="${BATS_TEST_TMPDIR}/iptables-multi.log"
-    iptables() {
-        if [ "$1" = "-D" ] ; then echo "$*" >> "${log}"; fi
-        return 0
-    }
-    run remove_nat_rules
+    local log
+    log=$(mktemp)
+    OUTGOINGS="eth0,eth1" INTERFACE="wlan0" SUBNET="192.168.254.0" \
+    REPO_ROOT="$REPO_ROOT" LOG="$log" \
+    run bash -c '
+        iptables() { case "$*" in *"-D "*) echo "$*" >> "${LOG}" ;; esac ; }
+        . "${REPO_ROOT}/lib/nat.sh"
+        remove_nat_rules
+    '
     [ "$status" -eq 0 ]
-    [[ "$(cat "${log}")" == *"-t nat -D POSTROUTING -s 192.168.254.0/24 -o eth0 -j MASQUERADE"* ]]
-    [[ "$(cat "${log}")" == *"-t nat -D POSTROUTING -s 192.168.254.0/24 -o eth1 -j MASQUERADE"* ]]
-    [[ "$(cat "${log}")" == *"-D FORWARD -i wlan0 -o eth0 -j ACCEPT"* ]]
+    grep -q -- "-t nat -D POSTROUTING -s 192.168.254.0/24 -o eth0 -j MASQUERADE" "${log}"
+    grep -q -- "-t nat -D POSTROUTING -s 192.168.254.0/24 -o eth1 -j MASQUERADE" "${log}"
+    grep -q -- "-D FORWARD -i wlan0 -o eth0 -j ACCEPT" "${log}"
+    rm -f "${log}"
 }
