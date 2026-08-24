@@ -69,7 +69,7 @@ Unknown countries fall back to the ETSI limit (1–13). A warning is emitted if 
 For 5 GHz (`hw_mode=a`), channels are validated against the allowed 5 GHz set:
 
 - **Non-DFS channels** (always allowed): 36, 40, 44, 48, 149, 153, 157, 161, 165
-- **DFS channels** (allowed with a radar detection/CAC warning): 52, 56, 60, 64, 100–144 (in steps of 4)
+- **[DFS](https://en.wikipedia.org/wiki/Dynamic_frequency_selection) channels** (allowed with a radar detection/CAC warning): 52, 56, 60, 64, 100–144 (in steps of 4)
 - Any other channel is rejected with a clear error.
 
 See also: [DFS CAC wait times](healthcheck.md#deep-healthcheck-optional) affect the healthcheck grace period on radar channels.

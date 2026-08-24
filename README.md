@@ -125,7 +125,7 @@ Detailed topics and examples are split across the [docs/](docs/INDEX.md) folder:
 
 ### Full-Featured Example
 
-A complete `docker run` combining every option group (5 GHz 802.11ac, WPA3 transition mode, MAC allowlist, hidden SSID, client isolation, IPv6, restricted NAT, deep healthcheck with DFS-safe grace period):
+A complete `docker run` combining every option group (5 GHz 802.11ac, WPA3 transition mode, MAC allowlist, hidden SSID, client isolation, IPv6, restricted NAT, deep healthcheck with [DFS](https://en.wikipedia.org/wiki/Dynamic_frequency_selection)-safe grace period):
 
 ```bash
 docker run -d \

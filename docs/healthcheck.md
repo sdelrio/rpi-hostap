@@ -14,7 +14,7 @@ If any check fails, the container is reported as `unhealthy`.
 
 ## Deep Healthcheck (optional)
 
-By default the AP's beaconing status is not verified - hostapd can be alive while the radio failed to start (driver rejection, DFS CAC wait). Set `HEALTHCHECK_DEEP` to any non-empty value to opt in:
+By default the AP's beaconing status is not verified - hostapd can be alive while the radio failed to start (driver rejection, [DFS](https://en.wikipedia.org/wiki/Dynamic_frequency_selection) CAC wait). Set `HEALTHCHECK_DEEP` to any non-empty value to opt in:
 
 ```bash
 docker run ... -e HEALTHCHECK_DEEP=1 ...
