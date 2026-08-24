@@ -42,11 +42,30 @@ jobs:
           sudo apt-get install -y socat iproute2 iw busybox wpasupplicant \
             "linux-headers-$(uname -r)"
 
+      - name: Get kernel version
+        id: kver
+        run: echo "version=$(uname -r)" >> "$GITHUB_OUTPUT"
+
+      # Modules are compiled against the exact running kernel, so the cache
+      # key embeds `uname -r` to guarantee compatibility; folding in the
+      # workflow file hash creates a fresh entry whenever the build recipe
+      # changes (superseded entries are evicted by GitHub's standard policy).
+      # No restore-keys: a stale/incompatible entry must never be partially
+      # restored.
+      - name: Cache wireless stack modules
+        id: hwsim-cache
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          key: hwsim-modules-${{ runner.os }}-kernel-${{ steps.kver.outputs.version }}-${{ hashFiles('.github/workflows/system-test.yml') }}
+          path: /tmp/hwsim
+
       # The azure runner kernel does not ship the 802.11 stack at all
       # (no cfg80211/mac80211/mac80211_hwsim), and hosted runners cannot
       # resume a job across a reboot to switch kernels. Build the full
-      # wireless stack out-of-tree from the matching stable kernel tag.
+      # wireless stack out-of-tree from the matching stable kernel tag;
+      # skipped entirely on a cache hit.
       - name: Build wireless stack modules
+        if: steps.hwsim-cache.outputs.cache-hit != 'true'
         run: |
           KVER="$(uname -r)"
           TAG="v$(echo "${KVER}" | grep -oE '^[0-9]+\.[0-9]+')"
