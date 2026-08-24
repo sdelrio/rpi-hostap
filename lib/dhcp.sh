@@ -18,7 +18,7 @@
 # Prints the resulting range to stdout. Messages go to stderr.
 # Returns non-zero for invalid input.
 
-# shellcheck source=validation.sh
+# shellcheck source=lib/validation.sh
 . "$(dirname "${BASH_SOURCE[0]}")/validation.sh"
 
 # A dnsmasq lease time is a positive integer optionally followed by
