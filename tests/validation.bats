@@ -12,7 +12,7 @@ load_lib() {
 run_wlanstart_validation() {
     bash -c "
 . '${BATS_TEST_DIRNAME}/../lib/validation.sh'
-$(sed -n '/if ! validate_ipv4 "\${SUBNET}"/,/^fi$/p; /if ! validate_ipv4 "\${AP_ADDR}"/,/^fi$/p' "${BATS_TEST_DIRNAME}/../wlanstart.sh")
+$(sed -n '/^if ! validate_ipv4 "\${SUBNET}"/,/^fi$/p; /^if ! validate_ipv4 "\${AP_ADDR}"/,/^fi$/p' "${BATS_TEST_DIRNAME}/../wlanstart.sh")
 " 2>&1
 }
 

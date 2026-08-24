@@ -186,6 +186,20 @@ For 5 GHz (`hw_mode=a`), channels are validated against the allowed 5 GHz set:
 - **DFS channels** (allowed with a radar detection/CAC warning): 52, 56, 60, 64, 100–144 (in steps of 4)
 - Any other channel is rejected with a clear error.
 
+#### Dry-Run Validation (`--validate`)
+
+`wlanstart.sh --validate` (aliases: `-t`, `--test`) checks the configuration without touching the system:
+
+```bash
+docker run --rm \
+  -e INTERFACE=wlan0 -e SSID=myap -e WPA_PASSPHRASE=supersecret -e COUNTRY_CODE=US \
+  <image> --validate
+```
+
+It applies the same environment defaults as a normal start, runs every validator (channel/regulatory, passphrase, MAC filter, DHCP range, IPv4 addresses) and, on success, prints the generated `hostapd.conf` and `dnsmasq.conf` to stdout. It performs no system mutations: no interface changes, sysctls, iptables rules or daemons.
+
+On invalid configuration it exits non-zero and lists all validation errors (not just the first). This is also exercised in CI via an environment-matrix validation job in `.github/workflows/pr.yml`.
+
 #### Client Inspection (optional)
 
 By default the hostapd control interface is not enabled, to keep the generated config minimal. Set `CTRL_INTERFACE` to any non-empty value to opt in:
