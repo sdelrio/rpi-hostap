@@ -165,3 +165,40 @@ EOF
     [ "$status" -eq 1 ]
     [[ "$output" == *"hostapd is not running"* ]]
 }
+
+@test "deep check passes when hostapd state is ENABLED (issue #123)" {
+    export HEALTHCHECK_DEEP=1
+    mock_bin pidof 'exit 0'
+    mock_bin ip 'if [ "$1" = "link" ]; then echo "state UP"; fi; exit 0'
+    mock_bin hostapd_cli 'echo "state=ENABLED"; echo "ssid=raspberry"'
+    run ./healthcheck.sh
+    [ "$status" -eq 0 ]
+}
+
+@test "deep check fails when hostapd is not in ENABLED state (issue #123)" {
+    export HEALTHCHECK_DEEP=1
+    mock_bin pidof 'exit 0'
+    mock_bin ip 'if [ "$1" = "link" ]; then echo "state UP"; fi; exit 0'
+    mock_bin hostapd_cli 'echo "state=DFS"'
+    run ./healthcheck.sh
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"hostapd is not in ENABLED state"* ]]
+}
+
+@test "deep check is skipped by default (no HEALTHCHECK_DEEP)" {
+    mock_bin pidof 'exit 0'
+    mock_bin ip 'if [ "$1" = "link" ]; then echo "state UP"; fi; exit 0'
+    mock_bin hostapd_cli 'exit 1'
+    run ./healthcheck.sh
+    [ "$status" -eq 0 ]
+}
+
+@test "deep check respects start period (grace before DFS CAC finishes)" {
+    export HEALTHCHECK_DEEP=1
+    export NOW_STAMP=1000
+    echo "$((NOW_STAMP - 10))" > "$HEALTHCHECK_STARTED_FILE"
+    export HEALTHCHECK_START_PERIOD=90
+    mock_bin hostapd_cli 'echo "state=DFS"'
+    run ./healthcheck.sh
+    [ "$status" -eq 0 ]
+}
