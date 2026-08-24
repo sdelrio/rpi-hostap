@@ -116,12 +116,45 @@ docker run -d \
 | `VHT_ENABLED` | No | Enable 802.11ac Very High Throughput (`ieee80211ac=1`); requires 5 GHz (`HW_MODE=a`) | unset |
 | `VHT_CAPAB` | No | 802.11ac capabilities string (`vht_capab=` in hostapd.conf); requires `VHT_ENABLED` | unset |
 | `HEALTHCHECK_START_PERIOD` | No | Grace period (seconds) after container start during which the healthcheck always passes. Measured from the container's own recorded start time (`/run/hostap-started`), not host uptime; see [Health Check](docs/healthcheck.md) | `15` |
-| `CTRL_INTERFACE` | No | Enable hostapd control interface (any non-empty value); allows `clients.sh` to list stations, see [Client Inspection](docs/configuration.md#client-inspection-optional) | unset |
+| `CTRL_INTERFACE` | No | Enable hostapd control interface (any non-empty value); allows `clients.sh` to list stations, see [Client Inspection](docs/operations.md#client-inspection-optional) | unset |
 | `CTRL_IFACE_DIR` | No | Control interface socket directory used by `clients.sh` | `/var/run/hostapd` |
 | `HEALTHCHECK_DEEP` | No | Opt-in deep healthcheck verifying the AP is actually beaconing via `hostapd_cli status`; see [Deep Healthcheck](docs/healthcheck.md#deep-healthcheck-optional) | unset |
 | `HEALTHCHECK_STARTED_FILE` | No | Path to the file where the entrypoint records the container start time used by the healthcheck grace period (internal/testing hook) | `/run/hostap-started` |
 
-Detailed topics and examples are in [docs/configuration.md](docs/configuration.md): HT/VHT tuning, MAC filtering, WPA3/SAE, regional channel validation, dry-run validation (`--validate`) and client inspection.
+Detailed topics and examples are split across the [docs/](docs/INDEX.md) folder: radio/security topics in [docs/configuration.md](docs/configuration.md), config validation in [docs/validation.md](docs/validation.md), and runtime diagnostics in [docs/operations.md](docs/operations.md).
+
+### Full-Featured Example
+
+A complete `docker run` combining every option group (5 GHz 802.11ac, WPA3 transition mode, MAC allowlist, hidden SSID, client isolation, IPv6, restricted NAT, deep healthcheck with DFS-safe grace period):
+
+```bash
+docker run -d \
+  --name rpi-hostap \
+  --privileged \
+  --net host \
+  --restart unless-stopped \
+  -e INTERFACE=wlan0 \
+  -e SSID=MyAccessPoint \
+  -e WPA_PASSPHRASE=changeme \
+  -e HW_MODE=a -e CHANNEL=36 \
+  -e HT_ENABLED=1 \
+  -e HT_CAPAB="[HT40+][SHORT-GI-20][SHORT-GI-40]" \
+  -e VHT_ENABLED=1 \
+  -e VHT_CAPAB="[MAX-MPDU-3895][SHORT-GI-80]" \
+  -e COUNTRY_CODE=US \
+  -e WPA_VERSION=mixed \
+  -e MAC_FILTER=1 \
+  -v /path/to/hostapd.accept:/etc/hostapd.accept:ro \
+  -e HIDE_SSID=1 \
+  -e AP_ISOLATION=1 \
+  -e IPV6=1 \
+  -e OUTGOINGS=eth0 \
+  -e HEALTHCHECK_DEEP=1 \
+  -e HEALTHCHECK_START_PERIOD=90 \
+  sdelrio/rpi-hostap:latest
+```
+
+Each option group is explained in the docs: [HT/VHT tuning](docs/configuration.md#htvht-80211nac-tuning), [WPA3/SAE](docs/configuration.md#wpa3-sae), [MAC filtering](docs/configuration.md#mac-address-filtering-optional), [IPv6](docs/networking.md#ipv6-support-optional), [deep healthcheck](docs/healthcheck.md#deep-healthcheck-optional).
 
 ### Build from Source
 
@@ -143,12 +176,7 @@ The container runs a Docker healthcheck every 30s verifying that `hostapd`, `dns
 
 ## Documentation
 
-All detailed documentation lives in the [docs/](docs/INDEX.md) folder:
-
-- [Configuration topics](docs/configuration.md) — [HT/VHT tuning](docs/configuration.md#htvht-80211nac-tuning), [MAC filtering](docs/configuration.md#mac-address-filtering-optional), [WPA3 (SAE)](docs/configuration.md#wpa3-sae), [regional channels](docs/configuration.md#regional-channel-validation), [`--validate`](docs/configuration.md#dry-run-validation---validate), [client inspection](docs/configuration.md#client-inspection-optional)
-- [Networking](docs/networking.md)
-- [Troubleshooting](docs/troubleshooting.md)
-- [Health Check](docs/healthcheck.md) — incl. [deep healthcheck](docs/healthcheck.md#deep-healthcheck-optional)
+All detailed documentation lives in the [docs/](docs/INDEX.md) folder — see its index for the full list of topics.
 
 ## Contributing
 

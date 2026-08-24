@@ -18,6 +18,6 @@ docker logs rpi-hostap
 
 Ensure the WiFi interface is up and not in use by another process.
 
-To test your configuration without touching the system, use [dry-run validation (`--validate`)](configuration.md#dry-run-validation---validate).
+To test your configuration without touching the system, use [dry-run validation (`--validate`)](validation.md#dry-run-validation---validate).
 
 If the container runs but is reported as `unhealthy`, see [Health Check](healthcheck.md).

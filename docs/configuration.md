@@ -1,6 +1,6 @@
 # Configuration
 
-The full list of environment variables lives in the main [README](../README.md#environment-variables). This page covers detailed topics and examples.
+The full list of environment variables lives in the main [README](../README.md#environment-variables). This page covers detailed radio and security topics with examples. For validation tooling see [validation.md](validation.md); for running diagnostics see [operations.md](operations.md).
 
 ## HT/VHT (802.11n/ac) Tuning
 
@@ -24,6 +24,8 @@ Notes:
 - Common `ht_capab` flags: `[HT40+]`/`[HT40-]` (40 MHz channels), `[SHORT-GI-20]`, `[SHORT-GI-40]`. Common `vht_capab` flags: `[SHORT-GI-80]`, `[MAX-MPDU-3895]`, `[SU-BEAMFORMER]`.
 - `HT_CAPAB`/`VHT_CAPAB` values are passed through to hostapd unvalidated; invalid strings surface as hostapd config errors in `docker logs`.
 
+See also: [regional channel validation](#regional-channel-validation) — channel choice interacts with your country's regulatory limits.
+
 ## MAC Address Filtering (optional)
 
 MAC filtering is **off by default**; behavior is unchanged unless you set `MAC_FILTER`. When enabled:
@@ -31,7 +33,7 @@ MAC filtering is **off by default**; behavior is unchanged unless you set `MAC_F
 - `MAC_FILTER=1` (allowlist): only MACs listed in the file can associate (`macaddr_acl=1` + `accept_mac_file=`).
 - `MAC_FILTER=2` (denylist): listed MACs are rejected (`macaddr_acl=1` + `deny_mac_file=`).
 - Startup fails with an error if the filter is enabled without `MAC_ACL_FILE`, and warns if the file is missing or unreadable.
-- Note that MAC filtering is a weak control on its own (MACs can be spoofed); combine it with WPA2/WPA3.
+- Note that MAC filtering is a weak control on its own (MACs can be spoofed); combine it with [WPA3/SAE](#wpa3-sae).
 
 ```bash
 docker run ... -e MAC_FILTER=1 -v /path/to/hostapd.accept:/etc/hostapd.accept:ro ...
@@ -70,32 +72,4 @@ For 5 GHz (`hw_mode=a`), channels are validated against the allowed 5 GHz set:
 - **DFS channels** (allowed with a radar detection/CAC warning): 52, 56, 60, 64, 100–144 (in steps of 4)
 - Any other channel is rejected with a clear error.
 
-## Dry-Run Validation (`--validate`)
-
-`wlanstart.sh --validate` (aliases: `-t`, `--test`) checks the configuration without touching the system:
-
-```bash
-docker run --rm \
-  -e INTERFACE=wlan0 -e SSID=myap -e WPA_PASSPHRASE=supersecret -e COUNTRY_CODE=US \
-  <image> --validate
-```
-
-It applies the same environment defaults as a normal start, runs every validator (channel/regulatory, passphrase, MAC filter, DHCP range, IPv4 addresses) and, on success, prints the generated `hostapd.conf` and `dnsmasq.conf` to stdout. It performs no system mutations: no interface changes, sysctls, iptables rules or daemons.
-
-On invalid configuration it exits non-zero and lists all validation errors (not just the first). This is covered in CI by the bats suite (`tests/validate_mode.bats`).
-
-## Client Inspection (optional)
-
-By default the hostapd control interface is not enabled, to keep the generated config minimal. Set `CTRL_INTERFACE` to any non-empty value to opt in:
-
-```bash
-docker run ... -e CTRL_INTERFACE=1 ...
-```
-
-This emits `ctrl_interface=/var/run/hostapd` and `ctrl_interface_group=0` into `hostapd.conf`. Once enabled, list currently associated stations from inside the container:
-
-```bash
-docker exec rpi-hostap clients.sh
-```
-
-Output includes MAC address, signal, connected time and tx/rx rates per station (as reported by `hostapd_cli all_sta`). The control interface directory can be overridden with `CTRL_IFACE_DIR` (default `/var/run/hostapd`).
+See also: [DFS CAC wait times](healthcheck.md#deep-healthcheck-optional) affect the healthcheck grace period on radar channels.

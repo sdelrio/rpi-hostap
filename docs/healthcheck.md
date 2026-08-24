@@ -28,4 +28,4 @@ When enabled, `wlanstart.sh` emits `ctrl_interface=/var/run/hostapd` and `ctrl_i
 docker run ... -e HEALTHCHECK_DEEP=1 -e HEALTHCHECK_START_PERIOD=90 ...
 ```
 
-Note: enabling [`CTRL_INTERFACE`](configuration.md#client-inspection-optional) already emits the same config lines, so the two options are compatible — either one suffices for `hostapd_cli` to work.
+Note: enabling [`CTRL_INTERFACE`](operations.md#client-inspection-optional) already emits the same config lines, so the two options are compatible — either one suffices for `hostapd_cli` to work.
