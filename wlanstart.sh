@@ -68,6 +68,10 @@ check_interrupted() {
 
 trap handle_signal SIGINT SIGTERM SIGHUP
 
+# Record container start time so healthcheck.sh can measure the grace
+# period from the actual start (not host uptime via /proc/uptime).
+date +%s > /run/hostap-started 2>/dev/null || true
+
 # Check if running in privileged mode
 if [ ! -w "/sys" ] ; then
     echo "[Error] Not running in privileged mode."

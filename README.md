@@ -115,7 +115,7 @@ docker run -d \
 | `HT_CAPAB` | No | 802.11n capabilities string (`ht_capab=` in hostapd.conf); requires `HT_ENABLED` | unset |
 | `VHT_ENABLED` | No | Enable 802.11ac Very High Throughput (`ieee80211ac=1`); requires 5 GHz (`HW_MODE=a`) | unset |
 | `VHT_CAPAB` | No | 802.11ac capabilities string (`vht_capab=` in hostapd.conf); requires `VHT_ENABLED` | unset |
-| `HEALTHCHECK_START_PERIOD` | No | Grace period (seconds) after container start during which the healthcheck always passes | `15` |
+| `HEALTHCHECK_START_PERIOD` | No | Grace period (seconds) after container start during which the healthcheck always passes. Measured from the container's own recorded start time (`/run/hostap-started`), not host uptime | `15` |
 
 #### HT/VHT (802.11n/ac) Tuning
 
@@ -259,13 +259,15 @@ Ensure the WiFi interface is up and not in use by another process.
 
 The container defines a Docker `HEALTHCHECK` that runs `/bin/healthcheck.sh` every 30s (15s start period, 3 retries). The check verifies, in order:
 
-1. The container has been up longer than the grace period (`HEALTHCHECK_START_PERIOD`, default 15s); during this period it always passes.
+1. The container started less than `HEALTHCHECK_START_PERIOD` seconds ago (default 15s); during this grace period the check always passes. The start time is recorded by the entrypoint in `/run/hostap-started` at container boot — `/proc/uptime` is deliberately not used because inside Docker it reflects the *host's* uptime, which would disable the grace period on long-running hosts.
 2. The `hostapd` process is running.
 3. The `dnsmasq` process is running.
 4. The wireless interface (`INTERFACE`) exists and is up.
 5. If `AP_ADDR` is set: the address is actually assigned to `INTERFACE` (via `ip -4 addr show`). This catches cases where IP configuration failed after hostapd started.
 
 If any check fails, the container is reported as `unhealthy`.
+
+**Script grace vs Docker start-period**: there are two independent grace mechanisms. `HEALTHCHECK_START_PERIOD` (env var) controls the *script-side* grace window measured from the recorded start time. The Dockerfile's `HEALTHCHECK --start-period=15s` is the Docker-side outer bound during which failing checks do not count towards the `unhealthy` transition. If you raise the env var (e.g. `HEALTHCHECK_START_PERIOD=60`), the script keeps passing for 60s after start regardless of the Docker setting; the Dockerfile start-period only affects when Docker itself starts counting failures.
 
 Note: the AP's beaconing status itself is not verified — that would require enabling the hostapd control interface (`ctrl_interface`) in the generated config and querying it with `hostapd_cli`, which is intentionally not enabled to keep the container config minimal.
 

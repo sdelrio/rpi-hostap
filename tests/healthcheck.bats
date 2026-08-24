@@ -5,12 +5,15 @@
 setup() {
     export INTERFACE="wlan0"
     export HEALTHCHECK_START_PERIOD=15
-    export HEALTHCHECK_UPTIME_FILE=$(mktemp)
-    echo "100.00 100.00" > "$HEALTHCHECK_UPTIME_FILE"
+    # Fake clock and start-time state file (see issue #111)
+    export NOW_STAMP=1000
+    export HEALTHCHECK_STARTED_FILE=$(mktemp)
+    echo "$((NOW_STAMP - 100))" > "$HEALTHCHECK_STARTED_FILE"
+    mock_bin date 'echo "$NOW_STAMP"'
 }
 
 teardown() {
-    rm -f "$HEALTHCHECK_UPTIME_FILE"
+    rm -f "$HEALTHCHECK_STARTED_FILE"
     rm -rf "$BATS_TEST_TMPDIR/bin"
 }
 
@@ -29,7 +32,33 @@ EOF
 }
 
 @test "healthcheck returns 0 during start period" {
-    echo "10.00 10.00" > "$HEALTHCHECK_UPTIME_FILE"
+    export NOW_STAMP=1000
+    echo "990" > "$HEALTHCHECK_STARTED_FILE"
+    run ./healthcheck.sh
+    [ "$status" -eq 0 ]
+}
+
+@test "healthcheck passes when start-time file is missing (defaults to now)" {
+    rm -f "$HEALTHCHECK_STARTED_FILE"
+    mock_bin pidof 'exit 1'
+    run ./healthcheck.sh
+    [ "$status" -eq 0 ]
+}
+
+@test "healthcheck respects HEALTHCHECK_START_PERIOD env var" {
+    export HEALTHCHECK_START_PERIOD=200
+    echo "$((NOW_STAMP - 100))" > "$HEALTHCHECK_STARTED_FILE"
+    mock_bin pidof 'exit 1'
+    run ./healthcheck.sh
+    [ "$status" -eq 0 ]
+}
+
+@test "grace period works regardless of host uptime (issue #111)" {
+    # Simulate a long-running host: even with huge host uptime, the check
+    # must use the recorded start time, not /proc/uptime.
+    export NOW_STAMP=$((365 * 24 * 3600))
+    echo "$((NOW_STAMP - 1))" > "$HEALTHCHECK_STARTED_FILE"
+    mock_bin pidof 'exit 1'
     run ./healthcheck.sh
     [ "$status" -eq 0 ]
 }
@@ -120,10 +149,19 @@ EOF
     [ "$status" -eq 0 ]
 }
 
-@test "healthcheck respects HEALTHCHECK_START_PERIOD env var" {
-    export HEALTHCHECK_START_PERIOD=30
-    echo "20.00 20.00" > "$HEALTHCHECK_UPTIME_FILE"
+@test "wlanstart records container start time before daemons launch (issue #111)" {
+    local line_started line_multirun
+    line_started=$(grep -n 'hostap-started' wlanstart.sh | head -1 | cut -d: -f1)
+    line_multirun=$(grep -n '^multirun ' wlanstart.sh | head -1 | cut -d: -f1)
+    [ -n "$line_started" ] && [ -n "$line_multirun" ]
+    [ "$line_started" -lt "$line_multirun" ]
+}
+
+@test "grace period expires and checks are enforced afterwards" {
+    export NOW_STAMP=1000
+    echo "$((NOW_STAMP - 15))" > "$HEALTHCHECK_STARTED_FILE"
     mock_bin pidof 'exit 1'
     run ./healthcheck.sh
-    [ "$status" -eq 0 ]
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"hostapd is not running"* ]]
 }
