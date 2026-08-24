@@ -1,5 +1,7 @@
 # Configuration
 
+> **Audience**: intermediate users. Assumes you have a running AP (see the README [quick start](../README.md)) and are comfortable reading `docker logs` and shell command output. Beginners: each section explains what to run and what output to expect before changing anything.
+
 The full list of environment variables lives in the main [README](../README.md#environment-variables). This page covers detailed radio and security topics with examples. For validation tooling see [validation.md](validation.md); for running diagnostics see [operations.md](operations.md).
 
 ## HT/VHT (802.11n/ac) Tuning
@@ -20,11 +22,49 @@ docker run ... \
 
 - `HT_ENABLED=1` emits `ieee80211n=1`; `HT_CAPAB` sets the optional `ht_capab=` line.
 - `VHT_ENABLED=1` emits `ieee80211ac=1` and requires 5 GHz operation (`HW_MODE=a`); `VHT_CAPAB` sets the optional `vht_capab=` line.
-- Capabilities depend on what your WiFi adapter supports - check `iw list` output (`HT capabilities` / `VHT capabilities`) before enabling.
+- Capabilities depend on what your WiFi adapter supports - check `iw list` output (`HT capabilities` / `VHT capabilities`) before enabling. See [Verifying HT/VHT support](#verifying-htvht-support) below for what to look for.
 - Common `ht_capab` flags: `[HT40+]`/`[HT40-]` (40 MHz channels), `[SHORT-GI-20]`, `[SHORT-GI-40]`. Common `vht_capab` flags: `[SHORT-GI-80]`, `[MAX-MPDU-3895]`, `[SU-BEAMFORMER]`.
 - `HT_CAPAB`/`VHT_CAPAB` values are passed through to hostapd unvalidated; invalid strings surface as hostapd config errors in `docker logs`.
 
 See also: [regional channel validation](#regional-channel-validation) - channel choice interacts with your country's regulatory limits.
+
+### Verifying HT/VHT support
+
+Run this on the Raspberry Pi host (the container does not include `iw`):
+
+```bash
+iw list
+```
+
+Look for two blocks in the output: `HT capabilities` (2.4 GHz and 5 GHz) and `VHT capabilities` (5 GHz only). Example from a 5 GHz-capable adapter:
+
+```
+	Band 2:
+		Capabilities: 0x11ce
+			RX LDPC			yes
+			Support for channel width:
+				* 40 MHz		(HT40)	yes
+			...
+		HT capabilities:
+			Capabilities: 0x9ef
+				RX HT20 SGI		yes
+				RX HT40 SGI		yes
+				TX STBC			yes (BEAMFORM0 streams)
+		VHT capabilities:
+			VHT Capabilities (as reported by the driver):
+				RX LDPC			yes
+				Supported Channel Width:
+					160 MHz		no
+				Short GI for 80 MHz	yes
+```
+
+Interpretation:
+
+- If the band has no `HT capabilities` block at all, do not set `HT_ENABLED=1`.
+- `RX HT40 SGI yes` means `[HT40+]/[HT40-]` and `[SHORT-GI-40]` are safe to enable; if it is missing, drop those flags.
+- `Short GI for 80 MHz yes` means `[SHORT-GI-80]` is supported. If there is no `VHT capabilities` block, the adapter cannot do 802.11ac and you must not set `VHT_ENABLED=1`.
+
+If hostapd rejects your capability string, it shows up as a config error in `docker logs rpi-hostap` on start.
 
 ## MAC Address Filtering (optional)
 
@@ -58,6 +98,22 @@ Setting `WPA_VERSION=3` enables WPA3-SAE authentication. Note:
 
 - Client devices must support SAE (wpa_supplicant 2.7+, iOS 13+/macOS 10.15+, Android 10+).
 - Older clients that only support WPA2 will not be able to connect.
+
+Setting `WPA_VERSION=3` enables WPA3-SAE authentication. Note:
+
+- Client devices must support SAE (wpa_supplicant 2.7+, iOS 13+/macOS 10.15+, Android 10+).
+- Older clients that only support WPA2 will not be able to connect.
+
+#### Verifying client SAE support
+
+Before switching a live AP to WPA3-only, verify each client device:
+
+- **Linux client**: check the wpa_supplicant version (`wpa_supplicant -v`; needs 2.7+) and that `sae` appears in its build config: `wpa_supplicant -v` output includes compile-time `CONFIG_SAE=y` on recent distro builds. Then try connecting and confirm with `wpa_cli status` that it reports `key_mgmt=SAE`.
+- **macOS**: System Information > Network > Wi-Fi, or hold Option while clicking the Wi-Fi menu icon - "PHY Mode" showing `802.11ax` or firmware from macOS 10.15+ generally means WPA3 support. Definitive test: connect to this AP in [transition mode](#transition-mode-wpa_versionmixed) first, then check `System Settings > Wi-Fi > Details`, which shows `Security: WPA3 Personal` for SAE connections.
+- **Windows**: `netsh wlan show drivers` - look for `WPA3 Personal` (or `SAE`) under authentication/cipher support. If absent, the client only does WPA2.
+- **Android**: Settings > Wi-Fi network details after connecting shows `Security: WPA3` on supported devices; otherwise fall back to transition mode.
+
+If any required client lacks SAE support, use `WPA_VERSION=mixed` instead.
 
 ### Transition Mode (`WPA_VERSION=mixed`)
 

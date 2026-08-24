@@ -1,5 +1,7 @@
 # Health Check
 
+> **Audience**: advanced users. This page explains healthcheck internals in depth. If you just see `unhealthy` and want a fix, start with [Troubleshooting](troubleshooting.md#container-exits-immediately) instead.
+
 The container defines a Docker `HEALTHCHECK` that runs `/bin/healthcheck.sh` every 30s (15s start period, 3 retries). The check verifies, in order (relevant variables: [`HEALTHCHECK_START_PERIOD`](../README.md#environment-variables), [`HEALTHCHECK_DEEP`](../README.md#environment-variables)):
 
 1. The container started less than `HEALTHCHECK_START_PERIOD` seconds ago (default 15s); during this grace period the check always passes. The start time is recorded by the entrypoint in `/run/hostap-started` at container boot - `/proc/uptime` is deliberately not used because inside Docker it reflects the *host's* uptime, which would disable the grace period on long-running hosts.
