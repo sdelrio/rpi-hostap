@@ -31,9 +31,10 @@ EOF
     [ -x "healthcheck.sh" ]
 }
 
-@test "healthcheck returns 0 during start period" {
+@test "healthcheck returns 0 during start period even with dead daemons" {
     export NOW_STAMP=1000
-    echo "990" > "$HEALTHCHECK_STARTED_FILE"
+    echo "$((NOW_STAMP - 5))" > "$HEALTHCHECK_STARTED_FILE"
+    mock_bin pidof 'exit 1'
     run ./healthcheck.sh
     [ "$status" -eq 0 ]
 }
@@ -129,6 +130,14 @@ EOF
     export AP_ADDR="192.168.254.1"
     mock_bin pidof 'exit 0'
     mock_bin ip 'if [ "$1" = "link" ]; then echo "state UP"; elif [ "$1" = "-4" ]; then echo "inet 192.168.254.1/24"; fi; exit 0'
+    run ./healthcheck.sh
+    [ "$status" -eq 0 ]
+}
+
+@test "AP_ADDR matches exactly when other same-subnet addresses are also assigned" {
+    export AP_ADDR="192.168.254.1"
+    mock_bin pidof 'exit 0'
+    mock_bin ip 'if [ "$1" = "link" ]; then echo "state UP"; elif [ "$1" = "-4" ]; then echo "inet 192.168.254.100/24"; echo "inet 192.168.254.1/24"; echo "inet 192.168.254.11/24"; fi; exit 0'
     run ./healthcheck.sh
     [ "$status" -eq 0 ]
 }
