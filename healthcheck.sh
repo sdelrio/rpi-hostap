@@ -6,12 +6,15 @@
 # Configurable start period via environment variable (default: 15s)
 START_PERIOD=${HEALTHCHECK_START_PERIOD:-15}
 
-# Get container uptime in seconds
-UPTIME_FILE=${HEALTHCHECK_UPTIME_FILE:-/proc/uptime}
-UPTIME=$(awk '{print int($1)}' "$UPTIME_FILE")
+# Grace period is measured from the container's own start time, recorded
+# by wlanstart.sh at boot (/proc/uptime reflects HOST uptime in Docker
+# and would disable the grace period entirely on long-running hosts).
+STARTED_FILE=${HEALTHCHECK_STARTED_FILE:-/run/hostap-started}
+NOW=$(date +%s)
+STARTED=$(cat "$STARTED_FILE" 2>/dev/null || echo "$NOW")
 
 # During start period, return success to give daemons time to initialize
-if [ "$UPTIME" -lt "$START_PERIOD" ]; then
+if [ $((NOW - STARTED)) -lt "$START_PERIOD" ]; then
     exit 0
 fi
 
