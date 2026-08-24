@@ -57,6 +57,15 @@ handle_signal() {
     fi
 }
 
+# Exit promptly when a signal arrives before multirun is launched
+check_interrupted() {
+    if [ "${_SIGNALED}" = "1" ] ; then
+        echo "[Info] Shutdown requested during startup." >&2
+        cleanup
+        exit 0
+    fi
+}
+
 trap handle_signal SIGINT SIGTERM SIGHUP
 
 # Check if running in privileged mode
@@ -111,6 +120,7 @@ emit_credential_warnings
 if ! validate_passphrase ; then
     exit 1
 fi
+check_interrupted
 
 # MAX_STATIONS: limit number of associated stations (0 = unlimited)
 # Logic lives in lib/stations.sh, shared with tests
@@ -174,11 +184,13 @@ ${HT_CAPAB+"ht_capab=${HT_CAPAB}"}
 ${VHT_ENABLED+"ieee80211ac=1"}
 ${VHT_CAPAB+"vht_capab=${VHT_CAPAB}"}
 EOF
+check_interrupted
 
 # Setup interface and restart DHCP service
 ip link set "${INTERFACE}" up
 ip addr flush dev "${INTERFACE}"
 ip addr add "${AP_ADDR}"/24 dev "${INTERFACE}"
+check_interrupted
 
 # NAT settings
 echo "NAT settings ip_dynaddr, ip_forward"
@@ -257,6 +269,7 @@ ${_IPV6_CONF}
 EOF
 
 echo "Starting dnsmasq and hostapd via multirun ..."
+check_interrupted
 # NOTE: multirun already wraps each command in `exec`; do not add it here.
 multirun "dnsmasq --no-daemon" "/usr/sbin/hostapd /etc/hostapd.conf" &
 _MULTIRUN_PID=$!
