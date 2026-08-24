@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.35.0](https://github.com/sdelrio/rpi-hostap/compare/v0.34.0...v0.35.0) (2026-08-24)
+
+
+### ✨ Features
+
+* **channel:** validate 5GHz channels for hw_mode=a with DFS warning ([#89](https://github.com/sdelrio/rpi-hostap/issues/89)) ([#99](https://github.com/sdelrio/rpi-hostap/issues/99)) ([a91d928](https://github.com/sdelrio/rpi-hostap/commit/a91d928e99887e9b4407cd0ea82bee0af3abdd40))
+* **healthcheck:** verify AP IP assigned to interface ([#105](https://github.com/sdelrio/rpi-hostap/issues/105)) ([66d241d](https://github.com/sdelrio/rpi-hostap/commit/66d241dd01a26439af0fdbbc36edc78f9bc9114a)), closes [#91](https://github.com/sdelrio/rpi-hostap/issues/91)
+* MAC address filtering (allowlist/denylist) ([#103](https://github.com/sdelrio/rpi-hostap/issues/103)) ([4da0787](https://github.com/sdelrio/rpi-hostap/commit/4da07879bad3890e775ba8736ce01a03a19a612f)), closes [#93](https://github.com/sdelrio/rpi-hostap/issues/93)
+* optional IPv6 support (RA/DHCPv6 via dnsmasq) ([#102](https://github.com/sdelrio/rpi-hostap/issues/102)) ([c8667ab](https://github.com/sdelrio/rpi-hostap/commit/c8667abd0ef4c788e43d91fcdab0d4e3d2ee02fc)), closes [#94](https://github.com/sdelrio/rpi-hostap/issues/94)
+* **tests:** end-to-end system test with mac80211_hwsim ([#108](https://github.com/sdelrio/rpi-hostap/issues/108)) ([7830f5e](https://github.com/sdelrio/rpi-hostap/commit/7830f5e00ac7e2c27ebf9dee8aa971e4b2328f9e))
+* use multirun to manage hostapd/dnsmasq processes ([#106](https://github.com/sdelrio/rpi-hostap/issues/106)) ([3204bd6](https://github.com/sdelrio/rpi-hostap/commit/3204bd6fdfbc80393783af4e3711d954cc78118a))
+
+
+### 🩹 Fixes
+
+* flush interface address and bring link down in cleanup() ([#88](https://github.com/sdelrio/rpi-hostap/issues/88)) ([#100](https://github.com/sdelrio/rpi-hostap/issues/100)) ([d74fbd7](https://github.com/sdelrio/rpi-hostap/commit/d74fbd750bcfef0cebdcec1238746c8622a84d3a))
+* validate WPA_PASSPHRASE length (8-63 chars) before starting daemons ([#97](https://github.com/sdelrio/rpi-hostap/issues/97)) ([6bd6c01](https://github.com/sdelrio/rpi-hostap/commit/6bd6c01ceec34809635be275576e406206924d06)), closes [#90](https://github.com/sdelrio/rpi-hostap/issues/90)
+
 ## [0.34.0](https://github.com/sdelrio/rpi-hostap/compare/v0.33.0...v0.34.0) (2026-08-22)
 
 
