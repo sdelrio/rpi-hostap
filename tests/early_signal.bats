@@ -5,7 +5,10 @@
 SCRIPT="${BATS_TEST_DIRNAME}/../wlanstart.sh"
 
 extract_functions() {
-    sed -n '/^parse_outgoings()/,/^}/p; /^cleanup()/,/^}/p; /^_MULTIRUN_PID=""$/p; /^_SIGNALED=0$/p; /^handle_signal()/,/^}/p; /^check_interrupted()/,/^}/p' "${SCRIPT}"
+    echo ". '${BATS_TEST_DIRNAME}/../lib/nat.sh'"
+    echo ". '${BATS_TEST_DIRNAME}/../lib/interface.sh'"
+    echo ". '${BATS_TEST_DIRNAME}/../lib/ipv6.sh'"
+    sed -n '/^cleanup()/,/^}/p; /^_MULTIRUN_PID=""$/p; /^_SIGNALED=0$/p; /^handle_signal()/,/^}/p; /^check_interrupted()/,/^}/p' "${SCRIPT}"
 }
 
 @test "check_interrupted is defined" {

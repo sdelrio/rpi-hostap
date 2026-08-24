@@ -1,0 +1,27 @@
+# shellcheck shell=bash
+# Shared interface bring-up/teardown logic used by wlanstart.sh and tests.
+
+# setup_interface brings the AP interface up and assigns the AP address.
+setup_interface() {
+    ip link set "${INTERFACE}" up || {
+        echo "[Error] Failed to bring up interface ${INTERFACE}" >&2
+        return 1
+    }
+    ip addr flush dev "${INTERFACE}" || {
+        echo "[Error] Failed to flush addresses on ${INTERFACE}" >&2
+        return 1
+    }
+    ip addr add "${AP_ADDR}"/24 dev "${INTERFACE}" || {
+        echo "[Error] Failed to assign ${AP_ADDR}/24 to ${INTERFACE}" >&2
+        return 1
+    }
+}
+
+# teardown_interface flushes addresses and brings the link down.
+teardown_interface() {
+    if [ -n "${INTERFACE}" ] ; then
+        echo "Flushing interface ${INTERFACE}..."
+        ip addr flush dev "${INTERFACE}" 2>/dev/null || true
+        ip link set "${INTERFACE}" down 2>/dev/null || true
+    fi
+}
