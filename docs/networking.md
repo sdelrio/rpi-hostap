@@ -31,14 +31,14 @@ Caveats:
 
 ## Outgoing Interfaces
 
-By default, NAT is applied to all outgoing interfaces. To restrict to specific interfaces (e.g., `eth0`):
+By default, NAT is applied to all outgoing interfaces. To restrict NAT to specific interfaces, set `OUTGOINGS` to a comma-separated list when running the container:
 
 ```bash
--e OUTGOINGS=eth0
+docker run ... -e OUTGOINGS=eth0 ...
 ```
 
 For multiple interfaces:
 
 ```bash
--e OUTGOINGS=eth0,wwan0
+docker run ... -e OUTGOINGS=eth0,wwan0 ...
 ```
