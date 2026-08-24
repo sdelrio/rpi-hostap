@@ -22,3 +22,13 @@ validate_ipv4() {
         fi
     done
 }
+
+# validate_ipv4_param checks that a named parameter holds a valid IPv4
+# address, printing the standard error message on failure.
+validate_ipv4_param() {
+    local name=${1:-} value=${2:-}
+    if ! validate_ipv4 "${value}" ; then
+        echo "[Error] Invalid ${name}: '${value}' is not a valid IPv4 address." >&2
+        return 1
+    fi
+}

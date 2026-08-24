@@ -32,13 +32,18 @@ run_validate() {
 }
 
 @test "--validate performs zero system mutations" {
-    # /run/hostap-started must not be written; use a fake root marker via
-    # checking the script output contains no ip/iptables/sysctl activity.
-    local started="/tmp/validate-mode-no-mutate-marker"
-    rm -f "${started}"
-    run env -i PATH="${PATH}" INTERFACE=wlan0 "${SCRIPT}" --validate
+    # Shadow every system-mutating tool with a stub that fails loudly;
+    # validate mode must succeed without ever invoking any of them.
+    local stubdir="${BATS_TMPDIR}/validate-mode-stubs"
+    mkdir -p "${stubdir}"
+    local tool
+    for tool in ip iptables ip6tables sysctl ifconfig multirun dnsmasq hostapd ; do
+        printf '#!/bin/bash\necho "[Error] %s must not be called in validate mode" >&2\nexit 99\n' "${tool}" > "${stubdir}/${tool}"
+        chmod +x "${stubdir}/${tool}"
+    done
+    run env -i PATH="${stubdir}:/usr/bin:/bin" HOME="${HOME}" INTERFACE=wlan0 SSID=x WPA_PASSPHRASE=supersecret "${SCRIPT}" --validate
     [ "$status" -eq 0 ]
-    [ ! -f "/run/hostap-started" ] || skip "running as root on real system"
+    [[ "$output" != *"must not be called in validate mode"* ]]
 }
 
 @test "--validate bypasses privileged mode check (no /sys writability error)" {

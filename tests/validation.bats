@@ -7,12 +7,13 @@ load_lib() {
     . "${BATS_TEST_DIRNAME}/../lib/validation.sh"
 }
 
-# wlanstart-level early-exit check: source the exact validation blocks
-# from wlanstart.sh in a subshell.
+# wlanstart-level check: exercise validate_ipv4_param, the exact helper
+# used by wlanstart.sh for SUBNET/AP_ADDR.
 run_wlanstart_validation() {
     bash -c "
 . '${BATS_TEST_DIRNAME}/../lib/validation.sh'
-$(sed -n '/^if ! validate_ipv4 "\${SUBNET}"/,/^fi$/p; /^if ! validate_ipv4 "\${AP_ADDR}"/,/^fi$/p' "${BATS_TEST_DIRNAME}/../wlanstart.sh")
+validate_ipv4_param SUBNET \"\${SUBNET}\" || exit 1
+validate_ipv4_param AP_ADDR \"\${AP_ADDR}\" || exit 1
 " 2>&1
 }
 

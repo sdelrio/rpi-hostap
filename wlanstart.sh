@@ -220,28 +220,28 @@ run_validation_mode() {
 
     validate_channel || errors=$((errors + 1))
 
-    if ! validate_ipv4 "${SUBNET}" ; then
-        echo "[Error] Invalid SUBNET: '${SUBNET}' is not a valid IPv4 address." >&2
-        errors=$((errors + 1))
-    fi
-    if ! validate_ipv4 "${AP_ADDR}" ; then
-        echo "[Error] Invalid AP_ADDR: '${AP_ADDR}' is not a valid IPv4 address." >&2
-        errors=$((errors + 1))
-    fi
+    validate_ipv4_param SUBNET "${SUBNET}" || errors=$((errors + 1))
+    validate_ipv4_param AP_ADDR "${AP_ADDR}" || errors=$((errors + 1))
 
     emit_credential_warnings >&2 || true
     validate_passphrase || errors=$((errors + 1))
     validate_mac_filter || errors=$((errors + 1))
 
-    # Config generation doubles as DHCP range / WPA config validation.
-    local hostapd dnsmasq
-    hostapd=$(emit_hostapd_conf) || errors=$((errors + 1))
-    dnsmasq=$(emit_dnsmasq_conf) || errors=$((errors + 1))
-
     if [ "${errors}" -ne 0 ] ; then
         echo "[Error] Validation failed with ${errors} error(s)." >&2
         return 1
     fi
+
+    # Config generation doubles as DHCP range / WPA config validation.
+    local hostapd dnsmasq
+    hostapd=$(emit_hostapd_conf) || {
+        echo "[Error] Invalid WPA configuration." >&2
+        return 1
+    }
+    dnsmasq=$(emit_dnsmasq_conf) || {
+        echo "[Error] Invalid DHCP_RANGE." >&2
+        return 1
+    }
 
     echo "=== /etc/hostapd.conf ==="
     printf '%s\n' "${hostapd}"
@@ -271,14 +271,8 @@ if ! validate_channel ; then
     exit 1
 fi
 
-if ! validate_ipv4 "${SUBNET}" ; then
-    echo "[Error] Invalid SUBNET: '${SUBNET}' is not a valid IPv4 address." >&2
-    exit 1
-fi
-if ! validate_ipv4 "${AP_ADDR}" ; then
-    echo "[Error] Invalid AP_ADDR: '${AP_ADDR}' is not a valid IPv4 address." >&2
-    exit 1
-fi
+validate_ipv4_param SUBNET "${SUBNET}" || exit 1
+validate_ipv4_param AP_ADDR "${AP_ADDR}" || exit 1
 
 # Always regenerate hostapd.conf so env var changes apply between runs
 emit_hostapd_conf > "/etc/hostapd.conf" || exit 1
