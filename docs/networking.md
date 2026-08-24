@@ -23,7 +23,7 @@ IPv6 is **off by default**; behavior is unchanged unless you set `IPV6=1`. When 
 docker run ... -e IPV6=1 ...
 ```
 
-Caveats:
+### Caveats
 
 - Client IPv6 connectivity depends on the upstream network advertising an IPv6 prefix (Router Advertisements on the outgoing interface). Without an upstream prefix, clients will only obtain link-local addresses.
 - The container sets forwarding at runtime via `/proc/sys`; for host persistence across reboots see the sysctl commands above.
@@ -42,3 +42,7 @@ For multiple interfaces:
 ```bash
 docker run ... -e OUTGOINGS=eth0,wwan0 ...
 ```
+
+---
+
+_Last updated: 2026-08-24_
