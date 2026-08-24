@@ -240,8 +240,18 @@ EOF
 
 echo "Starting dnsmasq and hostapd via multirun ..."
 check_interrupted
+# Tag each daemon's output so failures are attributable (issue #119).
 # NOTE: multirun already wraps each command in `exec`; do not add it here.
-multirun "dnsmasq --no-daemon" "/usr/sbin/hostapd /etc/hostapd.conf" &
+# Output is teed to a temp log via process substitution so that the PID we
+# signal (_MULTIRUN_PID) remains multirun itself, keeping forwarding intact.
+# Failure reporting logic lives in lib/logging.sh, shared with tests
+# shellcheck source=lib/logging.sh
+. "$(dirname "$0")/lib/logging.sh"
+_DAEMON_LOG=$(mktemp)
+multirun \
+    "sh -c 'exec dnsmasq --no-daemon 2>&1 | sed \"s/^/[dnsmasq] /\"'" \
+    "sh -c 'exec /usr/sbin/hostapd /etc/hostapd.conf 2>&1 | sed \"s/^/[hostapd] /\"'" \
+    > >(tee "${_DAEMON_LOG}") 2>&1 &
 _MULTIRUN_PID=$!
 
 wait "${_MULTIRUN_PID}"
@@ -250,6 +260,11 @@ STATUS=$?
 cleanup
 
 if [ "${_SIGNALED}" = "1" ] ; then
+    rm -f "${_DAEMON_LOG}"
     exit 0
 fi
+if [ "${STATUS}" -ne 0 ] ; then
+    report_failure "${STATUS}" "${_DAEMON_LOG}"
+fi
+rm -f "${_DAEMON_LOG}"
 exit "${STATUS}"
