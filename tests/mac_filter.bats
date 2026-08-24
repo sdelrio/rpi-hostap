@@ -9,15 +9,17 @@ setup() {
     unset MAC_FILTER MAC_ACL_FILE
 }
 
-@test "MAC filter disabled by default: no hostapd conf" {
+@test "MAC filter disabled by default: silent no-op success" {
     run compute_mac_filter_conf
-    [ "$status" -eq 1 ]
+    [ "$status" -eq 0 ]
+    [ "$output" = "" ]
 }
 
-@test "MAC_FILTER=0 explicitly: no hostapd conf" {
+@test "MAC_FILTER=0 explicitly: silent no-op success" {
     MAC_FILTER=0
     run compute_mac_filter_conf
-    [ "$status" -eq 1 ]
+    [ "$status" -eq 0 ]
+    [ "$output" = "" ]
 }
 
 @test "MAC_FILTER=1 emits macaddr_acl=1 and accept_mac_file" {

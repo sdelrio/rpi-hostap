@@ -45,8 +45,7 @@ compute_mac_filter_conf() {
             echo "deny_mac_file=${MAC_ACL_FILE}"
             ;;
         *)
-            echo "[Info] MAC_FILTER not enabled, skipping MAC address filtering." >&2
-            return 1
+            return 0
             ;;
     esac
 }
