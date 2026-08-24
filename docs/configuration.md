@@ -48,6 +48,8 @@ aa:bb:cc:dd:ee:ff
 11:22:33:44:55:66
 ```
 
+See also: [client inspection](operations.md#client-inspection-optional) - use `clients.sh` to list associated stations and verify the filter allows/blocks the expected MACs.
+
 ## WPA3 (SAE)
 
 ### WPA3-Only (`WPA_VERSION=3`)
@@ -85,7 +87,7 @@ For 5 GHz (`hw_mode=a`), channels are validated against the allowed 5 GHz set:
 - **[DFS](https://en.wikipedia.org/wiki/Dynamic_frequency_selection) channels** (allowed with a radar detection/CAC warning): 52, 56, 60, 64, 100–144 (in steps of 4)
 - Any other channel is rejected with a clear error.
 
-See also: [DFS CAC wait times](healthcheck.md#deep-healthcheck-optional) affect the healthcheck grace period on radar channels.
+See also: [DFS CAC wait times](healthcheck.md#deep-healthcheck-optional) affect the healthcheck grace period on radar channels, and [dry-run validation](validation.md#dry-run-validation---validate) checks your chosen channel against these limits without touching the system.
 
 ---
 

@@ -29,6 +29,8 @@ docker run ... -e IPV6=1 ...
 - The container sets forwarding at runtime via `/proc/sys`; for host persistence across reboots see the sysctl commands above.
 - Some ISPs/hosters filter or rate-limit IPv6; test with `ping6` / `traceroute -6` from a client.
 
+See also: [IPv6 troubleshooting](troubleshooting.md#ipv6-no-connectivity-or-only-link-local-addresses) for diagnosing missing upstream prefixes and RA issues.
+
 ## Outgoing Interfaces
 
 By default, NAT is applied to all outgoing interfaces. To restrict NAT to specific interfaces, set `OUTGOINGS` to a comma-separated list when running the container:

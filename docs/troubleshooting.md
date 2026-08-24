@@ -22,6 +22,16 @@ To test your configuration without touching the system, use [dry-run validation 
 
 If the container runs but is reported as `unhealthy`, see [Health Check](healthcheck.md).
 
+## IPv6: no connectivity or only link-local addresses
+
+If clients get no global IPv6 address, check that:
+
+- `IPV6=1` is set on the container (IPv6 is off by default) - see [IPv6 support](networking.md#ipv6-support-optional).
+- The upstream network advertises an IPv6 prefix via Router Advertisements; without one clients only obtain link-local addresses.
+- Host IPv6 forwarding is persistent (`net.ipv6.conf.all.forwarding=1` in `/etc/sysctl.conf`) - see [NAT / IP forwarding](networking.md#nat--ip-forwarding).
+
+Test from a client with `ping6` / `traceroute -6`. See also the [IPv6 caveats](networking.md#caveats).
+
 ---
 
 _Last updated: 2026-08-24_

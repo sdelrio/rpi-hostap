@@ -30,6 +30,8 @@ docker run ... -e HEALTHCHECK_DEEP=1 -e HEALTHCHECK_START_PERIOD=90 ...
 
 Note: enabling [`CTRL_INTERFACE`](operations.md#client-inspection-optional) already emits the same config lines, so the two options are compatible - either one suffices for `hostapd_cli` to work.
 
+See also: [regional channel validation](configuration.md#regional-channel-validation) for which 5 GHz channels are [DFS](https://en.wikipedia.org/wiki/Dynamic_frequency_selection) and trigger CAC.
+
 ---
 
 _Last updated: 2026-08-24_
