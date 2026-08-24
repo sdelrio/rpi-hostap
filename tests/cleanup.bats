@@ -105,8 +105,10 @@ handle_signal
     [[ "$output" == *"kill 4242"* ]]
 }
 
-@test "wlanstart launches daemons via multirun (no explicit exec: multirun adds it)" {
-    grep -q 'multirun "dnsmasq --no-daemon" "/usr/sbin/hostapd /etc/hostapd.conf"' wlanstart.sh
+@test "wlanstart launches daemons via multirun with [name] output tags" {
+    grep -q '\[dnsmasq\]' wlanstart.sh
+    grep -q '\[hostapd\]' wlanstart.sh
+    grep -q '^multirun \\$' wlanstart.sh
     ! grep -q 'multirun "exec' wlanstart.sh
     ! grep -q 'wait "${DNSMASQ_PID}" "${HOSTAPD_PID}"' wlanstart.sh
 }
