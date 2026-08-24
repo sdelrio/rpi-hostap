@@ -89,7 +89,7 @@ jobs:
 
       - name: Run shellcheck
         run: |
-          shellcheck -x wlanstart.sh healthcheck.sh
+          shellcheck -x wlanstart.sh healthcheck.sh clients.sh
 
       - name: Shellcheck get-version.sh
         run: shellcheck scripts/get-version.sh

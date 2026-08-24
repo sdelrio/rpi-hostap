@@ -154,6 +154,12 @@ _MAC_FILTER_CONF=$(compute_mac_filter_conf)
 
 _MAX_STA_CONF=$(compute_max_sta_conf)
 
+# Control interface: opt-in via CTRL_INTERFACE (any non-empty value)
+# Logic lives in lib/ctrl_interface.sh, shared with tests
+# shellcheck source=lib/ctrl_interface.sh
+. "$(dirname "$0")/lib/ctrl_interface.sh"
+_CTRL_INTERFACE_CONF=$(compute_ctrl_interface_conf)
+
 # Always regenerate hostapd.conf so env var changes apply between runs
 cat > "/etc/hostapd.conf" <<EOF
 interface=${INTERFACE}
@@ -169,6 +175,7 @@ wmm_enabled=1
 ${_MAX_STA_CONF}
 ${_AP_ISOLATION_CONF}
 ${_MAC_FILTER_CONF}
+${_CTRL_INTERFACE_CONF}
 
 # Activate channel selection for HT High Throughput (802.11an)
 
