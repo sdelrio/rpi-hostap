@@ -66,6 +66,26 @@ Interpretation:
 
 If hostapd rejects your capability string, it shows up as a config error in `docker logs rpi-hostap` on start.
 
+## Transmit Power (optional)
+
+Regulatory-constrained deployments (labs, embedded products) may need to cap the AP's EIRP. Set `TX_POWER` to a fixed transmit power in dBm, or `auto` to restore driver/regulatory automatic power control:
+
+```bash
+docker run ... \
+  -e COUNTRY_CODE=ES \
+  -e TX_POWER=10 \
+  ...
+```
+
+- Unset (default): the driver default power is left untouched.
+- `TX_POWER=20`: applied at startup as `iw dev <iface> set txpower fixed 20`.
+- `TX_POWER=auto`: applied as `iw dev <iface> set txpower auto`.
+
+### Notes
+
+- The cap must respect your `COUNTRY_CODE` regulatory limits - `iw` rejects powers above the allowed EIRP for the configured domain. Setting a country code alone does not cap power; `TX_POWER` is the explicit limit.
+- Failure to apply is **fatal**: if you explicitly ask for a power cap and it cannot be set, the container exits with a clear error rather than silently transmitting at full power. Check the value against `iw reg` output on the host if startup fails.
+
 ## MAC Address Filtering (optional)
 
 MAC filtering is **off by default**; behavior is unchanged unless you set `MAC_FILTER`. When enabled:

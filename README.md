@@ -101,6 +101,7 @@ docker run -d \
 | `DHCP_RANGE` | No | DHCP range (`start,end,mask,lease`). The `mask` field sets the subnet prefix used on the AP interface and NAT rules (e.g. `255.255.255.240` = `/28`) | Auto from SUBNET |
 | `DHCP_LEASE` | No | DHCP lease time (used with default range) | `12h` |
 | `MAX_STATIONS` | No | Max connected clients (`0` = unlimited) | `0` |
+| `TX_POWER` | No | Transmit power: integer dBm (fixed, e.g. `20`) or `auto`. Unset leaves the driver default. Must respect `COUNTRY_CODE` regulatory limits; startup is fatal if the value cannot be applied. See [Transmit Power](docs/configuration.md#transmit-power-optional) | unset |
 | `HIDE_SSID` | No | Hide SSID broadcast (`1` = hidden) | `0` |
 | `AP_ISOLATION` | No | Isolate clients from each other (`1` = enabled) | `0` |
 | `COUNTRY_CODE` | No | Regulatory domain (`US`/`CA`/`MX`: ch 1-11, `JP`: ch 1-14, others: ch 1-13). Sets `country_code` in hostapd.conf | `EU` |
