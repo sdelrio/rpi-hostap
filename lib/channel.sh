@@ -9,8 +9,11 @@ validate_channel() {
     # Automatic channel selection: skip numeric checks, driver decides.
     case "${HW_MODE}:${CHANNEL}" in
         *:[aA][cC][sS])
-            echo "[Warning] CHANNEL=acs enables automatic channel selection; requires driver support and may delay startup" >&2
-            echo "[Warning] ACS may select a DFS/radar channel; the HEALTHCHECK_START_PERIOD grace period applies while CAC completes" >&2
+            if [ "${_ACS_WARNED:-0}" -eq 0 ]; then
+                echo "[Warning] CHANNEL=acs enables automatic channel selection; requires driver support and may delay startup" >&2
+                echo "[Warning] ACS may select a DFS/radar channel; the HEALTHCHECK_START_PERIOD grace period applies while CAC completes" >&2
+                _ACS_WARNED=1
+            fi
             return 0
             ;;
     esac
@@ -50,7 +53,10 @@ validate_channel() {
                 36|40|44|48|149|153|157|161|165)
                     ;;
                 52|56|60|64|100|104|108|112|116|120|124|128|132|136|140|144)
-                    echo "[Warning] Channel ${CHANNEL} is a DFS channel (radar detection/CAC required), may not work on all drivers" >&2
+                    if [ "${_DFS_WARNED:-0}" -eq 0 ]; then
+                        echo "[Warning] Channel ${CHANNEL} is a DFS channel (radar detection/CAC required), may not work on all drivers" >&2
+                        _DFS_WARNED=1
+                    fi
                     ;;
                 *)
                     echo "[Error] Channel ${CHANNEL} not allowed for hw_mode=a (allowed: 36,40,44,48,149,153,157,161,165; DFS: 52-144)" >&2
