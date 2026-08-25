@@ -129,7 +129,7 @@ handle_signal
 @test "cleanup removes iptables rules without OUTGOINGS" {
     run run_cleanup_mocked
     [[ "$output" == *"iptables -t nat -D POSTROUTING -s 192.168.254.0/24 -j MASQUERADE"* ]]
-    [[ "$output" == *"iptables -D FORWARD -o wlan0 -m state --state RELATED,ESTABLISHED -j ACCEPT"* ]]
+    [[ "$output" == *"iptables -D FORWARD -o wlan0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT"* ]]
     [[ "$output" == *"iptables -D FORWARD -i wlan0 -j ACCEPT"* ]]
 }
 
@@ -137,7 +137,7 @@ handle_signal
     export OUTGOINGS="eth0"
     run run_cleanup_mocked
     [[ "$output" == *"iptables -t nat -D POSTROUTING -s 192.168.254.0/24 -o eth0 -j MASQUERADE"* ]]
-    [[ "$output" == *"iptables -D FORWARD -i eth0 -o wlan0 -m state --state RELATED,ESTABLISHED -j ACCEPT"* ]]
+    [[ "$output" == *"iptables -D FORWARD -i eth0 -o wlan0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT"* ]]
     [[ "$output" == *"iptables -D FORWARD -i wlan0 -o eth0 -j ACCEPT"* ]]
 }
 

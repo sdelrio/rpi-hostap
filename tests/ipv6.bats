@@ -58,7 +58,7 @@ setup() {
     run apply_ipv6_rules
     [ "$status" -eq 0 ]
     [[ "${output}" == *"ip6tables -A FORWARD -i wlan0 -j ACCEPT"* ]]
-    [[ "${output}" == *"-o wlan0 -m state --state RELATED,ESTABLISHED -j ACCEPT"* ]]
+    [[ "${output}" == *"-o wlan0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT"* ]]
 }
 
 @test "remove_ipv6_rules deletes generic rules" {
@@ -83,7 +83,7 @@ setup() {
     '
     [ "$status" -eq 0 ]
     grep -q -- "-D FORWARD -i wlan0 -o eth0 -j ACCEPT" "${log}"
-    grep -q -- "-D FORWARD -i eth1 -o wlan0 -m state --state RELATED,ESTABLISHED -j ACCEPT" "${log}"
+    grep -q -- "-D FORWARD -i eth1 -o wlan0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT" "${log}"
 }
 
 @test "apply_ipv6_rules works standalone with OUTGOINGS (no nat.sh loaded)" {
