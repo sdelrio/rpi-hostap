@@ -114,7 +114,8 @@ setup() {
     local dir="${BATS_TEST_TMPDIR}/proc"
     mkdir -p "${dir}"
     echo 0 > "${dir}/ip_forward"
-    SYSCTL_BASE="${dir}" run set_sysctls ip_dynaddr ip_forward
+    # shellcheck disable=SC2016
+    run bash -c ". '${REPO_ROOT}/lib/nat.sh'; SYSCTL_BASE='${dir}' set_sysctls ip_dynaddr ip_forward 2>&1"
     [ "$status" -eq 0 ]
     [[ "${output}" == *"[Warning] Cannot set ip_dynaddr"* ]]
     [ "$(cat "${dir}/ip_forward")" = "1" ]
@@ -125,7 +126,8 @@ setup() {
     mkdir -p "${dir}"
     echo "garbage" > "${dir}/ip_dynaddr"
     chmod 444 "${dir}/ip_dynaddr"
-    SYSCTL_BASE="${dir}" run set_sysctls ip_dynaddr
+    # shellcheck disable=SC2016
+    run bash -c ". '${REPO_ROOT}/lib/nat.sh'; SYSCTL_BASE='${dir}' set_sysctls ip_dynaddr 2>&1"
     [ "$status" -eq 0 ]
     [[ "${output}" == *"[Warning] Cannot set ip_dynaddr"* ]]
 }
