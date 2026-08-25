@@ -67,6 +67,18 @@ load_logging() {
     [[ "$output" != *"saved to"* ]]
 }
 
+@test "report_failure warns and continues when FAILURE_LOG_PATH is unwritable" {
+    load_logging
+    local log
+    log=$(mktemp)
+    printf '[hostapd] driver missing\n' > "${log}"
+    FAILURE_LOG_PATH="/nonexistent-dir-162/failure.log" run report_failure 1 "${log}"
+    rm -f "${log}"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Warning: could not save daemon log to /nonexistent-dir-162/failure.log."* ]]
+    [[ "$output" != *"Full daemon log saved"* ]]
+}
+
 @test "wlanstart reports failing daemon on non-signal exit" {
     grep -q 'report_failure "${STATUS}"' "${SCRIPT}"
 }

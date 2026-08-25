@@ -41,9 +41,21 @@ report_failure() {
         if [ -n "${last}" ] ; then
             tag="${last}"
         fi
-        if cp "${log}" "${FAILURE_LOG_PATH}" 2>/dev/null ; then
-            saved=" Full daemon log saved to ${FAILURE_LOG_PATH}."
-        fi
+        # Copy, then verify the copy matches the source size so a late
+        # background-tee write that raced the copy is retried once. If the
+        # destination is unwritable (bad dir, permissions), warn and carry on.
+        local _try copied=1
+        for _try in 1 2 ; do
+            if ! cp "${log}" "${FAILURE_LOG_PATH}" 2>/dev/null ; then
+                echo "Warning: could not save daemon log to ${FAILURE_LOG_PATH}." >&2
+                copied=0
+                break
+            fi
+            [ "$(wc -c < "${log}" 2>/dev/null || echo 0)" = \
+              "$(wc -c < "${FAILURE_LOG_PATH}" 2>/dev/null || echo 0)" ] && break
+            sleep 0.1
+        done
+        [ "${copied}" = "1" ] && saved=" Full daemon log saved to ${FAILURE_LOG_PATH}."
     fi
 
     echo "[Error] Container exiting (status ${status}): check ${tag} lines above for startup failure.${saved}" >&2
