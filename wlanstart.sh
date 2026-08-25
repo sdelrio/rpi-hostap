@@ -150,6 +150,10 @@ fi
 # Logic lives in lib/dhcp.sh, shared with tests
 # shellcheck source=lib/dhcp.sh
 . "$(dirname "$0")/lib/dhcp.sh"
+# Atomic config file writing (temp file + mv)
+# Logic lives in lib/atomic.sh, shared with tests
+# shellcheck source=lib/atomic.sh
+. "$(dirname "$0")/lib/atomic.sh"
 
 # Emit hostapd.conf to stdout from the current environment.
 emit_hostapd_conf() {
@@ -278,8 +282,9 @@ fi
 validate_ipv4_param SUBNET "${SUBNET}" || exit 1
 validate_ipv4_param AP_ADDR "${AP_ADDR}" || exit 1
 
-# Always regenerate hostapd.conf so env var changes apply between runs
-emit_hostapd_conf > "/etc/hostapd.conf" || exit 1
+# Always regenerate hostapd.conf so env var changes apply between runs.
+# Generated atomically so a failure leaves the old config intact (#157).
+write_atomic_config emit_hostapd_conf "/etc/hostapd.conf" || exit 1
 check_interrupted
 
 # Setup interface and restart DHCP service
@@ -315,8 +320,9 @@ fi
 
 echo "Configuring DHCP server .."
 
-# Always regenerate dnsmasq.conf so env var changes apply between runs
-emit_dnsmasq_conf > "/etc/dnsmasq.conf" || exit 1
+# Always regenerate dnsmasq.conf so env var changes apply between runs.
+# Generated atomically so a failure leaves the old config intact (#157).
+write_atomic_config emit_dnsmasq_conf "/etc/dnsmasq.conf" || exit 1
 
 echo "Starting dnsmasq and hostapd via multirun ..."
 check_interrupted
