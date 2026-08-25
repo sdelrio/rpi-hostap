@@ -23,6 +23,7 @@ setup() {
 
 @test "default DHCP_RANGE computed from SUBNET 10.0.0.0" {
     SUBNET="10.0.0.0"
+    AP_ADDR="10.0.0.1"
     run compute_dhcp_range
     [ "$status" -eq 0 ]
     [ "${lines[@]: -1}" = "10.0.0.100,10.0.0.200,255.255.255.0,12h" ]
@@ -30,6 +31,7 @@ setup() {
 
 @test "default DHCP_RANGE computed from SUBNET 172.16.1.0" {
     SUBNET="172.16.1.0"
+    AP_ADDR="172.16.1.1"
     run compute_dhcp_range
     [ "$status" -eq 0 ]
     [ "${lines[@]: -1}" = "172.16.1.100,172.16.1.200,255.255.255.0,12h" ]
@@ -319,4 +321,47 @@ setup() {
     run compute_dhcp_range
     [ "$status" -eq 1 ]
     [[ "${lines[*]}" == *"contains AP_ADDR '192.168.254.17'"* ]]
+}
+
+# AP_ADDR must lie inside SUBNET/mask (issue #189).
+@test "AP_ADDR outside default subnet is rejected" {
+    SUBNET="192.168.254.0"
+    AP_ADDR="10.0.0.1"
+    run compute_dhcp_range
+    [ "$status" -eq 1 ]
+    [[ "${lines[*]}" == *"AP_ADDR '10.0.0.1' is not inside SUBNET 192.168.254.0/24"* ]]
+}
+
+@test "AP_ADDR outside explicit DHCP_RANGE subnet is rejected" {
+    AP_ADDR="10.0.0.1"
+    DHCP_RANGE="192.168.254.100,192.168.254.200,255.255.255.0,12h"
+    run compute_dhcp_range
+    [ "$status" -eq 1 ]
+    [[ "${lines[*]}" == *"AP_ADDR '10.0.0.1' is not inside SUBNET 192.168.254.0/24"* ]]
+}
+
+@test "AP_ADDR inside a non-/24 subnet is accepted" {
+    SUBNET="192.168.254.16"
+    AP_ADDR="192.168.254.17"
+    DHCP_RANGE="192.168.254.20,192.168.254.30,255.255.255.240,12h"
+    run compute_dhcp_range
+    [ "$status" -eq 0 ]
+}
+
+@test "AP_ADDR outside a non-/24 subnet is rejected" {
+    SUBNET="192.168.254.16"
+    AP_ADDR="10.0.0.1"
+    DHCP_RANGE="192.168.254.20,192.168.254.30,255.255.255.240,12h"
+    run compute_dhcp_range
+    [ "$status" -eq 1 ]
+    [[ "${lines[*]}" == *"AP_ADDR '10.0.0.1' is not inside SUBNET 192.168.254.16/28"* ]]
+}
+
+@test "AP_ADDR outside a /16 subnet is rejected" {
+    SUBNET="192.168.0.0"
+    AP_ADDR="10.0.0.1"
+    DHCP_RANGE="192.168.100.50,192.168.200.150,255.255.0.0,12h"
+    run compute_dhcp_range
+    [ "$status" -eq 1 ]
+    [[ "${lines[*]}" == *"AP_ADDR '10.0.0.1' is not inside SUBNET 192.168.0.0/16"* ]]
 }

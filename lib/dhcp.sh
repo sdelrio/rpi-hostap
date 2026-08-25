@@ -24,6 +24,9 @@
 # ${SUBNET}/${prefix}, and the pool must not contain AP_ADDR. AP_ADDR
 # overlap is rejected outright rather than warned: the AP has a static
 # address, so a lease collision is always a configuration error.
+# Additionally AP_ADDR itself must lie inside ${SUBNET}/${prefix}
+# (AP_ADDR & netmask == SUBNET), otherwise clients would be handed an
+# unreachable gateway address.
 #
 # Prints the resulting range to stdout. Messages go to stderr.
 # Returns non-zero for invalid input.
@@ -37,6 +40,29 @@ ip_to_int() {
     local o1 o2 o3 o4
     IFS=. read -r o1 o2 o3 o4 <<<"${1}"
     echo $(( (o1 << 24) | (o2 << 16) | (o3 << 8) | o4 ))
+}
+
+# check_ap_addr_in_subnet verifies that AP_ADDR lies inside
+# ${SUBNET}/<prefix> for the given dotted-decimal netmask, i.e.
+# AP_ADDR & netmask == SUBNET. Emits an error on stderr and returns
+# non-zero otherwise. Skips silently when AP_ADDR or SUBNET is unset
+# or not a valid IPv4 address (those cases are reported elsewhere).
+check_ap_addr_in_subnet() {
+    local netmask=${1:-}
+    if [ -z "${AP_ADDR:-}" ] || [ -z "${SUBNET:-}" ] ; then
+        return 0
+    fi
+    if ! validate_ipv4 "${AP_ADDR}" || ! validate_ipv4 "${SUBNET}" ; then
+        return 0
+    fi
+    local m1 m2 m3 m4 ap_masked subnet_int
+    IFS=. read -r m1 m2 m3 m4 <<<"${netmask}"
+    ap_masked=$(( $(ip_to_int "${AP_ADDR}") & (m1 << 24 | m2 << 16 | m3 << 8 | m4) ))
+    subnet_int=$(ip_to_int "${SUBNET}")
+    if [ "${ap_masked}" -ne "${subnet_int}" ] ; then
+        echo "[Error] AP_ADDR '${AP_ADDR}' is not inside SUBNET ${SUBNET}/${DHCP_PREFIX}" >&2
+        return 1
+    fi
 }
 
 # A dnsmasq lease time is a positive integer optionally followed by
@@ -71,6 +97,9 @@ compute_dhcp_range() {
         DHCP_RANGE="${prefix}.100,${prefix}.200,255.255.255.0,${DHCP_LEASE}"
         DHCP_PREFIX=24
         export DHCP_PREFIX
+        if ! check_ap_addr_in_subnet "255.255.255.0" ; then
+            return 1
+        fi
         echo "[Warning] DHCP_RANGE not set, using default: $DHCP_RANGE" >&2
     else
         local COMMA_COUNT
@@ -136,6 +165,9 @@ compute_dhcp_range() {
                     return 1
                 fi
             done
+            if ! check_ap_addr_in_subnet "${netmask}" ; then
+                return 1
+            fi
         fi
         if [ -n "${AP_ADDR:-}" ] && validate_ipv4 "${AP_ADDR}" ; then
             local ap_int
