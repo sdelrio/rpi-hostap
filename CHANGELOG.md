@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.37.0](https://github.com/sdelrio/rpi-hostap/compare/v0.36.0...v0.37.0) (2026-08-25)
+
+
+### ✨ Features
+
+* add --version flag to wlanstart.sh ([#178](https://github.com/sdelrio/rpi-hostap/issues/178)) ([33984f1](https://github.com/sdelrio/rpi-hostap/commit/33984f1c3779c5cf74d93287bcf7c9557e6cd880))
+* add leveled logging library ([#181](https://github.com/sdelrio/rpi-hostap/issues/181)) ([474efd2](https://github.com/sdelrio/rpi-hostap/commit/474efd205a9f86e781cd79f0279ee395f7360bdd))
+* **clients:** add deauth subcommand ([#166](https://github.com/sdelrio/rpi-hostap/issues/166)) ([#180](https://github.com/sdelrio/rpi-hostap/issues/180)) ([1b4cb29](https://github.com/sdelrio/rpi-hostap/commit/1b4cb2980a2db9792494da2d5d963e03d082967d))
+* reject unknown HW_MODE in validate mode ([#163](https://github.com/sdelrio/rpi-hostap/issues/163)) ([#176](https://github.com/sdelrio/rpi-hostap/issues/176)) ([2866361](https://github.com/sdelrio/rpi-hostap/commit/2866361d433a05ba504e123187615452301c9552))
+* retain daemon failure log on non-zero exit ([#175](https://github.com/sdelrio/rpi-hostap/issues/175)) ([122fdd6](https://github.com/sdelrio/rpi-hostap/commit/122fdd65e87d5e3315acd4203ec278ed6e45249d))
+* support configurable subnet mask ([#165](https://github.com/sdelrio/rpi-hostap/issues/165)) ([#179](https://github.com/sdelrio/rpi-hostap/issues/179)) ([e9dfea0](https://github.com/sdelrio/rpi-hostap/commit/e9dfea0997ed9faf92210594805e451e10b37f48))
+
+
+### 🩹 Fixes
+
+* generate configs atomically via temp file ([#173](https://github.com/sdelrio/rpi-hostap/issues/173)) ([8f707f7](https://github.com/sdelrio/rpi-hostap/commit/8f707f745154b166374fbb792078f0dd6a3781ba))
+* handle missing/non-numeric sysctl in nat setup ([#174](https://github.com/sdelrio/rpi-hostap/issues/174)) ([74ab1c2](https://github.com/sdelrio/rpi-hostap/commit/74ab1c25210920e5e036f232290fea218c4748ad))
+* make ipv6 rule functions self-contained ([#159](https://github.com/sdelrio/rpi-hostap/issues/159)) ([#171](https://github.com/sdelrio/rpi-hostap/issues/171)) ([e95da21](https://github.com/sdelrio/rpi-hostap/commit/e95da2109efcee3a9b00fa25af7cbcd18c829cb6))
+
 ## [0.36.0](https://github.com/sdelrio/rpi-hostap/compare/v0.35.0...v0.36.0) (2026-08-25)
 
 
