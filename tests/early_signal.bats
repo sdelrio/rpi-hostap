@@ -99,6 +99,44 @@ echo 'Starting dnsmasq and hostapd via multirun ...'
     [[ "$output" != *"Shutdown requested"* ]]
 }
 
+@test "teardown waits for multirun children to exit after signal (issue #183)" {
+    local events
+    events=$(mktemp)
+    run bash -c "
+$(extract_functions)
+EVENTS='${events}'
+iptables() { : ; }
+ip() { : ; }
+cleanup() {
+    if kill -0 \"\${_MULTIRUN_PID}\" 2>/dev/null ; then
+        echo 'CLEANUP_DURING_CHILD' >> \"\${EVENTS}\"
+    else
+        echo 'CLEANUP_AFTER_CHILD' >> \"\${EVENTS}\"
+    fi
+}
+trap handle_signal SIGINT SIGTERM SIGHUP
+multirun() {
+    # Simulate a child that takes a moment to die after multirun relays
+    sleep 0.3 &
+    CHILD_PID=\$!
+    _MULTIRUN_PID=\$!
+}
+export -f cleanup
+multirun
+kill -TERM \$_MULTIRUN_PID
+wait \${_MULTIRUN_PID} 2>/dev/null
+while kill -0 \${_MULTIRUN_PID} 2>/dev/null ; do
+    wait \${_MULTIRUN_PID} 2>/dev/null || true
+    sleep 0.1
+done
+cleanup
+"
+    [ "$status" -eq 0 ]
+    grep -q 'CLEANUP_AFTER_CHILD' "${events}"
+    ! grep -q 'CLEANUP_DURING_CHILD' "${events}"
+    rm -f "${events}"
+}
+
 @test "check_interrupted is called at each key point before multirun" {
     local ci_calls multi_line
     ci_calls=$(grep -n '^\s*check_interrupted\s*$' "${SCRIPT}" | tail -1 | cut -d: -f1)

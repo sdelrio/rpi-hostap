@@ -362,6 +362,14 @@ _MULTIRUN_PID=$!
 wait "${_MULTIRUN_PID}"
 STATUS=$?
 
+# When a signal arrives, bash's wait returns immediately (status > 128)
+# before multirun has finished relaying the signal to its children.
+# Defer teardown until multirun has actually exited (#183).
+while kill -0 "${_MULTIRUN_PID}" 2>/dev/null ; do
+    wait "${_MULTIRUN_PID}" 2>/dev/null || true
+    sleep 0.1
+done
+
 cleanup
 
 if [ "${_SIGNALED}" = "1" ] ; then
