@@ -1,5 +1,35 @@
 # Changelog
 
+## [0.36.0](https://github.com/sdelrio/rpi-hostap/compare/v0.35.0...v0.36.0) (2026-08-25)
+
+
+### ✨ Features
+
+* **clients:** clear error when control interface disabled ([#161](https://github.com/sdelrio/rpi-hostap/issues/161)) ([#169](https://github.com/sdelrio/rpi-hostap/issues/169)) ([737838b](https://github.com/sdelrio/rpi-hostap/commit/737838b3967c8780d43d8d2d78ca23b6fe002c86))
+* **clients:** opt-in ctrl_interface and clients.sh for listing connected stations ([#134](https://github.com/sdelrio/rpi-hostap/issues/134)) ([925eec9](https://github.com/sdelrio/rpi-hostap/commit/925eec92b616707046b7c99a1f6febba3d2ef309))
+* **entrypoint:** add --validate dry-run mode with CI env matrix ([#135](https://github.com/sdelrio/rpi-hostap/issues/135)) ([6afcec1](https://github.com/sdelrio/rpi-hostap/commit/6afcec1510f85859b7181351f07a90febd437d5c))
+* **healthcheck:** add opt-in deep AP beacon check via hostapd_cli ([#123](https://github.com/sdelrio/rpi-hostap/issues/123)) ([#136](https://github.com/sdelrio/rpi-hostap/issues/136)) ([f4877b9](https://github.com/sdelrio/rpi-hostap/commit/f4877b9d6e4a5380112d93077ed5fac84d71a486))
+* **logging:** tag daemon output and report failing service on multirun exit ([#119](https://github.com/sdelrio/rpi-hostap/issues/119)) ([#133](https://github.com/sdelrio/rpi-hostap/issues/133)) ([72d19ca](https://github.com/sdelrio/rpi-hostap/commit/72d19ca69402adccbc0e70b9bb6b4415f7b847d1))
+
+
+### 🩹 Fixes
+
+* **dhcp:** validate DHCP_RANGE fields and SUBNET instead of comma-count only ([#113](https://github.com/sdelrio/rpi-hostap/issues/113)) ([#128](https://github.com/sdelrio/rpi-hostap/issues/128)) ([d032fa7](https://github.com/sdelrio/rpi-hostap/commit/d032fa7509e8f945f1d987e81ee9147b803ee126))
+* **entrypoint:** handle signals received before multirun starts ([#125](https://github.com/sdelrio/rpi-hostap/issues/125)) ([ba15dea](https://github.com/sdelrio/rpi-hostap/commit/ba15deaa2f5de26337be58f60781f92bf2f1e9c3))
+* **entrypoint:** validate AP_ADDR/SUBNET and abort on IP setup failure ([#114](https://github.com/sdelrio/rpi-hostap/issues/114)) ([#127](https://github.com/sdelrio/rpi-hostap/issues/127)) ([532d34e](https://github.com/sdelrio/rpi-hostap/commit/532d34e159a89a076e9469f6fcaf37fab3928aa6))
+* **healthcheck:** anchor IP match and require interface state UP ([#112](https://github.com/sdelrio/rpi-hostap/issues/112)) ([#129](https://github.com/sdelrio/rpi-hostap/issues/129)) ([c63012b](https://github.com/sdelrio/rpi-hostap/commit/c63012b63d6517c8764cda10f27e791652e3df2a))
+* **healthcheck:** measure grace period from container start time, not host uptime ([#111](https://github.com/sdelrio/rpi-hostap/issues/111)) ([#130](https://github.com/sdelrio/rpi-hostap/issues/130)) ([56f0d33](https://github.com/sdelrio/rpi-hostap/commit/56f0d33f7948a805275cdc6bda98f1fd55e81177))
+* **mac_filter:** make disabled path a silent no-op returning success ([#116](https://github.com/sdelrio/rpi-hostap/issues/116)) ([#131](https://github.com/sdelrio/rpi-hostap/issues/131)) ([ccf01a5](https://github.com/sdelrio/rpi-hostap/commit/ccf01a527748936828c03144b1334c37b4042cc4))
+* validate SSID before writing hostapd.conf ([#170](https://github.com/sdelrio/rpi-hostap/issues/170)) ([a4fdafb](https://github.com/sdelrio/rpi-hostap/commit/a4fdafbff898d880932a1edc9287d499c752a7a0))
+
+
+### ♻️ Code Refactoring
+
+* **entrypoint:** extract NAT/interface logic into lib/nat.sh and lib/interface.sh ([#132](https://github.com/sdelrio/rpi-hostap/issues/132)) ([c2c996b](https://github.com/sdelrio/rpi-hostap/commit/c2c996bd00f385b71c734f7c34cb592d9147b943))
+* **healthcheck:** add set -euo pipefail strict mode ([#154](https://github.com/sdelrio/rpi-hostap/issues/154)) ([2a6bcbc](https://github.com/sdelrio/rpi-hostap/commit/2a6bcbcafee729ae0f158639ea2cf4fba1a40391)), closes [#151](https://github.com/sdelrio/rpi-hostap/issues/151)
+* **lib:** add missing shellcheck source/shell directives ([#155](https://github.com/sdelrio/rpi-hostap/issues/155)) ([dc47633](https://github.com/sdelrio/rpi-hostap/commit/dc4763334538544e2b2fc4fcccd5a30dadd7b28a)), closes [#152](https://github.com/sdelrio/rpi-hostap/issues/152)
+* **scripts:** apply shellcheck style-level cleanups ([#156](https://github.com/sdelrio/rpi-hostap/issues/156)) ([447f27a](https://github.com/sdelrio/rpi-hostap/commit/447f27aa14a1eb3076f8117c0081537ea7ac9e47)), closes [#153](https://github.com/sdelrio/rpi-hostap/issues/153)
+
 ## [0.35.0](https://github.com/sdelrio/rpi-hostap/compare/v0.34.0...v0.35.0) (2026-08-24)
 
 
