@@ -5,6 +5,8 @@ setup() {
     unset HW_MODE
     unset CHANNEL
     unset COUNTRY_CODE
+    unset _ACS_WARNED
+    unset _DFS_WARNED
     # shellcheck source=../lib/env.sh
     . "${ROOT}/lib/env.sh"
     # Defaults now live centrally in lib/env.sh (issue #237)
@@ -86,6 +88,7 @@ setup() {
 @test "hw_mode=a with DFS channel 52 warns but passes" {
     HW_MODE="a"
     CHANNEL="52"
+    COUNTRY_CODE="EU"
     run validate_channel
     [ "$status" -eq 0 ]
     [[ "$output" == *"Warning"*"DFS"* ]]
@@ -157,7 +160,6 @@ setup() {
         CHANNEL="ACS"
         run validate_channel
         [ "$status" -eq 0 ]
-        [[ "$output" == *"Warning"*"acs"* ]]
     done
 }
 
@@ -175,8 +177,47 @@ setup() {
         CHANNEL="${value}"
         run validate_channel
         [ "$status" -eq 0 ]
-        [[ "$output" == *"Warning"*"acs"* ]]
     done
+}
+
+# --- informational warnings emit at most once per run (issue #231) ---
+
+@test "ACS warning printed once across repeated calls" {
+    run bash -c '
+        . "'"${ROOT}"'/lib/channel.sh"
+        HW_MODE="g"; CHANNEL="acs"; COUNTRY_CODE="EU"
+        validate_channel || exit 1
+        validate_channel || exit 1
+        validate_channel_strict || exit 1
+    '
+    [ "$status" -eq 0 ]
+    [ "$(printf '%s' "$output" | grep -c 'Warning')" -eq 2 ]
+}
+
+@test "DFS warning printed once across repeated calls" {
+    run bash -c '
+        . "'"${ROOT}"'/lib/channel.sh"
+        HW_MODE="a"; CHANNEL="52"; COUNTRY_CODE="EU"
+        validate_channel || exit 1
+        CHANNEL="100"
+        validate_channel || exit 1
+    '
+    [ "$status" -eq 0 ]
+    [ "$(printf '%s' "$output" | grep -c 'Warning')" -eq 1 ]
+}
+
+@test "errors print on every call even after warnings were deduped" {
+    HW_MODE="a"
+    CHANNEL="acs"
+    run validate_channel
+    [ "$status" -eq 0 ]
+    CHANNEL="11"
+    run validate_channel
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"Error"*"not allowed for hw_mode=a"* ]]
+    run validate_channel
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"Error"*"not allowed for hw_mode=a"* ]]
 }
 
 @test "emit_hostapd_conf emits channel=acs unchanged" {
