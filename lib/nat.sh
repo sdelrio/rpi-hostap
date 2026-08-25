@@ -62,6 +62,15 @@ set_sysctls() {
     done
 }
 
+# show_sysctls prints labeled values for the given ipv4 sysctls (#194).
+show_sysctls() {
+    local i val
+    for i in "$@" ; do
+        val="$(cat "${SYSCTL_BASE}/${i}" 2>/dev/null || echo '?')"
+        echo "${i}=${val}"
+    done
+}
+
 # remove_nat_rules deletes the rules added by apply_nat_rules.
 remove_nat_rules() {
     echo "Removing iptables rules..."
