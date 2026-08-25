@@ -23,6 +23,39 @@ validate_ipv4() {
     done
 }
 
+# validate_ssid checks that its argument is a safe SSID:
+# - 1-32 bytes (802.11 limit)
+# - no newlines, '#' comments, leading whitespace, or '=' (which could
+#   form a new key when written into the unquoted hostapd.conf heredoc)
+validate_ssid() {
+    local ssid=${1:-}
+
+    if [ -z "${ssid}" ] ; then
+        echo "[Error] Invalid SSID: must not be empty." >&2
+        return 1
+    fi
+
+    if [ "${#ssid}" -gt 32 ] ; then
+        echo "[Error] Invalid SSID: must be at most 32 characters (got ${#ssid})." >&2
+        return 1
+    fi
+
+    if [[ "${ssid}" == *$'\n'* || "${ssid}" == *$'\r'* ]] ; then
+        echo "[Error] Invalid SSID: must not contain newlines." >&2
+        return 1
+    fi
+
+    if [[ "${ssid}" == *"#"* || "${ssid}" == *"="* ]] ; then
+        echo "[Error] Invalid SSID: must not contain '#' or '='." >&2
+        return 1
+    fi
+
+    if [[ "${ssid}" =~ ^[[:space:]] || "${ssid}" =~ [[:space:]]$ ]] ; then
+        echo "[Error] Invalid SSID: must not start or end with whitespace." >&2
+        return 1
+    fi
+}
+
 # validate_ipv4_param checks that a named parameter holds a valid IPv4
 # address, printing the standard error message on failure.
 validate_ipv4_param() {

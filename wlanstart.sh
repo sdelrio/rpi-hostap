@@ -225,6 +225,7 @@ run_validation_mode() {
 
     emit_credential_warnings >&2 || true
     validate_passphrase || errors=$((errors + 1))
+    validate_ssid "${SSID}" || errors=$((errors + 1))
     validate_mac_filter || errors=$((errors + 1))
 
     if [ "${errors}" -ne 0 ] ; then
@@ -258,6 +259,9 @@ fi
 # mode emits them above so they are not interleaved with stdout configs).
 emit_credential_warnings
 if ! validate_passphrase ; then
+    exit 1
+fi
+if ! validate_ssid "${SSID}" ; then
     exit 1
 fi
 check_interrupted
