@@ -90,3 +90,47 @@ setup() {
     grep -q -- "-D FORWARD -i wlan0 -o eth0 -j ACCEPT" "${log}"
     rm -f "${log}"
 }
+
+@test "set_sysctls skips sysctls already set to 1" {
+    local dir="${BATS_TEST_TMPDIR}/proc"
+    mkdir -p "${dir}"
+    echo 1 > "${dir}/ip_dynaddr"
+    SYSCTL_BASE="${dir}" run set_sysctls ip_dynaddr
+    [ "$status" -eq 0 ]
+    [[ "${output}" == *"ip_dynaddr already 1"* ]]
+    [ "$(cat "${dir}/ip_dynaddr")" = "1" ]
+}
+
+@test "set_sysctls sets sysctl when value is not 1" {
+    local dir="${BATS_TEST_TMPDIR}/proc"
+    mkdir -p "${dir}"
+    echo 0 > "${dir}/ip_forward"
+    SYSCTL_BASE="${dir}" run set_sysctls ip_forward
+    [ "$status" -eq 0 ]
+    [ "$(cat "${dir}/ip_forward")" = "1" ]
+}
+
+@test "set_sysctls warns and continues for missing sysctl" {
+    local dir="${BATS_TEST_TMPDIR}/proc"
+    mkdir -p "${dir}"
+    echo 0 > "${dir}/ip_forward"
+    # ip_dynaddr lives under a nonexistent base so both read and write
+    # fail regardless of privileges (CI may run as root).
+    local missing="${BATS_TEST_TMPDIR}/no-such-proc"
+    # shellcheck disable=SC2016
+    run bash -c ". '${REPO_ROOT}/lib/nat.sh'; SYSCTL_BASE='${missing}' set_sysctls ip_dynaddr && SYSCTL_BASE='${dir}' set_sysctls ip_forward 2>&1"
+    [ "$status" -eq 0 ]
+    [[ "${output}" == *"[Warning] Cannot set ip_dynaddr"* ]]
+    [ "$(cat "${dir}/ip_forward")" = "1" ]
+}
+
+@test "set_sysctls warns when write fails on non-numeric value" {
+    local dir="${BATS_TEST_TMPDIR}/proc"
+    mkdir -p "${dir}"
+    echo "garbage" > "${dir}/ip_dynaddr"
+    chmod 444 "${dir}/ip_dynaddr"
+    # shellcheck disable=SC2016
+    run bash -c ". '${REPO_ROOT}/lib/nat.sh'; SYSCTL_BASE='${dir}' set_sysctls ip_dynaddr 2>&1"
+    [ "$status" -eq 0 ]
+    [[ "${output}" == *"[Warning] Cannot set ip_dynaddr"* ]]
+}

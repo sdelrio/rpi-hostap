@@ -45,6 +45,23 @@ apply_nat_rules() {
     fi
 }
 
+# set_sysctls enables the given ipv4 sysctls, tolerating missing entries
+# (e.g. kernels built without ip_dynaddr). SYSCTL_BASE can be overridden
+# in tests to point at a stubbed procfs tree.
+SYSCTL_BASE="${SYSCTL_BASE:-/proc/sys/net/ipv4}"
+
+set_sysctls() {
+    local i val
+    for i in "$@" ; do
+        val="$(cat "${SYSCTL_BASE}/${i}" 2>/dev/null || echo 0)"
+        case "${val}" in
+            1) echo "${i} already 1" ;;
+            *) echo "1" > "${SYSCTL_BASE}/${i}" 2>/dev/null \
+                || echo "[Warning] Cannot set ${i}" >&2 ;;
+        esac
+    done
+}
+
 # remove_nat_rules deletes the rules added by apply_nat_rules.
 remove_nat_rules() {
     echo "Removing iptables rules..."
