@@ -160,6 +160,10 @@ fi
 # Logic lives in lib/dhcp.sh, shared with tests
 # shellcheck source=lib/dhcp.sh
 . "$(dirname "$0")/lib/dhcp.sh"
+# Extra hostapd.conf options (HOSTAPD_EXTRA_OPTS)
+# Logic lives in lib/extra_opts.sh, shared with tests
+# shellcheck source=lib/extra_opts.sh
+. "$(dirname "$0")/lib/extra_opts.sh"
 # Atomic config file writing (temp file + mv)
 # Logic lives in lib/atomic.sh, shared with tests
 # shellcheck source=lib/atomic.sh
@@ -201,6 +205,8 @@ ${HT_CAPAB+"ht_capab=${HT_CAPAB}"}
 ${VHT_ENABLED+"ieee80211ac=1"}
 ${VHT_CAPAB+"vht_capab=${VHT_CAPAB}"}
 EOF
+
+    compute_extra_opts_lines
 }
 
 # Emit dnsmasq.conf to stdout from the current environment.
