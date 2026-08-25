@@ -129,6 +129,67 @@ setup() {
     [[ "$output" == *"Error"*"not allowed for hw_mode=a"* ]]
 }
 
+# --- ACS (automatic channel selection) ---
+
+@test "CHANNEL=acs passes with hw_mode=g and warns" {
+    HW_MODE="g"
+    CHANNEL="acs"
+    run validate_channel
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Warning"*"acs"* ]]
+}
+
+@test "CHANNEL=acs passes with hw_mode=a and warns" {
+    HW_MODE="a"
+    CHANNEL="acs"
+    run validate_channel
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Warning"*"HEALTHCHECK_START_PERIOD"* ]]
+}
+
+@test "CHANNEL=ACS (uppercase, case-insensitive) passes with any HW_MODE" {
+    for hw in b g a; do
+        HW_MODE="${hw}"
+        CHANNEL="ACS"
+        run validate_channel
+        [ "$status" -eq 0 ]
+        [[ "$output" == *"Warning"*"acs"* ]]
+    done
+}
+
+@test "CHANNEL=acs passes strict validation" {
+    HW_MODE="g"
+    CHANNEL="acs"
+    run validate_channel_strict
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Warning"*"acs"* ]]
+}
+
+@test "CHANNEL=Acs and CHANNEL=aCS (mixed case) pass validation" {
+    for value in Acs aCS AcS; do
+        HW_MODE="g"
+        CHANNEL="${value}"
+        run validate_channel
+        [ "$status" -eq 0 ]
+        [[ "$output" == *"Warning"*"acs"* ]]
+    done
+}
+
+@test "emit_hostapd_conf emits channel=acs unchanged" {
+    export INTERFACE=wlan0 SSID=test WPA_PASSPHRASE=passw0rd
+    export HW_MODE=g CHANNEL=acs COUNTRY_CODE=EU WPA_VERSION=2
+    eval "$(sed -n '/^emit_hostapd_conf()/,/^}/p' "${BATS_TEST_DIRNAME}/../wlanstart.sh")"
+    . "${BATS_TEST_DIRNAME}/../lib/stations.sh"
+    . "${BATS_TEST_DIRNAME}/../lib/ctrl_interface.sh"
+    . "${BATS_TEST_DIRNAME}/../lib/wpa.sh"
+    . "${BATS_TEST_DIRNAME}/../lib/ssid_hidden.sh"
+    . "${BATS_TEST_DIRNAME}/../lib/mac_filter.sh"
+    . "${BATS_TEST_DIRNAME}/../lib/ap_isolation.sh"
+    run emit_hostapd_conf
+    [ "$status" -eq 0 ]
+    grep -qx 'channel=acs' <<< "$output"
+}
+
 # --- non-numeric channel ---
 
 @test "non-numeric channel with hw_mode=g fails" {

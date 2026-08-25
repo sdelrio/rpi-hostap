@@ -93,7 +93,7 @@ docker run -d \
 | `INTERFACE` | Yes | Wireless interface to use | - |
 | `SSID` | No | Network name | `raspberry` |
 | `WPA_PASSPHRASE` | No | WiFi password | `passw0rd` |
-| `CHANNEL` | No | WiFi channel | `11` |
+| `CHANNEL` | No | WiFi channel, or `acs` for automatic channel selection (requires driver support; startup may be delayed while scanning, and the `HEALTHCHECK_START_PERIOD` grace period applies since ACS can land on DFS/radar channels) | `11` |
 | `AP_ADDR` | No | Access point IP | `192.168.254.1` |
 | `SUBNET` | No | Network subnet | `192.168.254.0` |
 | `OUTGOINGS` | No | Comma-separated outgoing interfaces for NAT | All interfaces |
