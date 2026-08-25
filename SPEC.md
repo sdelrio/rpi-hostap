@@ -124,8 +124,9 @@ It runs on Alpine Linux for minimal footprint.
 
 - The container requires `--privileged` and `--net host`: it must manipulate
   host wireless interfaces, write sysctls and manage iptables/nftables rules.
-- Normal mode verifies privileged access at startup (writability of `/sys`)
-  and exits with an error otherwise.
+- Normal mode verifies privileged access at startup by probing
+  `iptables -t nat -L` (requires `CAP_NET_ADMIN`, which unprivileged
+  containers lack) and exits with an error otherwise.
 - Host prerequisites (documented in README): AP-mode capable adapter with host
   driver/firmware installed, `iw reg set` country code, and wpa_supplicant
   disabled to avoid driver conflicts.

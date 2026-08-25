@@ -78,9 +78,12 @@ if [ "${VALIDATE_ONLY}" != "1" ] ; then
     # period from the actual start (not host uptime via /proc/uptime).
     date +%s > /run/hostap-started 2>/dev/null || true
 
-    # Check if running in privileged mode
-    if [ ! -w "/sys" ] ; then
-        echo "[Error] Not running in privileged mode."
+    # Check if running in privileged mode. An iptables listing requires
+    # CAP_NET_ADMIN, which unprivileged containers lack and read-only /sys
+    # mounts do not affect. IPTABLES_BASE is overridable for tests.
+    IPTABLES_BASE="${IPTABLES_BASE:-iptables}"
+    if ! "${IPTABLES_BASE}" -t nat -L > /dev/null 2>&1 ; then
+        echo "[Error] Not running in privileged mode (cannot access iptables)." >&2
         exit 1
     fi
 
