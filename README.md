@@ -176,7 +176,7 @@ The container runs a Docker healthcheck every 30s verifying that `hostapd`, `dns
 
 ## Documentation
 
-All detailed documentation lives in the [docs/](docs/INDEX.md) folder - see its index for the full list of topics.
+Project requirements are defined in [SPEC.md](SPEC.md). All detailed documentation lives in the [docs/](docs/INDEX.md) folder - see its index for the full list of topics.
 
 ## Contributing
 
