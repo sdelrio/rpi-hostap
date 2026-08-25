@@ -19,11 +19,25 @@
 # The derived prefix is exported as DHCP_PREFIX for lib/interface.sh
 # and lib/nat.sh.
 #
+# Semantic validation (explicit DHCP_RANGE only): start must not exceed
+# end (numeric 32-bit compare), both endpoints must lie inside
+# ${SUBNET}/${prefix}, and the pool must not contain AP_ADDR. AP_ADDR
+# overlap is rejected outright rather than warned: the AP has a static
+# address, so a lease collision is always a configuration error.
+#
 # Prints the resulting range to stdout. Messages go to stderr.
 # Returns non-zero for invalid input.
 
 # shellcheck source=lib/validation.sh
 . "$(dirname "${BASH_SOURCE[0]}")/validation.sh"
+
+# ip_to_int converts a dotted-quad IPv4 address (already validated)
+# into its 32-bit integer value so ranges can be compared numerically.
+ip_to_int() {
+    local o1 o2 o3 o4
+    IFS=. read -r o1 o2 o3 o4 <<<"${1}"
+    echo $(( (o1 << 24) | (o2 << 16) | (o3 << 8) | o4 ))
+}
 
 # A dnsmasq lease time is a positive integer optionally followed by
 # h (hours), m (minutes) or s (seconds), e.g. 12h, 30m, 3600.
@@ -95,6 +109,44 @@ compute_dhcp_range() {
             return 1
         fi
         export DHCP_PREFIX
+
+        # Semantic checks on the parsed fields:
+        # 1. start must not come after end (numeric compare on the
+        #    full 32-bit address, so multi-octet ranges work too).
+        # 2. Both endpoints must lie inside ${SUBNET}/${prefix}
+        #    (mask arithmetic), otherwise dnsmasq would hand out
+        #    addresses outside the AP network.
+        # 3. The pool must not contain AP_ADDR itself: the access
+        #    point has a static address and a lease collision would
+        #    break connectivity. We reject outright rather than warn -
+        #    an overlapping pool is always a configuration error.
+        if [ "$(ip_to_int "${start_ip}")" -gt "$(ip_to_int "${end_ip}")" ] ; then
+            echo "[Error] Invalid DHCP_RANGE: field 1 '${start_ip}' is greater than field 2 '${end_ip}' (start must not exceed end)." >&2
+            return 1
+        fi
+        if [ -n "${SUBNET:-}" ] && validate_ipv4 "${SUBNET}" ; then
+            local subnet_int addr masked mask_int
+            subnet_int=$(ip_to_int "${SUBNET}")
+            IFS=. read -r m1 m2 m3 m4 <<<"${netmask}"
+            mask_int=$(( (m1 << 24) | (m2 << 16) | (m3 << 8) | m4 ))
+            for addr in "${start_ip}" "${end_ip}" ; do
+                masked=$(( $(ip_to_int "${addr}") & mask_int ))
+                if [ "${masked}" -ne "${subnet_int}" ] ; then
+                    echo "[Error] Invalid DHCP_RANGE: '${addr}' is outside subnet ${SUBNET}/${DHCP_PREFIX} (mask ${netmask})." >&2
+                    return 1
+                fi
+            done
+        fi
+        if [ -n "${AP_ADDR:-}" ] && validate_ipv4 "${AP_ADDR}" ; then
+            local ap_int
+            ap_int=$(ip_to_int "${AP_ADDR}")
+            if [ "${ap_int}" -ge "$(ip_to_int "${start_ip}")" ] \
+               && [ "${ap_int}" -le "$(ip_to_int "${end_ip}")" ] ; then
+                echo "[Error] Invalid DHCP_RANGE: '${start_ip}','${end_ip}' contains AP_ADDR '${AP_ADDR}' (the AP address must stay out of the DHCP pool)." >&2
+                return 1
+            fi
+        fi
+
         if ! validate_lease_time "${lease_time}" ; then
             echo "[Error] Invalid DHCP_RANGE: field 4 '${lease_time}' is not a valid lease time" >&2
             echo "  Expected: integer optionally followed by h/m/s (e.g. 12h, 3600)" >&2

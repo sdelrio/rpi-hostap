@@ -36,10 +36,10 @@ setup() {
 }
 
 @test "explicit DHCP_RANGE is preserved" {
-    DHCP_RANGE="10.10.10.50,10.10.10.150,255.255.255.0,24h"
+    DHCP_RANGE="192.168.254.50,192.168.254.150,255.255.255.0,24h"
     run compute_dhcp_range
     [ "$status" -eq 0 ]
-    [ "${lines[@]: -1}" = "10.10.10.50,10.10.10.150,255.255.255.0,24h" ]
+    [ "${lines[@]: -1}" = "192.168.254.50,192.168.254.150,255.255.255.0,24h" ]
 }
 
 @test "DHCP_LEASE used in default range" {
@@ -50,11 +50,11 @@ setup() {
 }
 
 @test "DHCP_LEASE ignored when DHCP_RANGE is explicit" {
-    DHCP_RANGE="10.0.0.50,10.0.0.150,255.255.255.0,48h"
+    DHCP_RANGE="192.168.254.50,192.168.254.150,255.255.255.0,48h"
     DHCP_LEASE="24h"
     run compute_dhcp_range
     [ "$status" -eq 0 ]
-    [ "${lines[@]: -1}" = "10.0.0.50,10.0.0.150,255.255.255.0,48h" ]
+    [ "${lines[@]: -1}" = "192.168.254.50,192.168.254.150,255.255.255.0,48h" ]
 }
 
 @test "invalid DHCP_RANGE with too few commas fails" {
@@ -138,17 +138,17 @@ setup() {
 }
 
 @test "plain integer lease time is accepted" {
-    DHCP_RANGE="10.10.10.50,10.10.10.150,255.255.255.0,3600"
+    DHCP_RANGE="192.168.254.50,192.168.254.150,255.255.255.0,3600"
     run compute_dhcp_range
     [ "$status" -eq 0 ]
-    [ "${lines[@]: -1}" = "10.10.10.50,10.10.10.150,255.255.255.0,3600" ]
+    [ "${lines[@]: -1}" = "192.168.254.50,192.168.254.150,255.255.255.0,3600" ]
 }
 
 @test "minutes and seconds lease suffixes are accepted" {
-    DHCP_RANGE="10.10.10.50,10.10.10.150,255.255.255.0,30m"
+    DHCP_RANGE="192.168.254.50,192.168.254.150,255.255.255.0,30m"
     run compute_dhcp_range
     [ "$status" -eq 0 ]
-    DHCP_RANGE="10.10.10.50,10.10.10.150,255.255.255.0,45s"
+    DHCP_RANGE="192.168.254.50,192.168.254.150,255.255.255.0,45s"
     run compute_dhcp_range
     [ "$status" -eq 0 ]
 }
@@ -261,4 +261,62 @@ setup() {
     run compute_dhcp_range
     [ "$status" -eq 0 ]
     [ "${lines[@]: -1}" = "192.168.254.20,192.168.254.30,255.255.255.240,12h" ]
+}
+
+# Semantic validation: order, subnet bounds, AP overlap.
+@test "inverted range (start > end) is rejected" {
+    DHCP_RANGE="192.168.254.200,192.168.254.100,255.255.255.0,12h"
+    run compute_dhcp_range
+    [ "$status" -eq 1 ]
+    [[ "${lines[*]}" == *"field 1 '192.168.254.200' is greater than field 2 '192.168.254.100'"* ]]
+}
+
+@test "start endpoint outside the subnet is rejected" {
+    DHCP_RANGE="192.168.253.50,192.168.254.150,255.255.255.0,12h"
+    run compute_dhcp_range
+    [ "$status" -eq 1 ]
+    [[ "${lines[*]}" == *"'192.168.253.50' is outside subnet 192.168.254.0/24"* ]]
+}
+
+@test "end endpoint outside the subnet is rejected" {
+    DHCP_RANGE="192.168.254.50,192.168.255.150,255.255.255.0,12h"
+    run compute_dhcp_range
+    [ "$status" -eq 1 ]
+    [[ "${lines[*]}" == *"'192.168.255.150' is outside subnet 192.168.254.0/24"* ]]
+}
+
+@test "endpoints outside a /16 subnet are accepted when inside that subnet" {
+    SUBNET="192.168.0.0"
+    AP_ADDR="192.168.0.1"
+    DHCP_RANGE="192.168.100.50,192.168.200.150,255.255.0.0,12h"
+    run compute_dhcp_range
+    [ "$status" -eq 0 ]
+}
+
+@test "range containing AP_ADDR is rejected" {
+    DHCP_RANGE="192.168.254.1,192.168.254.100,255.255.255.0,12h"
+    run compute_dhcp_range
+    [ "$status" -eq 1 ]
+    [[ "${lines[*]}" == *"contains AP_ADDR '192.168.254.1'"* ]]
+}
+
+@test "range ending exactly on AP_ADDR is rejected" {
+    DHCP_RANGE="192.168.254.50,192.168.254.1,255.255.255.0,12h"
+    run compute_dhcp_range
+    [ "$status" -eq 1 ]
+}
+
+@test "range just below and above AP_ADDR is accepted" {
+    DHCP_RANGE="192.168.254.2,192.168.254.100,255.255.255.0,12h"
+    run compute_dhcp_range
+    [ "$status" -eq 0 ]
+}
+
+@test "/28 range overlapping AP_ADDR in same subnet is rejected" {
+    SUBNET="192.168.254.16"
+    AP_ADDR="192.168.254.17"
+    DHCP_RANGE="192.168.254.17,192.168.254.30,255.255.255.240,12h"
+    run compute_dhcp_range
+    [ "$status" -eq 1 ]
+    [[ "${lines[*]}" == *"contains AP_ADDR '192.168.254.17'"* ]]
 }
