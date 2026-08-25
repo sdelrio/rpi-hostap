@@ -18,6 +18,15 @@ validate_channel() {
             ;;
     esac
 
+    # Channel 14 is legal in Japan only for 802.11b.
+    if [ "${CHANNEL}" = "14" ]; then
+        if [ "${COUNTRY_CODE}" = "JP" ] && [ "${HW_MODE}" = "b" ]; then
+            return 0
+        fi
+        echo "[Error] Channel 14 is only allowed in Japan (COUNTRY_CODE=JP) with hw_mode=b (802.11b)" >&2
+        return 1
+    fi
+
     case "${COUNTRY_CODE}" in
         US|CA|MX) _MAX_CHANNEL=11 ;;
         JP)       _MAX_CHANNEL=14 ;;
