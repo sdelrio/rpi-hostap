@@ -162,4 +162,8 @@ The following are out of scope:
 Placeholder for additional future decisions. Items under consideration will be
 recorded here once decided:
 
-- TBD
+- If `hostapd.conf`/`dnsmasq.conf` generation via heredocs grows unwieldy
+  (many more options), consider switching to template files rendered with
+  `envsubst` instead of rewriting the entrypoint in another language. Bash
+  remains the right tool: the scripts are glue (env interpolation, iptables,
+  signal handling) and templates would be a low-cost upgrade.
