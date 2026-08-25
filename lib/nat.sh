@@ -13,11 +13,33 @@ parse_outgoings() {
     done
 }
 
+# IP_BASE can be overridden in tests to point at a stubbed ip tool
+# (e.g. when validating OUTGOINGS interfaces without real network tools).
+IP_BASE="${IP_BASE:-ip}"
+
+# interface_exists returns 0 when the given network interface exists.
+interface_exists() {
+    "${IP_BASE}" link show "$1" > /dev/null 2>&1
+}
+
+# validate_outgoings checks every parsed OUTGOINGS interface exists,
+# failing fast with an error naming the offending interface.
+validate_outgoings() {
+    local int
+    parse_outgoings
+    for int in "${ints[@]}" ; do
+        if ! interface_exists "${int}" ; then
+            echo "[Error] OUTGOINGS interface '${int}' does not exist" >&2
+            return 1
+        fi
+    done
+}
+
 # apply_nat_rules adds iptables MASQUERADE/FORWARD rules for outgoing traffic.
 apply_nat_rules() {
     if [ "${OUTGOINGS}" ] ; then
         local int
-        parse_outgoings
+        validate_outgoings || return 1
         for int in "${ints[@]}"
         do
             echo "Setting iptables for outgoing traffics on ${int}..."

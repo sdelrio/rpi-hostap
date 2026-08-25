@@ -30,6 +30,7 @@ setup() {
 
 @test "apply_nat_rules adds rules per interface with OUTGOINGS" {
     export OUTGOINGS="eth0,eth1"
+    ip() { return 0; }
     parse_outgoings
     iptables() { echo "iptables $*"; }
     run apply_nat_rules
@@ -49,6 +50,32 @@ setup() {
     [[ "${output}" == *"iptables -t nat -A POSTROUTING -s 192.168.254.0/24 -j MASQUERADE"* ]]
     [[ "${output}" == *"iptables -A FORWARD -o wlan0 -m state --state RELATED,ESTABLISHED -j ACCEPT"* ]]
     [[ "${output}" == *"iptables -A FORWARD -i wlan0 -j ACCEPT"* ]]
+}
+
+@test "apply_nat_rules fails fast naming nonexistent OUTGOINGS interface" {
+    export OUTGOINGS="eth0,doesnotexist0"
+    iptables() { echo "iptables $*"; }
+    run apply_nat_rules
+    [ "$status" -eq 1 ]
+    [[ "${output}" == *"[Error] OUTGOINGS interface 'doesnotexist0' does not exist"* ]]
+    [[ "${output}" != *"Setting iptables"* ]]
+}
+
+@test "apply_nat_rules proceeds when all OUTGOINGS interfaces exist (stubbed ip)" {
+    export OUTGOINGS="eth0"
+    ip() { return 0; }
+    iptables() { echo "iptables $*"; }
+    run apply_nat_rules
+    [ "$status" -eq 0 ]
+    [[ "${output}" == *"Setting iptables for outgoing traffics on eth0..."* ]]
+}
+
+@test "validate_outgoings fails for missing interface without real network tools" {
+    export OUTGOINGS="bogus9"
+    export IP_BASE="${BATS_TEST_TMPDIR}/no-ip"
+    run validate_outgoings
+    [ "$status" -eq 1 ]
+    [[ "${output}" == *"[Error] OUTGOINGS interface 'bogus9' does not exist"* ]]
 }
 
 @test "apply_nat_rules removes stale rule before adding (delete precedes append)" {
