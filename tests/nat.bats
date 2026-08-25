@@ -114,8 +114,11 @@ setup() {
     local dir="${BATS_TEST_TMPDIR}/proc"
     mkdir -p "${dir}"
     echo 0 > "${dir}/ip_forward"
+    # ip_dynaddr lives under a nonexistent base so both read and write
+    # fail regardless of privileges (CI may run as root).
+    local missing="${BATS_TEST_TMPDIR}/no-such-proc"
     # shellcheck disable=SC2016
-    run bash -c ". '${REPO_ROOT}/lib/nat.sh'; SYSCTL_BASE='${dir}' set_sysctls ip_dynaddr ip_forward 2>&1"
+    run bash -c ". '${REPO_ROOT}/lib/nat.sh'; SYSCTL_BASE='${missing}' set_sysctls ip_dynaddr && SYSCTL_BASE='${dir}' set_sysctls ip_forward 2>&1"
     [ "$status" -eq 0 ]
     [[ "${output}" == *"[Warning] Cannot set ip_dynaddr"* ]]
     [ "$(cat "${dir}/ip_forward")" = "1" ]
