@@ -97,3 +97,19 @@ setup() {
     [[ "${output}" == *"ip6tables -A FORWARD -i eth0 -o wlan0"* ]]
     [[ "${output}" == *"ip6tables -A FORWARD -i wlan0 -o eth1 -j ACCEPT"* ]]
 }
+
+@test "enable_ipv6_forwarding writes 1 to forwarding sysctl" {
+    local base="${BATS_TEST_TMPDIR}/sysctl-ok/net/ipv6"
+    mkdir -p "${base}/conf/all"
+    IPV6_SYSCTL_BASE="${base}"
+    run enable_ipv6_forwarding
+    [ "$status" -eq 0 ]
+    [ "$(cat "${base}/conf/all/forwarding")" = "1" ]
+}
+
+@test "enable_ipv6_forwarding warns on missing sysctl without aborting" {
+    IPV6_SYSCTL_BASE="${BATS_TEST_TMPDIR}/nonexistent-ipv6-sysctl"
+    run enable_ipv6_forwarding
+    [ "$status" -eq 0 ]
+    [[ "${output}" == *"[Warning] Cannot set net.ipv6.conf.all.forwarding"* ]]
+}
