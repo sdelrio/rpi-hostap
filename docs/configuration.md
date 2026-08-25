@@ -99,11 +99,6 @@ Setting `WPA_VERSION=3` enables WPA3-SAE authentication. Note:
 - Client devices must support SAE (wpa_supplicant 2.7+, iOS 13+/macOS 10.15+, Android 10+).
 - Older clients that only support WPA2 will not be able to connect.
 
-Setting `WPA_VERSION=3` enables WPA3-SAE authentication. Note:
-
-- Client devices must support SAE (wpa_supplicant 2.7+, iOS 13+/macOS 10.15+, Android 10+).
-- Older clients that only support WPA2 will not be able to connect.
-
 #### Verifying client SAE support
 
 Before switching a live AP to WPA3-only, verify each client device:
