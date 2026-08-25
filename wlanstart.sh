@@ -340,11 +340,16 @@ STATUS=$?
 cleanup
 
 if [ "${_SIGNALED}" = "1" ] ; then
+    # Clean shutdown after signal: temp log is not needed.
     rm -f "${_DAEMON_LOG}"
     exit 0
 fi
 if [ "${STATUS}" -ne 0 ] ; then
+    # Preserve the full tagged daemon log for post-mortem (issue #162);
+    # report_failure copies it to FAILURE_LOG_PATH and mentions the path.
+    # The temp log is only removed on clean shutdown / signal exit.
     report_failure "${STATUS}" "${_DAEMON_LOG}"
+else
+    rm -f "${_DAEMON_LOG}"
 fi
-rm -f "${_DAEMON_LOG}"
 exit "${STATUS}"

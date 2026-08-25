@@ -7,15 +7,33 @@
 # "[name]" tag, the last tag seen in the captured output points at the
 # daemon that most likely failed to start.
 
+# Destination for the preserved daemon log when the container exits with
+# a failure (issue #162). Overridable for testing.
+FAILURE_LOG_PATH="${FAILURE_LOG_PATH:-/var/log/hostap-failure.log}"
+
 # report_failure <exit-status> [tagged-output-log]
 #
 # Print a final error pointing at the likely failing daemon based on the
-# last tagged line of captured daemon output.
-# shellcheck disable=SC2120
+# last tagged line of captured daemon output. When a non-empty log is
+# given, it is preserved at FAILURE_LOG_PATH so operators can inspect the
+# full tagged output after exit.
 report_failure() {
     local status="$1"
     local log="${2:-}"
     local tag="[daemon]"
+    local saved=""
+
+    # The daemon log is written by a background tee; give it a moment to
+    # flush so the preserved copy contains the full tagged output.
+    if [ -n "${log}" ] ; then
+        local prev=-
+        local _
+        for _ in 1 2 3 4 5 ; do
+            [ "$(wc -c < "${log}" 2>/dev/null || echo 0)" = "${prev}" ] && break
+            prev=$(wc -c < "${log}" 2>/dev/null || echo 0)
+            sleep 0.1
+        done
+    fi
 
     if [ -n "${log}" ] && [ -s "${log}" ] ; then
         local last
@@ -23,7 +41,10 @@ report_failure() {
         if [ -n "${last}" ] ; then
             tag="${last}"
         fi
+        if cp "${log}" "${FAILURE_LOG_PATH}" 2>/dev/null ; then
+            saved=" Full daemon log saved to ${FAILURE_LOG_PATH}."
+        fi
     fi
 
-    echo "[Error] Container exiting (status ${status}): check ${tag} lines above for startup failure." >&2
+    echo "[Error] Container exiting (status ${status}): check ${tag} lines above for startup failure.${saved}" >&2
 }
