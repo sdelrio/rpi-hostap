@@ -15,6 +15,10 @@ Notes:
 - `SUBNET` must be the network address for that mask (host bits zero); e.g. for a `/28`, the last octet must be a multiple of 16.
 - When `DHCP_RANGE` is unset, the default range uses a `/24` layout, so `SUBNET` must end in `.0`.
 
+## Interface Address Handling
+
+At startup the container flushes existing addresses on `INTERFACE` and assigns `AP_ADDR/<prefix>` to it. On shutdown, only the address this container configured (`AP_ADDR`) is removed - a blanket `ip addr flush` is deliberately avoided so that unrelated host addresses are preserved. This matters with `--net host`, where the interface is shared with the host (e.g. a manually added `192.168.254.1/24` survives container teardown).
+
 ## NAT / IP Forwarding
 
 The container enables IP forwarding at runtime. For persistence across host reboots:

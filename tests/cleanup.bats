@@ -34,6 +34,7 @@ wait() { _mock_log \"wait \$@\"; }
 . '$PWD/lib/ipv6.sh'
 $(sed -n '/^cleanup()/,/^}/p' wlanstart.sh)
 INTERFACE="$INTERFACE"
+AP_ADDR="${AP_ADDR:-192.168.254.1}"
 SUBNET="$SUBNET"
 OUTGOINGS="$OUTGOINGS"
 IPV6="${IPV6:-0}"
@@ -149,10 +150,29 @@ handle_signal
     [[ "$output" == *"iptables -t nat -D POSTROUTING -s 192.168.254.0/24 -o eth1 -j MASQUERADE"* ]]
 }
 
-@test "cleanup flushes interface address and brings link down" {
+@test "cleanup removes only configured AP address and brings link down" {
     run run_cleanup_mocked
-    [[ "$output" == *"ip addr flush dev wlan0"* ]]
+    [[ "$output" == *"ip addr del 192.168.254.1/24 dev wlan0"* ]]
     [[ "$output" == *"ip link set wlan0 down"* ]]
+}
+
+@test "cleanup teardown does not flush all interface addresses" {
+    run run_cleanup_mocked
+    [[ "$output" != *"ip addr flush"* ]]
+}
+
+@test "teardown_interface removes only AP_ADDR (issue #188)" {
+    . lib/interface.sh
+    INTERFACE="wlan0"
+    AP_ADDR="192.168.254.1"
+    DHCP_PREFIX=""
+    local log
+    log=$(mktemp)
+    ip() { echo "ip $@" >> "$log"; }
+    teardown_interface
+    grep -q "ip addr del 192.168.254.1/24 dev wlan0" "$log"
+    ! grep -q "addr flush" "$log"
+    rm -f "$log"
 }
 
 @test "cleanup skips interface teardown when INTERFACE unset" {
