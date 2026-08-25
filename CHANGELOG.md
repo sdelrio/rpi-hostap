@@ -1,5 +1,34 @@
 # Changelog
 
+## [0.38.0](https://github.com/sdelrio/rpi-hostap/compare/v0.37.0...v0.38.0) (2026-08-25)
+
+
+### ✨ Features
+
+* **channel:** support CHANNEL=acs automatic channel selection ([#203](https://github.com/sdelrio/rpi-hostap/issues/203)) ([4105bcf](https://github.com/sdelrio/rpi-hostap/commit/4105bcf6fd35e240e57aed10361bb4be3572c8e5))
+* **clients:** add --json machine-readable station output ([#202](https://github.com/sdelrio/rpi-hostap/issues/202)) ([9258831](https://github.com/sdelrio/rpi-hostap/commit/9258831acb94bff5ec0d40f35b188db67502cb67)), closes [#198](https://github.com/sdelrio/rpi-hostap/issues/198)
+* **dhcp:** validate AP_ADDR lies inside SUBNET/mask ([#211](https://github.com/sdelrio/rpi-hostap/issues/211)) ([1bcb6a8](https://github.com/sdelrio/rpi-hostap/commit/1bcb6a83371d5677247e71553c020ad06bcd385e)), closes [#189](https://github.com/sdelrio/rpi-hostap/issues/189)
+* **dhcp:** validate DHCP range order, subnet bounds and AP overlap ([#210](https://github.com/sdelrio/rpi-hostap/issues/210)) ([df14903](https://github.com/sdelrio/rpi-hostap/commit/df14903dfbd1522a468723bebb45f5f1da3065fb)), closes [#190](https://github.com/sdelrio/rpi-hostap/issues/190)
+* **hostapd:** HOSTAPD_EXTRA_OPTS passthrough for extra config lines ([#204](https://github.com/sdelrio/rpi-hostap/issues/204)) ([5759ed6](https://github.com/sdelrio/rpi-hostap/commit/5759ed60e0c20bb6c253ffd578f9e7831b79935e))
+* **logging:** retain timestamped failure logs with rotation ([#199](https://github.com/sdelrio/rpi-hostap/issues/199)) ([#200](https://github.com/sdelrio/rpi-hostap/issues/200)) ([9ac178a](https://github.com/sdelrio/rpi-hostap/commit/9ac178a240b8ce5eea9209d44310bbb844e167bc))
+
+
+### 🩹 Fixes
+
+* **channel:** allow channel 14 only for JP + hw_mode=b ([#207](https://github.com/sdelrio/rpi-hostap/issues/207)) ([714bdab](https://github.com/sdelrio/rpi-hostap/commit/714bdabc23df6dc6020dd77d53a9cfcca0330da9)), closes [#193](https://github.com/sdelrio/rpi-hostap/issues/193)
+* **config:** require HW_MODE=a when VHT_ENABLED is set ([#209](https://github.com/sdelrio/rpi-hostap/issues/209)) ([2e70381](https://github.com/sdelrio/rpi-hostap/commit/2e70381a12b380b67fa6a1eb542d01fbb6f8335c)), closes [#191](https://github.com/sdelrio/rpi-hostap/issues/191)
+* **healthcheck:** explicit error when HEALTHCHECK_DEEP lacks INTERFACE ([#215](https://github.com/sdelrio/rpi-hostap/issues/215)) ([1b4733f](https://github.com/sdelrio/rpi-hostap/commit/1b4733f72b6cfef2b5d587eec3625d022a8e8ee0))
+* **healthcheck:** guard HEALTHCHECK_START_PERIOD against non-numeric values ([#208](https://github.com/sdelrio/rpi-hostap/issues/208)) ([8b8b199](https://github.com/sdelrio/rpi-hostap/commit/8b8b19931da48ed18ffc23f7c112e9910cad0c4a)), closes [#192](https://github.com/sdelrio/rpi-hostap/issues/192)
+* **interface:** teardown removes only configured AP_ADDR, not all addresses ([#188](https://github.com/sdelrio/rpi-hostap/issues/188)) ([#212](https://github.com/sdelrio/rpi-hostap/issues/212)) ([636e76e](https://github.com/sdelrio/rpi-hostap/commit/636e76e000a308f6ab78fab28c4150cefcdb713b))
+* **security:** prevent config injection via WPA_PASSPHRASE/PRI_DNS/SEC_DNS ([#216](https://github.com/sdelrio/rpi-hostap/issues/216)) ([91b08d1](https://github.com/sdelrio/rpi-hostap/commit/91b08d1f9635ae4418fcc0d2b6e651fddcbb034a)), closes [#184](https://github.com/sdelrio/rpi-hostap/issues/184)
+* **signals:** defer teardown until multirun children have exited ([#217](https://github.com/sdelrio/rpi-hostap/issues/217)) ([bb1b032](https://github.com/sdelrio/rpi-hostap/commit/bb1b0323fdfd6ba23e997106ba54c594f0d6ed1c)), closes [#183](https://github.com/sdelrio/rpi-hostap/issues/183)
+* **stations:** make invalid MAX_STATIONS fatal at validation ([#213](https://github.com/sdelrio/rpi-hostap/issues/213)) ([991271a](https://github.com/sdelrio/rpi-hostap/commit/991271a7dac0bac096d256c67b10de71529430cb)), closes [#187](https://github.com/sdelrio/rpi-hostap/issues/187)
+
+
+### ♻️ Code Refactoring
+
+* **scripts:** invoke get-version.sh with bash consistently ([#205](https://github.com/sdelrio/rpi-hostap/issues/205)) ([2e6158c](https://github.com/sdelrio/rpi-hostap/commit/2e6158c376f568189992c3a6ebdac91f3b02c82c)), closes [#195](https://github.com/sdelrio/rpi-hostap/issues/195)
+
 ## [0.37.0](https://github.com/sdelrio/rpi-hostap/compare/v0.36.0...v0.37.0) (2026-08-25)
 
 
