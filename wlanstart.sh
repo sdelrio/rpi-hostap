@@ -91,30 +91,16 @@ if [ "${VALIDATE_ONLY}" != "1" ] ; then
     fi
 fi
 
-# Set HW_MODE and CHANNEL early for validation
-: "${HW_MODE:=g}"
-: "${CHANNEL:=11}"
-
-# Warn if COUNTRY_CODE was not explicitly set, then default to EU (ETSI)
-if [ -z "${COUNTRY_CODE+x}" ] ; then
-    echo "[Warning] COUNTRY_CODE not set, defaulting to 'EU' (ETSI: channels 1-13)."
-    echo "          Set COUNTRY_CODE (e.g. US, CA, JP) to match your local regulations."
-fi
-: "${COUNTRY_CODE:=EU}"
+# Apply all environment defaults in one place (issue #237).
+# Logic lives in lib/env.sh, shared with tests
+# shellcheck source=lib/env.sh
+. "$(dirname "$0")/lib/env.sh"
+resolve_config_env
 
 # Validate channel against regulatory domain and hardware mode
 # Logic lives in lib/channel.sh, shared with tests
 # shellcheck source=lib/channel.sh
 . "$(dirname "$0")/lib/channel.sh"
-
-# Default values
-: "${SUBNET:=192.168.254.0}"
-: "${AP_ADDR:=192.168.254.1}"
-: "${PRI_DNS:=8.8.8.8}"
-: "${SEC_DNS:=8.8.4.4}"
-: "${SSID:=raspberry}"
-: "${WPA_PASSPHRASE:=passw0rd}"
-: "${MAX_STATIONS:=0}"
 
 # IPv4 address validation (validate_ipv4)
 # Logic lives in lib/validation.sh, shared with tests

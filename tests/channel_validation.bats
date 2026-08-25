@@ -5,6 +5,10 @@ setup() {
     unset HW_MODE
     unset CHANNEL
     unset COUNTRY_CODE
+    # shellcheck source=../lib/env.sh
+    . "${ROOT}/lib/env.sh"
+    # Defaults now live centrally in lib/env.sh (issue #237)
+    resolve_config_env
     # shellcheck source=../lib/channel.sh
     . "${ROOT}/lib/channel.sh"
 }
@@ -178,6 +182,7 @@ setup() {
 @test "emit_hostapd_conf emits channel=acs unchanged" {
     export INTERFACE=wlan0 SSID=test WPA_PASSPHRASE=passw0rd
     export HW_MODE=g CHANNEL=acs COUNTRY_CODE=EU WPA_VERSION=2
+    export MAX_STATIONS=0
     eval "$(sed -n '/^emit_hostapd_conf()/,/^}/p' "${BATS_TEST_DIRNAME}/../wlanstart.sh")"
     . "${BATS_TEST_DIRNAME}/../lib/stations.sh"
     . "${BATS_TEST_DIRNAME}/../lib/ctrl_interface.sh"
@@ -387,6 +392,7 @@ setup() {
 
 @test "strict: default hw_mode (g) passes" {
     unset HW_MODE
+    resolve_config_env
     CHANNEL="1"
     run validate_channel_strict
     [ "$status" -eq 0 ]
@@ -403,6 +409,7 @@ setup() {
 
 @test "VHT_ENABLED set with default HW_MODE fails" {
     unset HW_MODE
+    resolve_config_env
     VHT_ENABLED="1"
     run validate_vht
     [ "$status" -eq 1 ]

@@ -5,8 +5,8 @@
 # environment and writes the hostapd wpa_* block to stdout. Messages go to
 # stderr. Returns non-zero for invalid WPA_VERSION values.
 compute_wpa_conf() {
-    : "${HW_MODE:=g}"
-    : "${WPA_VERSION:=2}"
+    # Defaults (WPA_VERSION, HW_MODE, WPA_PASSPHRASE) are applied
+    # centrally by lib/env.sh (issue #237).
     case "${WPA_VERSION}" in
         2)
             _WPA_LEVEL="wpa=2"
@@ -38,7 +38,7 @@ ${_WPA_PAIRWISE}"
             ;;
     esac
     echo "${_WPA_LEVEL}
-wpa_passphrase=${WPA_PASSPHRASE:-passw0rd}
+wpa_passphrase=${WPA_PASSPHRASE}
 ${_WPA_KEY_MGMT}
 ${_WPA_PAIRWISE}"
 }

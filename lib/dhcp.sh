@@ -72,7 +72,7 @@ validate_lease_time() {
 }
 
 compute_dhcp_range() {
-    : "${DHCP_LEASE:=12h}"
+    # DHCP_LEASE default is applied centrally by lib/env.sh (#237)
     if [ ! "${DHCP_LEASE}" ] || ! validate_lease_time "${DHCP_LEASE}" ; then
         echo "[Error] Invalid DHCP_LEASE: '${DHCP_LEASE}' is not a valid lease time." >&2
         echo "  Expected: integer optionally followed by h/m/s (e.g. 12h, 3600)"
