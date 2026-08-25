@@ -115,6 +115,7 @@ docker run -d \
 | `HT_CAPAB` | No | 802.11n capabilities string (`ht_capab=` in hostapd.conf); requires `HT_ENABLED` | unset |
 | `VHT_ENABLED` | No | Enable 802.11ac Very High Throughput (`ieee80211ac=1`); requires 5 GHz (`HW_MODE=a`) | unset |
 | `VHT_CAPAB` | No | 802.11ac capabilities string (`vht_capab=` in hostapd.conf); requires `VHT_ENABLED` | unset |
+| `HOSTAPD_EXTRA_OPTS` | No | Extra hostapd.conf lines, newline-separated, appended verbatim after all generated lines. Unvalidated: invalid values surface as hostapd config errors in logs (e.g. `"auth_algs=3\nbeacon_int=100"`) | unset |
 | `HEALTHCHECK_START_PERIOD` | No | Grace period (seconds) after container start during which the healthcheck always passes. Measured from the container's own recorded start time (`/run/hostap-started`), not host uptime; see [Health Check](docs/healthcheck.md) | `15` |
 | `CTRL_INTERFACE` | No | Enable hostapd control interface (any non-empty value); allows `clients.sh` to list stations, see [Client Inspection](docs/operations.md#client-inspection-optional) | unset |
 | `CTRL_IFACE_DIR` | No | Control interface socket directory used by `clients.sh` | `/var/run/hostapd` |

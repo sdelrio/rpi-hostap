@@ -185,6 +185,7 @@ setup() {
     . "${BATS_TEST_DIRNAME}/../lib/ssid_hidden.sh"
     . "${BATS_TEST_DIRNAME}/../lib/mac_filter.sh"
     . "${BATS_TEST_DIRNAME}/../lib/ap_isolation.sh"
+    . "${BATS_TEST_DIRNAME}/../lib/extra_opts.sh"
     run emit_hostapd_conf
     [ "$status" -eq 0 ]
     grep -qx 'channel=acs' <<< "$output"
