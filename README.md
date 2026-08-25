@@ -92,7 +92,9 @@ docker run -d \
 |:--------:|:--------:|:-----------:|:-------:|
 | `INTERFACE` | Yes | Wireless interface to use | - |
 | `SSID` | No | Network name | `raspberry` |
+| `SSID_FILE` | No | Path to a file whose first line holds the SSID (Docker secrets `_FILE` convention). Overrides `SSID` when both are set. See [Secret-file inputs](docs/configuration.md#secret-file-inputs-optional) | unset |
 | `WPA_PASSPHRASE` | No | WiFi password (8-63 characters; newlines and control characters are rejected) | `passw0rd` |
+| `WPA_PASSPHRASE_FILE` | No | Path to a file whose first line holds the WPA passphrase (Docker secrets `_FILE` convention). Overrides `WPA_PASSPHRASE` when both are set. See [Secret-file inputs](docs/configuration.md#secret-file-inputs-optional) | unset |
 | `CHANNEL` | No | WiFi channel, or `acs` for automatic channel selection (requires driver support; startup may be delayed while scanning, and the `HEALTHCHECK_START_PERIOD` grace period applies since ACS can land on DFS/radar channels) | `11` |
 | `AP_ADDR` | No | Access point IP | `192.168.254.1` |
 | `SUBNET` | No | Network subnet | `192.168.254.0` |
