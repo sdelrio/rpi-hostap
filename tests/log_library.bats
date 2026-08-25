@@ -119,8 +119,14 @@ load_lib() {
 
 @test "output matches structured format [timestamp] [LEVEL] [script/pid] message" {
     load_lib
-    line=$(log info "structured" 2>/dev/null)
-    [[ "${line}" =~ ^\[[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}[^]]*\]\ \[INFO\]\ \[[^]/]+/[0-9]+\]\ structured$ ]]
+    local line
+    line=$(NO_COLOR=1 log info "structured" 2>/dev/null)
+    local re='^\[[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}[^]]*\] \[INFO\] \[[^]/]+/[0-9]+\] structured$'
+    # shellcheck disable=SC2154
+    [[ "${line}" =~ ${re} ]] || {
+        echo "unexpected line: ${line}" >&2
+        return 1
+    }
 }
 
 @test "message with multiple words is preserved" {
@@ -179,7 +185,15 @@ load_lib() {
     if ! command -v script >/dev/null 2>&1 ; then
         skip "script(1) unavailable"
     fi
-    run script -q /dev/null bash -c "source '${LIB}'; log error 'colored' 2>&1"
+    local flag="-q"
+    # util-linux script needs -e to propagate the child's exit status and
+    # -c to take the command as an argument; BSD script (macOS) takes it
+    # positionally instead.
+    if [ "$(uname -s)" = "Linux" ] ; then
+        flag="-qec"
+    fi
+    # shellcheck disable=SC2086
+    run script ${flag} /dev/null bash -c "source '${LIB}'; log error 'colored' 2>&1"
     [ "$status" -eq 0 ]
     [[ "$output" == *$'\033['[0-9]* ]]
 }
