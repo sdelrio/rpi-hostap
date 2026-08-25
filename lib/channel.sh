@@ -9,6 +9,15 @@ validate_channel() {
     : "${CHANNEL:=11}"
     : "${COUNTRY_CODE:=EU}"
 
+    # Automatic channel selection: skip numeric checks, driver decides.
+    case "${HW_MODE}:${CHANNEL}" in
+        *:acs|*:ACS)
+            echo "[Warning] CHANNEL=acs enables automatic channel selection; requires driver support and may delay startup" >&2
+            echo "[Warning] ACS may select a DFS/radar channel; the HEALTHCHECK_START_PERIOD grace period applies while CAC completes" >&2
+            return 0
+            ;;
+    esac
+
     case "${COUNTRY_CODE}" in
         US|CA|MX) _MAX_CHANNEL=11 ;;
         JP)       _MAX_CHANNEL=14 ;;

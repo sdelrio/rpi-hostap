@@ -129,6 +129,42 @@ setup() {
     [[ "$output" == *"Error"*"not allowed for hw_mode=a"* ]]
 }
 
+# --- ACS (automatic channel selection) ---
+
+@test "CHANNEL=acs passes with hw_mode=g and warns" {
+    HW_MODE="g"
+    CHANNEL="acs"
+    run validate_channel
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Warning"*"acs"* ]]
+}
+
+@test "CHANNEL=acs passes with hw_mode=a and warns" {
+    HW_MODE="a"
+    CHANNEL="acs"
+    run validate_channel
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Warning"*"HEALTHCHECK_START_PERIOD"* ]]
+}
+
+@test "CHANNEL=ACS (uppercase, case-insensitive) passes with any HW_MODE" {
+    for hw in b g a; do
+        HW_MODE="${hw}"
+        CHANNEL="ACS"
+        run validate_channel
+        [ "$status" -eq 0 ]
+        [[ "$output" == *"Warning"*"acs"* ]]
+    done
+}
+
+@test "CHANNEL=acs passes strict validation" {
+    HW_MODE="g"
+    CHANNEL="acs"
+    run validate_channel_strict
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Warning"*"acs"* ]]
+}
+
 # --- non-numeric channel ---
 
 @test "non-numeric channel with hw_mode=g fails" {
