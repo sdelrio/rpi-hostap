@@ -9,4 +9,12 @@ if [[ -z "${INTERFACE:-}" ]] ; then
     exit 1
 fi
 
-exec hostapd_cli -p "${CTRL_IFACE_DIR:-/var/run/hostapd}" -i "${INTERFACE}" all_sta
+CTRL_IFACE_DIR="${CTRL_IFACE_DIR:-/var/run/hostapd}"
+
+if [[ ! -d "${CTRL_IFACE_DIR}" ]] ; then
+    echo "[Error] Control interface not available at ${CTRL_IFACE_DIR}." >&2
+    echo "Restart the container with -e CTRL_INTERFACE=1 to enable it." >&2
+    exit 1
+fi
+
+exec hostapd_cli -p "${CTRL_IFACE_DIR}" -i "${INTERFACE}" all_sta
