@@ -29,6 +29,9 @@ validate_ipv4() {
 #   form a new key when written into the unquoted hostapd.conf heredoc)
 validate_ssid() {
     local ssid=${1:-}
+    # Enforce the byte limit in the C locale so multibyte UTF-8
+    # characters are counted per byte, matching the 802.11 limit.
+    local LC_ALL=C
 
     if [ -z "${ssid}" ] ; then
         echo "[Error] Invalid SSID: must not be empty." >&2
@@ -36,7 +39,7 @@ validate_ssid() {
     fi
 
     if [ "${#ssid}" -gt 32 ] ; then
-        echo "[Error] Invalid SSID: must be at most 32 characters (got ${#ssid})." >&2
+        echo "[Error] Invalid SSID: must be at most 32 bytes (got ${#ssid} bytes)." >&2
         return 1
     fi
 

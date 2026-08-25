@@ -68,3 +68,16 @@ load_lib() {
     [ "$status" -ne 0 ]
     [[ "$output" == *"Invalid SSID"* ]]
 }
+
+@test "SSID of 32 multibyte characters (over 32 bytes) is rejected" {
+    load_lib
+    run validate_ssid "$(printf 'é%.0s' {1..32})"
+    [ "$status" -ne 0 ]
+    [[ "$output" == *"Invalid SSID"* ]]
+}
+
+@test "SSID within 32 bytes containing multibyte characters is accepted" {
+    load_lib
+    run validate_ssid "ááááááááááááááá"  # 15 chars = 30 bytes in UTF-8
+    [ "$status" -eq 0 ]
+}
