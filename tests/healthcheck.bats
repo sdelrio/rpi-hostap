@@ -221,6 +221,16 @@ EOF
     [[ "$output" == *"hostapd is not in ENABLED state"* ]]
 }
 
+@test "deep check fails with explicit error when INTERFACE is unset (issue #185)" {
+    export HEALTHCHECK_DEEP=1
+    unset INTERFACE
+    mock_bin pidof 'exit 0'
+    mock_bin hostapd_cli 'echo "state=ENABLED"; exit 0'
+    run ./healthcheck.sh
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"HEALTHCHECK_DEEP requires INTERFACE to be set"* ]]
+}
+
 @test "deep check is skipped by default (no HEALTHCHECK_DEEP)" {
     mock_bin pidof 'exit 0'
     mock_bin ip 'if [ "$1" = "link" ]; then echo "state UP"; fi; exit 0'
