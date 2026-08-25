@@ -51,3 +51,26 @@ load_emit_fns() {
     grep -q 'interface=wlan0' "${target}"
     ! grep -q 'OLD-CONFIG' "${target}"
 }
+
+@test "successful generation preserves the target permissions" {
+    . "${LIB_DIR}/atomic.sh"
+    chmod 640 "${target}"
+    good_emit() { printf 'interface=wlan0\n'; }
+    run write_atomic_config good_emit "${target}"
+    [ "$status" -eq 0 ]
+    [ "$(stat -c '%a' "${target}" 2>/dev/null || stat -f '%Lp' "${target}")" = "640" ]
+}
+
+@test "temp file is created next to the target (same filesystem)" {
+    . "${LIB_DIR}/atomic.sh"
+    local_dir=$(mktemp -d)
+    local_target="${local_dir}/hostapd.conf"
+    printf 'OLD-CONFIG\n' > "${local_target}"
+    good_emit() { printf 'interface=wlan0\n'; }
+    run write_atomic_config good_emit "${local_target}"
+    [ "$status" -eq 0 ]
+    grep -q 'interface=wlan0' "${local_target}"
+    # no leftover temp files in the target directory
+    [ "$(ls -A "${local_dir}" | sort | tr '\n' ' ')" = "hostapd.conf " ]
+    rm -rf "${local_dir}"
+}
