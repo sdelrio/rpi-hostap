@@ -1,8 +1,14 @@
 #!/bin/bash
 
-# List stations currently associated with the AP via hostapd_cli.
+# Client management via hostapd_cli.
+#   clients.sh              list all associated stations (all_sta)
+#   clients.sh deauth <mac> deauthenticate a station
 # Requires CTRL_INTERFACE=1 so hostapd.conf exposes ctrl_interface.
 set -euo pipefail
+
+usage() {
+    echo "Usage: clients.sh [deauth <mac>]" >&2
+}
 
 if [[ -z "${INTERFACE:-}" ]] ; then
     echo "[Error] INTERFACE must be set." >&2
@@ -17,4 +23,26 @@ if [[ ! -d "${CTRL_IFACE_DIR}" ]] ; then
     exit 1
 fi
 
-exec hostapd_cli -p "${CTRL_IFACE_DIR}" -i "${INTERFACE}" all_sta
+CMD="${1:-}"
+
+case "${CMD}" in
+    "")
+        exec hostapd_cli -p "${CTRL_IFACE_DIR}" -i "${INTERFACE}" all_sta
+        ;;
+    deauth)
+        if [[ $# -ne 2 ]] ; then
+            usage
+            exit 1
+        fi
+        MAC="${2}"
+        if [[ ! "${MAC}" =~ ^([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}$ ]] ; then
+            echo "[Error] Invalid MAC address '${MAC}' (expected aa:bb:cc:dd:ee:ff)." >&2
+            exit 1
+        fi
+        exec hostapd_cli -p "${CTRL_IFACE_DIR}" -i "${INTERFACE}" deauthenticate "${MAC}"
+        ;;
+    *)
+        usage
+        exit 1
+        ;;
+esac
