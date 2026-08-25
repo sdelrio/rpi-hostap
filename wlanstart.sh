@@ -55,10 +55,20 @@ case "${1:-}" in
         VALIDATE_ONLY=1
         shift
         ;;
+    --version|-V)
+        if [ -n "${WLANSTART_VERSION:-}" ] ; then
+            echo "${WLANSTART_VERSION}"
+        elif command -v jq >/dev/null 2>&1 && [ -f "$(dirname "$0")/scripts/get-version.sh" ] ; then
+            sh "$(dirname "$0")/scripts/get-version.sh" 2>/dev/null || echo "unknown"
+        else
+            echo "unknown"
+        fi
+        exit 0
+        ;;
     "")
         ;;
     *)
-        echo "[Error] Unknown option '${1}'. Usage: wlanstart.sh [--validate|-t|--test]" >&2
+        echo "[Error] Unknown option '${1}'. Usage: wlanstart.sh [--version|-V|--validate|-t|--test]" >&2
         exit 1
         ;;
 esac
