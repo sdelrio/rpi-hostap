@@ -18,6 +18,14 @@ docker exec rpi-hostap clients.sh
 
 Output includes MAC address, signal, connected time and tx/rx rates per station (as reported by `hostapd_cli all_sta`). The control interface directory can be overridden with `CTRL_IFACE_DIR` (default `/var/run/hostapd`).
 
+To deauthenticate a specific station, pass its MAC address as a `deauth` subcommand:
+
+```bash
+docker exec rpi-hostap clients.sh deauth aa:bb:cc:dd:ee:ff
+```
+
+The MAC must be in `aa:bb:cc:dd:ee:ff` format (case-insensitive); invalid addresses are rejected with an error.
+
 See also: the [deep healthcheck](healthcheck.md#deep-healthcheck-optional) uses the same control interface - enabling either option is sufficient for both. Client inspection is also useful to verify that [MAC address filtering](configuration.md#mac-address-filtering-optional) works as expected.
 
 ---
