@@ -167,14 +167,14 @@ setup() {
     [[ "${lines[*]}" == *"Invalid SUBNET"* ]]
 }
 
-# The container hardcodes a /24 layout (AP_ADDR/24 on the interface,
-# ${SUBNET}/24 iptables rules), so non-/24 subnets are unsupported and
-# rejected explicitly rather than silently producing a bogus /24 range.
+# The default range is /24, so SUBNET must then be a network address
+# for that mask (last octet 0). With an explicit DHCP_RANGE any
+# contiguous mask is supported; SUBNET just has to match it.
 @test "default range rejected for non-/24 SUBNET" {
     SUBNET="192.168.254.7"
     run compute_dhcp_range
     [ "$status" -eq 1 ]
-    [[ "${lines[*]}" == *"'192.168.254.7' is not a /24 network address"* ]]
+    [[ "${lines[*]}" == *"'192.168.254.7' is not a network address for the default /24 mask"* ]]
 }
 
 @test "invalid DHCP_LEASE fails for default range" {
@@ -182,4 +182,83 @@ setup() {
     run compute_dhcp_range
     [ "$status" -eq 1 ]
     [[ "${lines[*]}" == *"Invalid DHCP_LEASE: 'forever' is not a valid lease time"* ]]
+}
+
+@test "/28 DHCP_RANGE sets DHCP_PREFIX to 28" {
+    # shellcheck disable=SC2016
+    run bash -c '
+        . "'"${REPO_ROOT}"'/lib/dhcp.sh"
+        SUBNET="192.168.254.16" AP_ADDR="192.168.254.17" INTERFACE="wlan0"
+        PRI_DNS="8.8.8.8" SEC_DNS="8.8.4.4"
+        DHCP_RANGE="192.168.254.20,192.168.254.30,255.255.255.240,12h"
+        compute_dhcp_range > /dev/null || exit 1
+        echo "${DHCP_PREFIX}"
+    '
+    [ "$status" -eq 0 ]
+    [ "${output}" = "28" ]
+}
+
+@test "default range sets DHCP_PREFIX to 24" {
+    # shellcheck disable=SC2016
+    run bash -c '
+        . "'"${REPO_ROOT}"'/lib/dhcp.sh"
+        SUBNET="192.168.254.0" AP_ADDR="192.168.254.1" INTERFACE="wlan0"
+        PRI_DNS="8.8.8.8" SEC_DNS="8.8.4.4"
+        compute_dhcp_range > /dev/null 2>&1 || exit 1
+        echo "${DHCP_PREFIX}"
+    '
+    [ "$status" -eq 0 ]
+    [ "${output}" = "24" ]
+}
+
+@test "explicit /24 DHCP_RANGE sets DHCP_PREFIX to 24" {
+    # shellcheck disable=SC2016
+    run bash -c '
+        . "'"${REPO_ROOT}"'/lib/dhcp.sh"
+        SUBNET="10.10.10.0" AP_ADDR="10.10.10.1" INTERFACE="wlan0"
+        PRI_DNS="8.8.8.8" SEC_DNS="8.8.4.4"
+        DHCP_RANGE="10.10.10.50,10.10.10.150,255.255.255.0,12h"
+        compute_dhcp_range > /dev/null || exit 1
+        echo "${DHCP_PREFIX}"
+    '
+    [ "$status" -eq 0 ]
+    [ "${output}" = "24" ]
+}
+
+@test "/16 DHCP_RANGE sets DHCP_PREFIX to 16" {
+    # shellcheck disable=SC2016
+    run bash -c '
+        . "'"${REPO_ROOT}"'/lib/dhcp.sh"
+        SUBNET="192.168.0.0" AP_ADDR="192.168.254.1" INTERFACE="wlan0"
+        PRI_DNS="8.8.8.8" SEC_DNS="8.8.4.4"
+        DHCP_RANGE="192.168.100.50,192.168.200.150,255.255.0.0,12h"
+        compute_dhcp_range > /dev/null || exit 1
+        echo "${DHCP_PREFIX}"
+    '
+    [ "$status" -eq 0 ]
+    [ "${output}" = "16" ]
+}
+
+@test "non-contiguous netmask in DHCP_RANGE fails" {
+    DHCP_RANGE="192.168.254.100,192.168.254.200,255.0.255.0,12h"
+    run compute_dhcp_range
+    [ "$status" -eq 1 ]
+    [[ "${lines[*]}" == *"field 3 '255.0.255.0' is not a usable netmask"* ]]
+}
+
+@test "SUBNET with host bits set fails for /28 mask" {
+    SUBNET="192.168.254.17"
+    DHCP_RANGE="192.168.254.20,192.168.254.30,255.255.255.240,12h"
+    run compute_dhcp_range
+    [ "$status" -eq 1 ]
+    [[ "${lines[*]}" == *"Invalid SUBNET: '192.168.254.17' is not a network address for mask 255.255.255.240"* ]]
+}
+
+@test "SUBNET network address matching /28 mask is accepted" {
+    SUBNET="192.168.254.16"
+    AP_ADDR="192.168.254.17"
+    DHCP_RANGE="192.168.254.20,192.168.254.30,255.255.255.240,12h"
+    run compute_dhcp_range
+    [ "$status" -eq 0 ]
+    [ "${lines[@]: -1}" = "192.168.254.20,192.168.254.30,255.255.255.240,12h" ]
 }

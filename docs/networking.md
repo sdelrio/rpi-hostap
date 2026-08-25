@@ -1,5 +1,20 @@
 # Networking
 
+## Subnet Mask
+
+The subnet prefix defaults to `/24` (netmask `255.255.255.0`). To use a different subnet size, set the netmask field of `DHCP_RANGE` explicitly; the prefix is derived from it and applied everywhere (AP interface address, NAT rules):
+
+```bash
+docker run ... -e SUBNET=192.168.254.16 -e AP_ADDR=192.168.254.17 \
+    -e DHCP_RANGE="192.168.254.20,192.168.254.30,255.255.255.240,12h" ...
+```
+
+Notes:
+
+- The mask must be contiguous (e.g. `255.255.255.240` = `/28`).
+- `SUBNET` must be the network address for that mask (host bits zero); e.g. for a `/28`, the last octet must be a multiple of 16.
+- When `DHCP_RANGE` is unset, the default range uses a `/24` layout, so `SUBNET` must end in `.0`.
+
 ## NAT / IP Forwarding
 
 The container enables IP forwarding at runtime. For persistence across host reboots:
@@ -47,4 +62,4 @@ docker run ... -e OUTGOINGS=eth0,wwan0 ...
 
 ---
 
-_Last updated: 2026-08-24_
+_Last updated: 2026-08-25_

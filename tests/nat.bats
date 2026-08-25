@@ -74,6 +74,14 @@ setup() {
     rm -f "${log}"
 }
 
+@test "apply_nat_rules uses DHCP_PREFIX when set" {
+    DHCP_PREFIX=28
+    iptables() { echo "iptables $*"; }
+    run apply_nat_rules
+    [ "$status" -eq 0 ]
+    [[ "${output}" == *"iptables -t nat -A POSTROUTING -s 192.168.254.0/28 -j MASQUERADE"* ]]
+}
+
 @test "remove_nat_rules deletes rules per interface with OUTGOINGS" {
     local log
     log=$(mktemp)

@@ -59,6 +59,58 @@ validate_ssid() {
     fi
 }
 
+# netmask_to_prefix converts a dotted-decimal netmask to its CIDR prefix
+# length (e.g. 255.255.255.240 -> 28). The mask must be contiguous
+# (255s, then optionally one partial octet, then 0s). Pure bash so it can
+# be tested on macOS without network tools. Prints the prefix on stdout.
+netmask_to_prefix() {
+    local mask=${1:-} octet prefix=0 seen_partial=0
+    if ! validate_ipv4 "${mask}" ; then
+        echo "[Error] Invalid netmask: '${mask}' is not a valid IPv4 address." >&2
+        return 1
+    fi
+    for octet in ${mask//./ } ; do
+        if [ "${octet}" = "255" ] && [ "${seen_partial}" -eq 0 ] ; then
+            prefix=$((prefix + 8))
+        elif [ "${octet}" = "0" ] ; then
+            seen_partial=1
+        elif [ "${seen_partial}" -eq 0 ] ; then
+            # Partial octet: must be contiguous high bits (128..254)
+            case "${octet}" in
+                128) prefix=$((prefix + 1)) ;;
+                192) prefix=$((prefix + 2)) ;;
+                224) prefix=$((prefix + 3)) ;;
+                240) prefix=$((prefix + 4)) ;;
+                248) prefix=$((prefix + 5)) ;;
+                252) prefix=$((prefix + 6)) ;;
+                254) prefix=$((prefix + 7)) ;;
+                *)
+                    echo "[Error] Invalid netmask: '${mask}' is not a contiguous mask." >&2
+                    return 1
+                    ;;
+            esac
+            seen_partial=1
+        else
+            echo "[Error] Invalid netmask: '${mask}' is not a contiguous mask." >&2
+            return 1
+        fi
+    done
+    echo "${prefix}"
+}
+
+# is_network_address checks that addr has all host bits zero for the
+# given dotted-decimal netmask (i.e. addr & mask == addr). Pure bash.
+is_network_address() {
+    local addr=${1:-} mask=${2:-}
+    local a1 a2 a3 a4 m1 m2 m3 m4
+    IFS=. read -r a1 a2 a3 a4 <<<"${addr}"
+    IFS=. read -r m1 m2 m3 m4 <<<"${mask}"
+    [ $(( a1 & m1 )) -eq "${a1}" ] || return 1
+    [ $(( a2 & m2 )) -eq "${a2}" ] || return 1
+    [ $(( a3 & m3 )) -eq "${a3}" ] || return 1
+    [ $(( a4 & m4 )) -eq "${a4}" ] || return 1
+}
+
 # validate_ipv4_param checks that a named parameter holds a valid IPv4
 # address, printing the standard error message on failure.
 validate_ipv4_param() {

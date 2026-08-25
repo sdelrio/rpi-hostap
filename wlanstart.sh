@@ -292,6 +292,10 @@ fi
 validate_ipv4_param SUBNET "${SUBNET}" || exit 1
 validate_ipv4_param AP_ADDR "${AP_ADDR}" || exit 1
 
+# Compute DHCP range early so the netmask-derived prefix (DHCP_PREFIX)
+# is available for setup_interface and apply_nat_rules.
+compute_dhcp_range > /dev/null || exit 1
+
 # Always regenerate hostapd.conf so env var changes apply between runs.
 # Generated atomically so a failure leaves the old config intact (#157).
 write_atomic_config emit_hostapd_conf "/etc/hostapd.conf" || exit 1
