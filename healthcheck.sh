@@ -5,7 +5,11 @@ set -euo pipefail
 # Checks if hostapd, dnsmasq are running and the interface is up
 
 # Configurable start period via environment variable (default: 15s)
-START_PERIOD="${HEALTHCHECK_START_PERIOD:-15}"
+START_PERIOD="${HEALTHCHECK_START_PERIOD-15}"
+if ! [[ "${START_PERIOD}" =~ ^[0-9]+$ ]]; then
+    echo "[Warning] Invalid HEALTHCHECK_START_PERIOD '${START_PERIOD}', using 15" >&2
+    START_PERIOD=15
+fi
 
 # Grace period is measured from the container's own start time, recorded
 # by wlanstart.sh at boot (/proc/uptime reflects HOST uptime in Docker
