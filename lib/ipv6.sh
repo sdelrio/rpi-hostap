@@ -33,7 +33,7 @@ enable_ipv6_forwarding() {
 apply_ipv6_rules() {
     if [ "${OUTGOINGS}" ] ; then
         local int
-        parse_outgoings
+        validate_outgoings || return 1
         for int in "${ints[@]}" ; do
             ip6tables -D FORWARD -i "${int}" -o "${INTERFACE}" -m state --state RELATED,ESTABLISHED -j ACCEPT > /dev/null 2>&1 || true
             ip6tables -A FORWARD -i "${int}" -o "${INTERFACE}" -m state --state RELATED,ESTABLISHED -j ACCEPT

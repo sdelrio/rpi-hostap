@@ -34,12 +34,22 @@ setup() {
     IPV6=1
     OUTGOINGS="eth0,eth1"
     parse_outgoings() { ints=("eth0" "eth1"); }
+    interface_exists() { return 0; }
     ip6tables() { echo "ip6tables $*"; }
     parse_outgoings
     run apply_ipv6_rules
     [ "$status" -eq 0 ]
     [[ "${output}" == *"ip6tables -A FORWARD -i eth0 -o wlan0"* ]]
     [[ "${output}" == *"ip6tables -A FORWARD -i wlan0 -o eth1"* ]]
+}
+
+@test "apply_ipv6_rules fails fast naming nonexistent OUTGOINGS interface" {
+    IPV6=1
+    OUTGOINGS="bogus9"
+    ip6tables() { echo "ip6tables $*"; }
+    run apply_ipv6_rules
+    [ "$status" -eq 1 ]
+    [[ "${output}" == *"[Error] OUTGOINGS interface 'bogus9' does not exist"* ]]
 }
 
 @test "apply_ipv6_rules without OUTGOINGS uses generic rules" {
@@ -79,6 +89,7 @@ setup() {
 @test "apply_ipv6_rules works standalone with OUTGOINGS (no nat.sh loaded)" {
     run bash -c '
         ip6tables() { echo "ip6tables $*" >&2; }
+        ip() { return 0; }
         . "'"${REPO_ROOT}"'/lib/ipv6.sh"
         INTERFACE="wlan0" OUTGOINGS="eth0,eth1" apply_ipv6_rules
     '
