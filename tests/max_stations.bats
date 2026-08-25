@@ -36,18 +36,18 @@ setup() {
     [ "$output" = "" ]
 }
 
-@test "negative MAX_STATIONS produces warning and no config line" {
+@test "negative MAX_STATIONS fails with error and no config line" {
     MAX_STATIONS=-5
     run compute_max_sta_conf
-    [ "$status" -eq 0 ]
+    [ "$status" -ne 0 ]
     [[ "$output" == *"Invalid MAX_STATIONS"* ]]
     [[ "$output" != *"max_num_sta"* ]]
 }
 
-@test "non-numeric MAX_STATIONS produces warning and no config line" {
+@test "non-numeric MAX_STATIONS fails with error and no config line" {
     MAX_STATIONS="abc"
     run compute_max_sta_conf
-    [ "$status" -eq 0 ]
+    [ "$status" -ne 0 ]
     [[ "$output" == *"Invalid MAX_STATIONS"* ]]
     [[ "$output" != *"max_num_sta"* ]]
 }
@@ -64,4 +64,10 @@ setup() {
     run compute_max_sta_conf
     [ "$status" -eq 0 ]
     [[ "$output" != *"Invalid"* ]]
+}
+
+@test "invalid MAX_STATIONS aborts --validate" {
+    run env -i PATH="${PATH}" HOME="${HOME}" INTERFACE=wlan0 SSID=x WPA_PASSPHRASE=supersecret MAX_STATIONS=abc "${BATS_TEST_DIRNAME}/../wlanstart.sh" --validate
+    [ "$status" -ne 0 ]
+    [[ "$output" == *"Invalid MAX_STATIONS"* ]]
 }
