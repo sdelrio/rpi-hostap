@@ -8,6 +8,13 @@
 #
 # compute_dnsmasq_ipv6_conf prints the extra dnsmasq.conf line (or nothing
 # when disabled). Messages go to stderr.
+
+# Ensure parse_outgoings (lib/nat.sh) is available so the rule functions
+# below are self-contained and can be called without apply_nat_rules first.
+if ! declare -F parse_outgoings > /dev/null 2>&1 ; then
+    # shellcheck source=lib/nat.sh
+    . "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/nat.sh"
+fi
 compute_dnsmasq_ipv6_conf() {
     if [ "${IPV6:-0}" != "1" ] ; then
         echo "[Info] IPV6 not enabled, skipping IPv6 RA/DHCPv6 configuration." >&2
@@ -22,11 +29,11 @@ enable_ipv6_forwarding() {
 }
 
 # apply_ipv6_rules adds ip6tables FORWARD rules mirroring the IPv4 ones.
-# ints is populated by parse_outgoings from lib/nat.sh.
 # shellcheck disable=SC2154
 apply_ipv6_rules() {
     if [ "${OUTGOINGS}" ] ; then
         local int
+        parse_outgoings
         for int in "${ints[@]}" ; do
             ip6tables -D FORWARD -i "${int}" -o "${INTERFACE}" -m state --state RELATED,ESTABLISHED -j ACCEPT > /dev/null 2>&1 || true
             ip6tables -A FORWARD -i "${int}" -o "${INTERFACE}" -m state --state RELATED,ESTABLISHED -j ACCEPT
@@ -44,10 +51,10 @@ apply_ipv6_rules() {
 }
 
 # remove_ipv6_rules deletes the ip6tables rules added by apply_ipv6_rules.
-# shellcheck disable=SC2154
 remove_ipv6_rules() {
     if [ "${OUTGOINGS}" ] ; then
         local int
+        parse_outgoings
         for int in "${ints[@]}" ; do
             ip6tables -D FORWARD -i "${int}" -o "${INTERFACE}" -m state --state RELATED,ESTABLISHED -j ACCEPT > /dev/null 2>&1 || true
             ip6tables -D FORWARD -i "${INTERFACE}" -o "${int}" -j ACCEPT > /dev/null 2>&1 || true
