@@ -8,12 +8,16 @@
 # three fields must be well-formed IPv4 addresses and the fourth must be a
 # dnsmasq-style lease time (integer optionally followed by h/m/s).
 #
-# SUBNET handling: this container hardcodes a /24 layout everywhere
-# (${AP_ADDR}/24 on the interface, ${SUBNET}/24 iptables rules), so only
-# /24 networks are supported. SUBNET must therefore be a valid IPv4
-# address whose last octet is 0 (a /24 network address); anything else -
-# including wrong octet counts - is rejected explicitly instead of being
-# silently mangled into a bogus default range.
+# SUBNET handling: the CIDR prefix comes from the DHCP_RANGE netmask
+# field and propagates to the interface address (${AP_ADDR}/<prefix>)
+# and NAT rules. When DHCP_RANGE is unset a default /24 range is
+# computed from SUBNET, so SUBNET must then be a valid IPv4 address
+# whose last octet is 0 (a /24 network address). With an explicit
+# DHCP_RANGE, any mask is accepted as long as SUBNET is its network
+# address; anything else - including wrong octet counts - is rejected
+# explicitly instead of being silently mangled into a bogus range.
+# The derived prefix is exported as DHCP_PREFIX for lib/interface.sh
+# and lib/nat.sh.
 #
 # Prints the resulting range to stdout. Messages go to stderr.
 # Returns non-zero for invalid input.
@@ -44,13 +48,15 @@ compute_dhcp_range() {
             echo "[Error] Invalid SUBNET: '${SUBNET}' is not a valid IPv4 address." >&2
             return 1
         fi
-        # Only /24 networks are supported by the rest of the setup.
+        # Only /24 networks are supported for the default range.
         if [ "${SUBNET##*.}" != "0" ] ; then
-            echo "[Error] Invalid SUBNET: '${SUBNET}' is not a /24 network address (last octet must be 0)." >&2
+            echo "[Error] Invalid SUBNET: '${SUBNET}' is not a network address for the default /24 mask (last octet must be 0)." >&2
             return 1
         fi
         local prefix=${SUBNET%.*}
         DHCP_RANGE="${prefix}.100,${prefix}.200,255.255.255.0,${DHCP_LEASE}"
+        DHCP_PREFIX=24
+        export DHCP_PREFIX
         echo "[Warning] DHCP_RANGE not set, using default: $DHCP_RANGE" >&2
     else
         local COMMA_COUNT
@@ -76,6 +82,19 @@ compute_dhcp_range() {
             echo "[Error] Invalid DHCP_RANGE: field 3 '${netmask}' is not a valid IPv4 address" >&2
             return 1
         fi
+        # Derive the CIDR prefix from the netmask; this propagates to the
+        # interface address (${AP_ADDR}/<prefix>) and NAT rules.
+        if ! DHCP_PREFIX=$(netmask_to_prefix "${netmask}") ; then
+            echo "[Error] Invalid DHCP_RANGE: field 3 '${netmask}' is not a usable netmask" >&2
+            return 1
+        fi
+        # SUBNET must be the network address for the configured mask.
+        if [ -n "${SUBNET:-}" ] && validate_ipv4 "${SUBNET}" \
+           && ! is_network_address "${SUBNET}" "${netmask}" ; then
+            echo "[Error] Invalid SUBNET: '${SUBNET}' is not a network address for mask ${netmask} (host bits must be 0)." >&2
+            return 1
+        fi
+        export DHCP_PREFIX
         if ! validate_lease_time "${lease_time}" ; then
             echo "[Error] Invalid DHCP_RANGE: field 4 '${lease_time}' is not a valid lease time" >&2
             echo "  Expected: integer optionally followed by h/m/s (e.g. 12h, 3600)" >&2

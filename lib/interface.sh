@@ -11,8 +11,8 @@ setup_interface() {
         echo "[Error] Failed to flush addresses on ${INTERFACE}" >&2
         return 1
     }
-    ip addr add "${AP_ADDR}"/24 dev "${INTERFACE}" || {
-        echo "[Error] Failed to assign ${AP_ADDR}/24 to ${INTERFACE}" >&2
+    ip addr add "${AP_ADDR}/${DHCP_PREFIX:-24}" dev "${INTERFACE}" || {
+        echo "[Error] Failed to assign ${AP_ADDR}/${DHCP_PREFIX:-24} to ${INTERFACE}" >&2
         return 1
     }
 }

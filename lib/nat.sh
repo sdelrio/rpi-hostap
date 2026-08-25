@@ -22,8 +22,8 @@ apply_nat_rules() {
         do
             echo "Setting iptables for outgoing traffics on ${int}..."
 
-            iptables -t nat -D POSTROUTING -s "${SUBNET}/24" -o "${int}" -j MASQUERADE > /dev/null 2>&1 || true
-            iptables -t nat -A POSTROUTING -s "${SUBNET}/24" -o "${int}" -j MASQUERADE
+            iptables -t nat -D POSTROUTING -s "${SUBNET}/${DHCP_PREFIX:-24}" -o "${int}" -j MASQUERADE > /dev/null 2>&1 || true
+            iptables -t nat -A POSTROUTING -s "${SUBNET}/${DHCP_PREFIX:-24}" -o "${int}" -j MASQUERADE
 
             iptables -D FORWARD -i "${int}" -o "${INTERFACE}" -m state --state RELATED,ESTABLISHED -j ACCEPT > /dev/null 2>&1 || true
             iptables -A FORWARD -i "${int}" -o "${INTERFACE}" -m state --state RELATED,ESTABLISHED -j ACCEPT
@@ -34,8 +34,8 @@ apply_nat_rules() {
     else
         echo "Setting iptables for outgoing traffics on all interfaces..."
 
-        iptables -t nat -D POSTROUTING -s "${SUBNET}/24" -j MASQUERADE > /dev/null 2>&1 || true
-        iptables -t nat -A POSTROUTING -s "${SUBNET}/24" -j MASQUERADE
+        iptables -t nat -D POSTROUTING -s "${SUBNET}/${DHCP_PREFIX:-24}" -j MASQUERADE > /dev/null 2>&1 || true
+        iptables -t nat -A POSTROUTING -s "${SUBNET}/${DHCP_PREFIX:-24}" -j MASQUERADE
 
         iptables -D FORWARD -o "${INTERFACE}" -m state --state RELATED,ESTABLISHED -j ACCEPT > /dev/null 2>&1 || true
         iptables -A FORWARD -o "${INTERFACE}" -m state --state RELATED,ESTABLISHED -j ACCEPT
@@ -71,13 +71,13 @@ remove_nat_rules() {
         parse_outgoings
         for int in "${ints[@]}" ; do
             echo "Removing iptables for outgoing traffics on ${int}..."
-            iptables -t nat -D POSTROUTING -s "${SUBNET}/24" -o "${int}" -j MASQUERADE > /dev/null 2>&1 || true
+            iptables -t nat -D POSTROUTING -s "${SUBNET}/${DHCP_PREFIX:-24}" -o "${int}" -j MASQUERADE > /dev/null 2>&1 || true
             iptables -D FORWARD -i "${int}" -o "${INTERFACE}" -m state --state RELATED,ESTABLISHED -j ACCEPT > /dev/null 2>&1 || true
             iptables -D FORWARD -i "${INTERFACE}" -o "${int}" -j ACCEPT > /dev/null 2>&1 || true
         done
     else
         echo "Removing iptables for outgoing traffics on all interfaces..."
-        iptables -t nat -D POSTROUTING -s "${SUBNET}/24" -j MASQUERADE > /dev/null 2>&1 || true
+        iptables -t nat -D POSTROUTING -s "${SUBNET}/${DHCP_PREFIX:-24}" -j MASQUERADE > /dev/null 2>&1 || true
         iptables -D FORWARD -o "${INTERFACE}" -m state --state RELATED,ESTABLISHED -j ACCEPT > /dev/null 2>&1 || true
         iptables -D FORWARD -i "${INTERFACE}" -j ACCEPT > /dev/null 2>&1 || true
     fi

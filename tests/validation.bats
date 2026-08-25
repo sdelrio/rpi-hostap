@@ -83,3 +83,42 @@ validate_ipv4_param AP_ADDR \"\${AP_ADDR}\" || exit 1
     SUBNET="192.168.254.0" AP_ADDR="192.168.254.1" run run_wlanstart_validation
     [ "$status" -eq 0 ]
 }
+
+@test "netmask_to_prefix converts common masks" {
+    load_lib
+    for pair in "255.255.255.0:24" "255.255.0.0:16" "255.0.0.0:8" "0.0.0.0:0" "255.255.255.255:32" "255.255.255.240:28" "255.255.255.128:25" "255.255.240.0:20" ; do
+        mask="${pair%:*}"
+        want="${pair#*:}"
+        run netmask_to_prefix "${mask}"
+        [ "$status" -eq 0 ]
+        [ "${output}" = "${want}" ]
+    done
+}
+
+@test "netmask_to_prefix rejects invalid masks" {
+    load_lib
+    for mask in 255.0.255.0 255.255.0.255 255.255.255.1 255.255.255.3 not-a-mask 255.0.0 "192.168.256.0" ; do
+        run netmask_to_prefix "${mask}"
+        [ "$status" -ne 0 ]
+    done
+}
+
+@test "is_network_address accepts network addresses matching the mask" {
+    load_lib
+    for pair in "192.168.254.0:255.255.255.0" "192.168.254.16:255.255.255.240" "10.0.0.0:255.0.0.0" ; do
+        addr="${pair%%:*}"
+        mask="${pair#*:}"
+        run is_network_address "${addr}" "${mask}"
+        [ "$status" -eq 0 ]
+    done
+}
+
+@test "is_network_address rejects host bits set" {
+    load_lib
+    for pair in "192.168.254.7:255.255.255.0" "192.168.254.17:255.255.255.240" "10.1.0.0:255.0.0.0" ; do
+        addr="${pair%%:*}"
+        mask="${pair#*:}"
+        run is_network_address "${addr}" "${mask}"
+        [ "$status" -ne 0 ]
+    done
+}
