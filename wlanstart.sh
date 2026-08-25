@@ -59,7 +59,7 @@ case "${1:-}" in
         if [ -n "${WLANSTART_VERSION:-}" ] ; then
             echo "${WLANSTART_VERSION}"
         elif command -v jq >/dev/null 2>&1 && [ -f "$(dirname "$0")/scripts/get-version.sh" ] ; then
-            sh "$(dirname "$0")/scripts/get-version.sh" 2>/dev/null || echo "unknown"
+            bash "$(dirname "$0")/scripts/get-version.sh" 2>/dev/null || echo "unknown"
         else
             echo "unknown"
         fi
