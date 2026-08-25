@@ -62,6 +62,10 @@ fi
 # Note: DFS CAC can take 60s+ on radar channels; raise HEALTHCHECK_START_PERIOD
 # (e.g. 90) so this check doesn't fail during channel availability scan.
 if [[ -n "${HEALTHCHECK_DEEP:-}" ]]; then
+    if [[ -z "${INTERFACE:-}" ]]; then
+        echo "HEALTHCHECK_DEEP requires INTERFACE to be set" >&2
+        exit 1
+    fi
     HOSTAPD_STATUS="$(hostapd_cli -p /var/run/hostapd -i "${INTERFACE}" status 2>/dev/null || true)"
     if ! echo "${HOSTAPD_STATUS}" | grep -q "^state=ENABLED"; then
         echo "hostapd is not in ENABLED state" >&2
