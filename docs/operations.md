@@ -18,6 +18,18 @@ docker exec rpi-hostap clients.sh
 
 Output includes MAC address, signal, connected time and tx/rx rates per station (as reported by `hostapd_cli all_sta`). The control interface directory can be overridden with `CTRL_IFACE_DIR` (default `/var/run/hostapd`).
 
+For machine-readable output, pass `--json` to get a JSON array of station objects with `mac`, `aid`, `signal` and `connected_time` fields:
+
+```bash
+docker exec rpi-hostap clients.sh --json
+```
+
+Example output:
+
+```json
+[{"mac":"aa:bb:cc:dd:ee:ff","aid":"1","signal":"-45","connected_time":"120"}]
+```
+
 To deauthenticate a specific station, pass its MAC address as a `deauth` subcommand:
 
 ```bash
