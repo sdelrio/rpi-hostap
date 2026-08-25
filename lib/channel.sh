@@ -11,7 +11,7 @@ validate_channel() {
 
     # Automatic channel selection: skip numeric checks, driver decides.
     case "${HW_MODE}:${CHANNEL}" in
-        *:acs|*:ACS)
+        *:[aA][cC][sS])
             echo "[Warning] CHANNEL=acs enables automatic channel selection; requires driver support and may delay startup" >&2
             echo "[Warning] ACS may select a DFS/radar channel; the HEALTHCHECK_START_PERIOD grace period applies while CAC completes" >&2
             return 0
