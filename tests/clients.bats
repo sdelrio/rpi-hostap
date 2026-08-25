@@ -89,3 +89,62 @@ EOF
     [ "$status" -ne 0 ]
     [[ "$output" == *"Usage: clients.sh"* ]]
 }
+
+@test "--json emits valid JSON array for stubbed all_sta output (issue #198)" {
+    export INTERFACE=wlan0
+    mkdir -p "${BATS_TEST_TMPDIR}/hostapd"
+    export CTRL_IFACE_DIR="${BATS_TEST_TMPDIR}/hostapd"
+    cat > "${BATS_TEST_TMPDIR}/hostapd_cli" <<'EOF'
+#!/bin/bash
+cat <<'STA'
+aa:bb:cc:dd:ee:ff
+flags=0x0
+aid=1
+signal=-45
+connected_time=120
+rx_rate=54.0
+tx_rate=6.5
+
+11:22:33:44:55:66
+aid=2
+signal=-61
+connected_time=30
+STA
+EOF
+    chmod +x "${BATS_TEST_TMPDIR}/hostapd_cli"
+    run "${BATS_TEST_DIRNAME}/../clients.sh" --json
+    [ "$status" -eq 0 ]
+    [ "$(printf '%s' "$output" | python3 -c 'import json,sys; d=json.load(sys.stdin); print(len(d), d[0]["mac"], d[0]["aid"], d[1]["signal"])')" = "2 aa:bb:cc:dd:ee:ff 1 -61" ]
+}
+
+@test "--json omits unknown fields and escapes quotes in MAC" {
+    export INTERFACE=wlan0
+    mkdir -p "${BATS_TEST_TMPDIR}/hostapd"
+    export CTRL_IFACE_DIR="${BATS_TEST_TMPDIR}/hostapd"
+    cat > "${BATS_TEST_TMPDIR}/hostapd_cli" <<'EOF'
+#!/bin/bash
+cat <<'STA'
+we"ird:mac
+foo=bar
+connected_time=5
+STA
+EOF
+    chmod +x "${BATS_TEST_TMPDIR}/hostapd_cli"
+    run "${BATS_TEST_DIRNAME}/../clients.sh" --json
+    [ "$status" -eq 0 ]
+    [[ "$output" != *'"foo"'* ]]
+    [[ "$output" == *'"mac":"we\"ird:mac"'* ]]
+    [[ "$output" == *'"connected_time":"5"'* ]]
+}
+
+@test "--json with no stations emits empty array" {
+    export INTERFACE=wlan0
+    mkdir -p "${BATS_TEST_TMPDIR}/hostapd"
+    export CTRL_IFACE_DIR="${BATS_TEST_TMPDIR}/hostapd"
+    printf '#!/bin/bash\nexit 0\n' > "${BATS_TEST_TMPDIR}/hostapd_cli"
+    chmod +x "${BATS_TEST_TMPDIR}/hostapd_cli"
+    run "${BATS_TEST_DIRNAME}/../clients.sh" --json
+    [ "$status" -eq 0 ]
+    [ "$output" = "[]" ]
+}
+
