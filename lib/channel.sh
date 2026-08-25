@@ -68,6 +68,17 @@ validate_channel() {
     return 0
 }
 
+# VHT (802.11ac) requires 5 GHz operation.
+# Reads VHT_ENABLED and HW_MODE from the environment.
+validate_vht() {
+    : "${HW_MODE:=g}"
+    if [ -n "${VHT_ENABLED:-}" ] && [ "${HW_MODE}" != "a" ] ; then
+        echo "[Error] VHT_ENABLED requires HW_MODE=a (5 GHz)." >&2
+        return 1
+    fi
+    return 0
+}
+
 # Strict variant used by validation mode: unknown HW_MODE is an error.
 validate_channel_strict() {
     if ! validate_channel ; then

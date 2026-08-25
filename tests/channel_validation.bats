@@ -398,3 +398,42 @@ setup() {
     run validate_channel_strict
     [ "$status" -eq 1 ]
 }
+
+# --- VHT_ENABLED requires HW_MODE=a ---
+
+@test "VHT_ENABLED set with default HW_MODE fails" {
+    unset HW_MODE
+    VHT_ENABLED="1"
+    run validate_vht
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"[Error] VHT_ENABLED requires HW_MODE=a (5 GHz)."* ]]
+}
+
+@test "VHT_ENABLED set with HW_MODE=g fails" {
+    HW_MODE="g"
+    VHT_ENABLED="1"
+    run validate_vht
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"Error"* ]]
+}
+
+@test "VHT_ENABLED set with HW_MODE=b fails" {
+    HW_MODE="b"
+    VHT_ENABLED="1"
+    run validate_vht
+    [ "$status" -eq 1 ]
+}
+
+@test "VHT_ENABLED set with HW_MODE=a passes" {
+    HW_MODE="a"
+    VHT_ENABLED="1"
+    run validate_vht
+    [ "$status" -eq 0 ]
+}
+
+@test "VHT_ENABLED unset with HW_MODE=g passes" {
+    HW_MODE="g"
+    unset VHT_ENABLED
+    run validate_vht
+    [ "$status" -eq 0 ]
+}

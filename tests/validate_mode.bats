@@ -115,3 +115,15 @@ run_validate() {
     [ "$status" -ne 0 ]
     [[ "$output" == *"Unknown option"* ]]
 }
+
+@test "--validate rejects VHT_ENABLED without HW_MODE=a" {
+    run run_validate INTERFACE=wlan0 SSID=x WPA_PASSPHRASE=supersecret VHT_ENABLED=1
+    [ "$status" -ne 0 ]
+    [[ "$output" == *"[Error] VHT_ENABLED requires HW_MODE=a (5 GHz)."* ]]
+}
+
+@test "--validate accepts VHT_ENABLED with HW_MODE=a" {
+    run run_validate INTERFACE=wlan0 SSID=x WPA_PASSPHRASE=supersecret VHT_ENABLED=1 HW_MODE=a CHANNEL=36
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"ieee80211ac=1"* ]]
+}
