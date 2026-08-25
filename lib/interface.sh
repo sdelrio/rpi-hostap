@@ -17,11 +17,13 @@ setup_interface() {
     }
 }
 
-# teardown_interface flushes addresses and brings the link down.
+# teardown_interface removes only the AP address this container configured
+# (a blanket `ip addr flush` would wipe unrelated host addresses when running
+# with --net host) and brings the link down.
 teardown_interface() {
     if [ -n "${INTERFACE}" ] ; then
-        echo "Flushing interface ${INTERFACE}..."
-        ip addr flush dev "${INTERFACE}" 2>/dev/null || true
+        echo "Removing ${AP_ADDR}/${DHCP_PREFIX:-24} from interface ${INTERFACE}..."
+        ip addr del "${AP_ADDR}/${DHCP_PREFIX:-24}" dev "${INTERFACE}" 2>/dev/null || true
         ip link set "${INTERFACE}" down 2>/dev/null || true
     fi
 }
