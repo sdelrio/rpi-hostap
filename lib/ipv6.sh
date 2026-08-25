@@ -35,15 +35,15 @@ apply_ipv6_rules() {
         local int
         validate_outgoings || return 1
         for int in "${ints[@]}" ; do
-            ip6tables -D FORWARD -i "${int}" -o "${INTERFACE}" -m state --state RELATED,ESTABLISHED -j ACCEPT > /dev/null 2>&1 || true
-            ip6tables -A FORWARD -i "${int}" -o "${INTERFACE}" -m state --state RELATED,ESTABLISHED -j ACCEPT
+            ip6tables -D FORWARD -i "${int}" -o "${INTERFACE}" -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT > /dev/null 2>&1 || true
+            ip6tables -A FORWARD -i "${int}" -o "${INTERFACE}" -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 
             ip6tables -D FORWARD -i "${INTERFACE}" -o "${int}" -j ACCEPT > /dev/null 2>&1 || true
             ip6tables -A FORWARD -i "${INTERFACE}" -o "${int}" -j ACCEPT
         done
     else
-        ip6tables -D FORWARD -o "${INTERFACE}" -m state --state RELATED,ESTABLISHED -j ACCEPT > /dev/null 2>&1 || true
-        ip6tables -A FORWARD -o "${INTERFACE}" -m state --state RELATED,ESTABLISHED -j ACCEPT
+        ip6tables -D FORWARD -o "${INTERFACE}" -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT > /dev/null 2>&1 || true
+        ip6tables -A FORWARD -o "${INTERFACE}" -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 
         ip6tables -D FORWARD -i "${INTERFACE}" -j ACCEPT > /dev/null 2>&1 || true
         ip6tables -A FORWARD -i "${INTERFACE}" -j ACCEPT
@@ -56,11 +56,11 @@ remove_ipv6_rules() {
         local int
         parse_outgoings
         for int in "${ints[@]}" ; do
-            ip6tables -D FORWARD -i "${int}" -o "${INTERFACE}" -m state --state RELATED,ESTABLISHED -j ACCEPT > /dev/null 2>&1 || true
+            ip6tables -D FORWARD -i "${int}" -o "${INTERFACE}" -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT > /dev/null 2>&1 || true
             ip6tables -D FORWARD -i "${INTERFACE}" -o "${int}" -j ACCEPT > /dev/null 2>&1 || true
         done
     else
-        ip6tables -D FORWARD -o "${INTERFACE}" -m state --state RELATED,ESTABLISHED -j ACCEPT > /dev/null 2>&1 || true
+        ip6tables -D FORWARD -o "${INTERFACE}" -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT > /dev/null 2>&1 || true
         ip6tables -D FORWARD -i "${INTERFACE}" -j ACCEPT > /dev/null 2>&1 || true
     fi
 }

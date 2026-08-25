@@ -38,7 +38,7 @@ setup() {
     [[ "${output}" == *"Setting iptables for outgoing traffics on eth0..."* ]]
     [[ "${output}" == *"iptables -t nat -A POSTROUTING -s 192.168.254.0/24 -o eth0 -j MASQUERADE"* ]]
     [[ "${output}" == *"iptables -t nat -A POSTROUTING -s 192.168.254.0/24 -o eth1 -j MASQUERADE"* ]]
-    [[ "${output}" == *"iptables -A FORWARD -i eth0 -o wlan0 -m state --state RELATED,ESTABLISHED -j ACCEPT"* ]]
+    [[ "${output}" == *"iptables -A FORWARD -i eth0 -o wlan0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT"* ]]
     [[ "${output}" == *"iptables -A FORWARD -i wlan0 -o eth1 -j ACCEPT"* ]]
 }
 
@@ -48,7 +48,7 @@ setup() {
     [ "$status" -eq 0 ]
     [[ "${output}" == *"Setting iptables for outgoing traffics on all interfaces..."* ]]
     [[ "${output}" == *"iptables -t nat -A POSTROUTING -s 192.168.254.0/24 -j MASQUERADE"* ]]
-    [[ "${output}" == *"iptables -A FORWARD -o wlan0 -m state --state RELATED,ESTABLISHED -j ACCEPT"* ]]
+    [[ "${output}" == *"iptables -A FORWARD -o wlan0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT"* ]]
     [[ "${output}" == *"iptables -A FORWARD -i wlan0 -j ACCEPT"* ]]
 }
 
