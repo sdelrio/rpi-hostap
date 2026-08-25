@@ -32,8 +32,20 @@ docker run ... -e HEALTHCHECK_DEEP=1 -e HEALTHCHECK_START_PERIOD=90 ...
 
 Note: enabling [`CTRL_INTERFACE`](operations.md#client-inspection-optional) already emits the same config lines, so the two options are compatible - either one suffices for `hostapd_cli` to work.
 
+## Minimum Stations Check (optional)
+
+An AP that beacons and reports `state=ENABLED` may still accept no associations. Set `HEALTHCHECK_MIN_STATIONS=N` to opt in to a station-count check:
+
+```bash
+docker run ... -e CTRL_INTERFACE=1 -e HEALTHCHECK_MIN_STATIONS=1 ...
+```
+
+When enabled, after all other checks (and only once the grace period has elapsed), `healthcheck.sh` counts associated stations via `hostapd_cli all_sta` - the same count printed by [`clients.sh count`](operations.md#client-inspection-optional) - and fails with a message naming the expected vs actual count if fewer than `N` stations are connected, marking the container `unhealthy`. The check is skipped when the control interface socket directory does not exist.
+
+**DFS/CAC caveat**: the same [DFS](https://en.wikipedia.org/wiki/Dynamic_frequency_selection) caveat as the deep check applies here - on radar channels stations cannot join until beaconing starts after Channel Availability Check (CAC), which can take 60s+. Raise `HEALTHCHECK_START_PERIOD` accordingly or the min-stations check will fail during CAC even on a healthy AP.
+
 See also: [regional channel validation](configuration.md#regional-channel-validation) for which 5 GHz channels are [DFS](https://en.wikipedia.org/wiki/Dynamic_frequency_selection) and trigger CAC.
 
 ---
 
-_Last updated: 2026-08-24_
+_Last updated: 2026-08-25_

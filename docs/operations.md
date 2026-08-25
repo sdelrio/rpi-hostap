@@ -30,6 +30,14 @@ Example output:
 [{"mac":"aa:bb:cc:dd:ee:ff","aid":"1","signal":"-45","connected_time":"120"}]
 ```
 
+For a quick machine-friendly count of associated stations, use the `count` subcommand:
+
+```bash
+docker exec rpi-hostap clients.sh count
+```
+
+It prints a single integer (the number of station MAC blocks in `hostapd_cli all_sta` output), suitable for scripting and monitoring.
+
 To deauthenticate a specific station, pass its MAC address as a `deauth` subcommand:
 
 ```bash
@@ -42,4 +50,4 @@ See also: the [deep healthcheck](healthcheck.md#deep-healthcheck-optional) uses 
 
 ---
 
-_Last updated: 2026-08-24_
+_Last updated: 2026-08-25_
