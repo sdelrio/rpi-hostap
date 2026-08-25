@@ -360,7 +360,7 @@ if [ "${_SIGNALED}" = "1" ] ; then
 fi
 if [ "${STATUS}" -ne 0 ] ; then
     # Preserve the full tagged daemon log for post-mortem (issue #162);
-    # report_failure copies it to FAILURE_LOG_PATH and mentions the path.
+    # report_failure preserves a timestamped copy and mentions the path.
     # The temp log is only removed on clean shutdown / signal exit.
     report_failure "${STATUS}" "${_DAEMON_LOG}"
 else

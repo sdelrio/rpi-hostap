@@ -79,6 +79,61 @@ load_logging() {
     [[ "$output" != *"Full daemon log saved"* ]]
 }
 
+@test "successive failures create distinct timestamped files (#199)" {
+    load_logging
+    local dir log
+    dir=$(mktemp -d)
+    log=$(mktemp)
+    printf '[hostapd] driver missing\n' > "${log}"
+    FAILURE_LOG_PATH="" FAILURE_LOG_DIR="${dir}" run report_failure 1 "${log}"
+    [ "$status" -eq 0 ]
+    sleep 1
+    FAILURE_LOG_PATH="" FAILURE_LOG_DIR="${dir}" run report_failure 2 "${log}"
+    rm -f "${log}"
+    local count
+    count=$(find "${dir}" -name 'hostap-failure-*.log' | wc -l | tr -d ' ')
+    [ "${count}" -eq 2 ]
+    [[ "$output" == *"Full daemon log saved to ${dir}/hostap-failure-"* ]]
+}
+
+@test "pruning keeps only FAILURE_LOG_KEEP newest copies (#199)" {
+    load_logging
+    local dir log f t
+    dir=$(mktemp -d)
+    t=202401010001
+    for f in 1000 1500 2000 2500 3000 3500 ; do
+        printf '[hostapd] old %s\n' "${f}" > "${dir}/hostap-failure-${f}.log"
+        touch -t "${t}" "${dir}/hostap-failure-${f}.log"
+        t=$((t + 1))
+    done
+    log=$(mktemp)
+    printf '[hostapd] fresh\n' > "${log}"
+    FAILURE_LOG_PATH="" FAILURE_LOG_DIR="${dir}" FAILURE_LOG_KEEP=3 \
+        run report_failure 1 "${log}"
+    rm -f "${log}"
+    [ "$status" -eq 0 ]
+    local count
+    count=$(find "${dir}" -name 'hostap-failure-*.log' | wc -l | tr -d ' ')
+    [ "${count}" -eq 3 ]
+    [ ! -e "${dir}/hostap-failure-1000.log" ]
+    [ ! -e "${dir}/hostap-failure-1500.log" ]
+    [ -e "${dir}/hostap-failure-3500.log" ]
+    find "${dir}" -name 'hostap-failure-*.log' -newer "${dir}/hostap-failure-3500.log" -delete
+}
+
+@test "explicit FAILURE_LOG_PATH is still honored verbatim (#199)" {
+    load_logging
+    local log dest
+    log=$(mktemp)
+    dest="$(mktemp -d)/fixed-name.log"
+    printf '[hostapd] driver missing\n' > "${log}"
+    FAILURE_LOG_PATH="${dest}" FAILURE_LOG_KEEP=5 run report_failure 1 "${log}"
+    rm -f "${log}"
+    [ -f "${dest}" ]
+    grep -q '\[hostapd\] driver missing' "${dest}"
+    rm -rf "$(dirname "${dest}")"
+}
+
 @test "wlanstart reports failing daemon on non-signal exit" {
     grep -q 'report_failure "${STATUS}"' "${SCRIPT}"
 }
