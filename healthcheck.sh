@@ -73,4 +73,23 @@ if [[ -n "${HEALTHCHECK_DEEP:-}" ]]; then
     fi
 fi
 
+# Optional station-count check: fail when fewer than HEALTHCHECK_MIN_STATIONS
+# stations are associated. Opt-in (unset = disabled). Requires the control
+# interface to exist (enabled via CTRL_INTERFACE or HEALTHCHECK_DEEP).
+# Note: on DFS channels stations cannot join until beaconing starts after CAC;
+# raise HEALTHCHECK_START_PERIOD accordingly (see docs/healthcheck.md).
+MIN_STATIONS="${HEALTHCHECK_MIN_STATIONS-}"
+if [[ -n "${MIN_STATIONS}" ]]; then
+    if ! [[ "${MIN_STATIONS}" =~ ^[0-9]+$ ]]; then
+        echo "[Warning] Invalid HEALTHCHECK_MIN_STATIONS '${MIN_STATIONS}', disabling check" >&2
+    elif [[ -d "${CTRL_IFACE_DIR:-/var/run/hostapd}" ]]; then
+        STATION_COUNT="$(hostapd_cli -p "${CTRL_IFACE_DIR:-/var/run/hostapd}" -i "${INTERFACE}" all_sta 2>/dev/null \
+            | grep -cE '^([0-9a-fA-F]{2}:){5}' || true)"
+        if (( STATION_COUNT < MIN_STATIONS )); then
+            echo "station count below minimum: expected at least ${MIN_STATIONS}, got ${STATION_COUNT}" >&2
+            exit 1
+        fi
+    fi
+fi
+
 exit 0

@@ -148,3 +148,49 @@ EOF
     [ "$output" = "[]" ]
 }
 
+@test "count prints number of station MAC blocks" {
+    export INTERFACE=wlan0
+    mkdir -p "${BATS_TEST_TMPDIR}/hostapd"
+    export CTRL_IFACE_DIR="${BATS_TEST_TMPDIR}/hostapd"
+    cat > "${BATS_TEST_TMPDIR}/hostapd_cli" <<'EOF'
+#!/bin/bash
+cat <<'STA'
+aa:bb:cc:dd:ee:ff
+aid=1
+signal=-45
+
+11:22:33:44:55:66
+aid=2
+
+AA:BB:CC:DD:EE:F0
+aid=3
+STA
+EOF
+    chmod +x "${BATS_TEST_TMPDIR}/hostapd_cli"
+    run "${BATS_TEST_DIRNAME}/../clients.sh" count
+    [ "$status" -eq 0 ]
+    [ "$output" = "3" ]
+}
+
+@test "count prints 0 when no stations are associated" {
+    export INTERFACE=wlan0
+    mkdir -p "${BATS_TEST_TMPDIR}/hostapd"
+    export CTRL_IFACE_DIR="${BATS_TEST_TMPDIR}/hostapd"
+    printf '#!/bin/bash\nexit 0\n' > "${BATS_TEST_TMPDIR}/hostapd_cli"
+    chmod +x "${BATS_TEST_TMPDIR}/hostapd_cli"
+    run "${BATS_TEST_DIRNAME}/../clients.sh" count
+    [ "$status" -eq 0 ]
+    [ "$output" = "0" ]
+}
+
+@test "count does not count key=value lines as stations" {
+    export INTERFACE=wlan0
+    mkdir -p "${BATS_TEST_TMPDIR}/hostapd"
+    export CTRL_IFACE_DIR="${BATS_TEST_TMPDIR}/hostapd"
+    printf '#!/bin/bash\nprintf "aid=1\\nsignal=-45\\nconnected_time=10\\n"\n' > "${BATS_TEST_TMPDIR}/hostapd_cli"
+    chmod +x "${BATS_TEST_TMPDIR}/hostapd_cli"
+    run "${BATS_TEST_DIRNAME}/../clients.sh" count
+    [ "$status" -eq 0 ]
+    [ "$output" = "0" ]
+}
+

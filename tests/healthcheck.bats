@@ -248,3 +248,74 @@ EOF
     run ./healthcheck.sh
     [ "$status" -eq 0 ]
 }
+
+@test "min-stations check is skipped when HEALTHCHECK_MIN_STATIONS is unset" {
+    unset HEALTHCHECK_MIN_STATIONS
+    mock_bin pidof 'exit 0'
+    mock_bin ip 'if [ "$1" = "link" ]; then echo "state UP"; fi; exit 0'
+    mock_bin hostapd_cli 'exit 1'
+    run ./healthcheck.sh
+    [ "$status" -eq 0 ]
+}
+
+@test "min-stations passes when count meets threshold (issue #234)" {
+    export HEALTHCHECK_MIN_STATIONS=2
+    export CTRL_IFACE_DIR="${BATS_TEST_TMPDIR}/hostapd"
+    mkdir -p "${CTRL_IFACE_DIR}"
+    mock_bin pidof 'exit 0'
+    mock_bin ip 'if [ "$1" = "link" ]; then echo "state UP"; fi; exit 0'
+    cat > "$BATS_TEST_TMPDIR/bin/hostapd_cli" <<'EOF'
+#!/bin/bash
+if [ "$5" = "all_sta" ]; then printf 'aa:bb:cc:dd:ee:01\naid=1\n\naa:bb:cc:dd:ee:02\naid=2\n'; exit 0; fi
+echo "state=ENABLED"
+EOF
+    chmod +x "$BATS_TEST_TMPDIR/bin/hostapd_cli"
+    run ./healthcheck.sh
+    [ "$status" -eq 0 ]
+}
+
+@test "min-stations fails below threshold naming expected vs actual (issue #234)" {
+    export HEALTHCHECK_MIN_STATIONS=3
+    export CTRL_IFACE_DIR="${BATS_TEST_TMPDIR}/hostapd"
+    mkdir -p "${CTRL_IFACE_DIR}"
+    mock_bin pidof 'exit 0'
+    mock_bin ip 'if [ "$1" = "link" ]; then echo "state UP"; fi; exit 0'
+    cat > "$BATS_TEST_TMPDIR/bin/hostapd_cli" <<'EOF'
+#!/bin/bash
+if [ "$5" = "all_sta" ]; then printf 'aa:bb:cc:dd:ee:01\naid=1\n'; exit 0; fi
+echo "state=ENABLED"
+EOF
+    chmod +x "$BATS_TEST_TMPDIR/bin/hostapd_cli"
+    run ./healthcheck.sh
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"expected at least 3"* ]]
+    [[ "$output" == *"got 1"* ]]
+}
+
+@test "min-stations is skipped when control interface dir does not exist" {
+    export HEALTHCHECK_MIN_STATIONS=1
+    mock_bin pidof 'exit 0'
+    mock_bin ip 'if [ "$1" = "link" ]; then echo "state UP"; fi; exit 0'
+    run env CTRL_IFACE_DIR="$BATS_TEST_TMPDIR/no-such-dir" ./healthcheck.sh
+    [ "$status" -eq 0 ]
+}
+
+@test "invalid HEALTHCHECK_MIN_STATIONS warns and disables the check" {
+    export HEALTHCHECK_MIN_STATIONS="abc"
+    mock_bin pidof 'exit 0'
+    mock_bin ip 'if [ "$1" = "link" ]; then echo "state UP"; fi; exit 0'
+    mock_bin hostapd_cli 'exit 1'
+    run ./healthcheck.sh
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"[Warning] Invalid HEALTHCHECK_MIN_STATIONS 'abc', disabling check"* ]]
+}
+
+@test "min-stations respects start period grace" {
+    export HEALTHCHECK_MIN_STATIONS=5
+    export NOW_STAMP=1000
+    echo "$((NOW_STAMP - 5))" > "$HEALTHCHECK_STARTED_FILE"
+    export HEALTHCHECK_START_PERIOD=90
+    mock_bin hostapd_cli 'exit 1'
+    run ./healthcheck.sh
+    [ "$status" -eq 0 ]
+}

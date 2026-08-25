@@ -121,6 +121,7 @@ docker run -d \
 | `CTRL_INTERFACE` | No | Enable hostapd control interface (any non-empty value); allows `clients.sh` to list stations, see [Client Inspection](docs/operations.md#client-inspection-optional) | unset |
 | `CTRL_IFACE_DIR` | No | Control interface socket directory used by `clients.sh` | `/var/run/hostapd` |
 | `HEALTHCHECK_DEEP` | No | Opt-in deep healthcheck verifying the AP is actually beaconing via `hostapd_cli status`; see [Deep Healthcheck](docs/healthcheck.md#deep-healthcheck-optional) | unset |
+| `HEALTHCHECK_MIN_STATIONS` | No | Minimum number of associated stations required by the healthcheck (fails with expected vs actual count below the threshold). Opt-in; requires the control interface (`CTRL_INTERFACE` or `HEALTHCHECK_DEEP`). Note the DFS/CAC caveat in [docs/healthcheck.md](docs/healthcheck.md) | unset |
 | `HEALTHCHECK_STARTED_FILE` | No | Path to the file where the entrypoint records the container start time used by the healthcheck grace period (internal/testing hook) | `/run/hostap-started` |
 
 Detailed topics and examples are split across the [docs/](docs/INDEX.md) folder: radio/security topics in [docs/configuration.md](docs/configuration.md), config validation in [docs/validation.md](docs/validation.md), and runtime diagnostics in [docs/operations.md](docs/operations.md).

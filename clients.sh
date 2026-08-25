@@ -3,12 +3,13 @@
 # Client management via hostapd_cli.
 #   clients.sh              list all associated stations (all_sta)
 #   clients.sh --json       list stations as a JSON array
+#   clients.sh count        print the number of associated stations
 #   clients.sh deauth <mac> deauthenticate a station
 # Requires CTRL_INTERFACE=1 so hostapd.conf exposes ctrl_interface.
 set -euo pipefail
 
 usage() {
-    echo "Usage: clients.sh [--json] [deauth <mac>]" >&2
+    echo "Usage: clients.sh [--json] [count] [deauth <mac>]" >&2
 }
 
 # Emit a JSON array of station objects parsed from hostapd_cli all_sta output.
@@ -50,6 +51,14 @@ emit_json() {
     printf ']\n'
 }
 
+# Count associated stations: number of MAC-address lines in all_sta output
+# (same parsing pattern as emit_json, which treats non-key=value lines as
+# station blocks starting with the MAC).
+station_count() {
+    hostapd_cli -p "${CTRL_IFACE_DIR}" -i "${INTERFACE}" all_sta \
+        | grep -cE '^([0-9a-fA-F]{2}:){5}' || true
+}
+
 if [[ -z "${INTERFACE:-}" ]] ; then
     echo "[Error] INTERFACE must be set." >&2
     exit 1
@@ -71,6 +80,9 @@ case "${CMD}" in
         ;;
     --json)
         emit_json
+        ;;
+    count)
+        station_count
         ;;
     deauth)
         if [[ $# -ne 2 ]] ; then
