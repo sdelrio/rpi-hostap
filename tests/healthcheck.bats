@@ -54,6 +54,33 @@ EOF
     [ "$status" -eq 0 ]
 }
 
+@test "invalid HEALTHCHECK_START_PERIOD falls back to 15 with warning" {
+    export HEALTHCHECK_START_PERIOD="abc"
+    echo "$((NOW_STAMP - 10))" > "$HEALTHCHECK_STARTED_FILE"
+    mock_bin pidof 'exit 1'
+    run ./healthcheck.sh
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"[Warning] Invalid HEALTHCHECK_START_PERIOD 'abc', using 15"* ]]
+}
+
+@test "negative HEALTHCHECK_START_PERIOD falls back to 15 with warning" {
+    export HEALTHCHECK_START_PERIOD="-5"
+    echo "$((NOW_STAMP - 10))" > "$HEALTHCHECK_STARTED_FILE"
+    mock_bin pidof 'exit 1'
+    run ./healthcheck.sh
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"[Warning] Invalid HEALTHCHECK_START_PERIOD '-5', using 15"* ]]
+}
+
+@test "empty HEALTHCHECK_START_PERIOD falls back to 15 with warning" {
+    export HEALTHCHECK_START_PERIOD=""
+    echo "$((NOW_STAMP - 10))" > "$HEALTHCHECK_STARTED_FILE"
+    mock_bin pidof 'exit 1'
+    run ./healthcheck.sh
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"[Warning] Invalid HEALTHCHECK_START_PERIOD '', using 15"* ]]
+}
+
 @test "grace period works regardless of host uptime (issue #111)" {
     # Simulate a long-running host: even with huge host uptime, the check
     # must use the recorded start time, not /proc/uptime.
