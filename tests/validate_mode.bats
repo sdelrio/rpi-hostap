@@ -46,10 +46,10 @@ run_validate() {
     [[ "$output" != *"must not be called in validate mode"* ]]
 }
 
-@test "--validate bypasses privileged mode check (no /sys writability error)" {
+@test "--validate bypasses privileged mode check (no iptables probe error)" {
     run run_validate INTERFACE=wlan0 SSID=x WPA_PASSPHRASE=supersecret
     [ "$status" -eq 0 ]
-    [[ "$output" != *"Not running in privileged mode."* ]]
+    [[ "$output" != *"Not running in privileged mode"* ]]
 }
 
 @test "--validate rejects missing INTERFACE" {
