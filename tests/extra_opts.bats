@@ -44,6 +44,7 @@ setup() {
 @test "emit_hostapd_conf appends extra opts at end of config" {
     export INTERFACE=wlan0 SSID=test WPA_PASSPHRASE=passw0rd
     export HW_MODE=g CHANNEL=6 WPA_VERSION=2
+    export MAX_STATIONS=0
     export HOSTAPD_EXTRA_OPTS=$'auth_algs=3\nbeacon_int=100'
     eval "$(sed -n '/^emit_hostapd_conf()/,/^}/p' "${BATS_TEST_DIRNAME}/../wlanstart.sh")"
     . "${BATS_TEST_DIRNAME}/../lib/stations.sh"
@@ -63,6 +64,7 @@ setup() {
 @test "unset HOSTAPD_EXTRA_OPTS leaves config unchanged (no extra trailing lines)" {
     export INTERFACE=wlan0 SSID=test WPA_PASSPHRASE=passw0rd
     export HW_MODE=g CHANNEL=6 WPA_VERSION=2
+    export MAX_STATIONS=0
     eval "$(sed -n '/^emit_hostapd_conf()/,/^}/p' "${BATS_TEST_DIRNAME}/../wlanstart.sh")"
     . "${BATS_TEST_DIRNAME}/../lib/stations.sh"
     . "${BATS_TEST_DIRNAME}/../lib/ctrl_interface.sh"

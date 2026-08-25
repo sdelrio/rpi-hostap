@@ -10,6 +10,10 @@ setup() {
     unset _WPA_LEVEL
     unset _WPA_KEY_MGMT
     unset _WPA_PAIRWISE
+    # shellcheck source=../lib/env.sh
+    . "${BATS_TEST_DIRNAME}/../lib/env.sh"
+    # Defaults now live centrally in lib/env.sh (issue #237)
+    resolve_config_env
 }
 
 load_lib() {

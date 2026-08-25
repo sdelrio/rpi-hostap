@@ -2,13 +2,10 @@
 # Shared channel/hw_mode/country validation logic used by wlanstart.sh and tests.
 #
 # validate_channel reads HW_MODE, CHANNEL and COUNTRY_CODE from the
-# environment (applying the same defaults as wlanstart.sh) and returns
-# non-zero when the channel is not allowed. Messages go to stderr.
+# environment (defaults applied centrally by lib/env.sh, see issue
+# #237) and returns non-zero when the channel is not allowed.
+# Messages go to stderr.
 validate_channel() {
-    : "${HW_MODE:=g}"
-    : "${CHANNEL:=11}"
-    : "${COUNTRY_CODE:=EU}"
-
     # Automatic channel selection: skip numeric checks, driver decides.
     case "${HW_MODE}:${CHANNEL}" in
         *:[aA][cC][sS])
@@ -71,7 +68,6 @@ validate_channel() {
 # VHT (802.11ac) requires 5 GHz operation.
 # Reads VHT_ENABLED and HW_MODE from the environment.
 validate_vht() {
-    : "${HW_MODE:=g}"
     if [ -n "${VHT_ENABLED:-}" ] && [ "${HW_MODE}" != "a" ] ; then
         echo "[Error] VHT_ENABLED requires HW_MODE=a (5 GHz)." >&2
         return 1
@@ -84,7 +80,6 @@ validate_channel_strict() {
     if ! validate_channel ; then
         return 1
     fi
-    : "${HW_MODE:=g}"
     case "${HW_MODE}" in
         a|b|g) ;;
         *)
