@@ -250,3 +250,37 @@ setup() {
     [ "$status" -eq 1 ]
     [[ "$output" == *"country EU"* ]]
 }
+
+# --- strict validation mode (unknown hw_mode is an error) ---
+
+@test "strict: unknown hw_mode fails with error" {
+    HW_MODE="gn"
+    CHANNEL="1"
+    run validate_channel_strict
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"Error"*"Unknown hw_mode='gn'"* ]]
+}
+
+@test "strict: valid hw_modes pass" {
+    for pair in "a 36" "b 1" "g 6"; do
+        set -- ${pair}
+        HW_MODE="$1"
+        CHANNEL="$2"
+        run validate_channel_strict
+        [ "$status" -eq 0 ]
+    done
+}
+
+@test "strict: default hw_mode (g) passes" {
+    unset HW_MODE
+    CHANNEL="1"
+    run validate_channel_strict
+    [ "$status" -eq 0 ]
+}
+
+@test "strict: channel errors still fail" {
+    HW_MODE="g"
+    CHANNEL="14"
+    run validate_channel_strict
+    [ "$status" -eq 1 ]
+}

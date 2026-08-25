@@ -49,3 +49,19 @@ validate_channel() {
     esac
     return 0
 }
+
+# Strict variant used by validation mode: unknown HW_MODE is an error.
+validate_channel_strict() {
+    if ! validate_channel ; then
+        return 1
+    fi
+    : "${HW_MODE:=g}"
+    case "${HW_MODE}" in
+        a|b|g) ;;
+        *)
+            echo "[Error] Unknown hw_mode='${HW_MODE}' (allowed: b, g, a)" >&2
+            return 1
+            ;;
+    esac
+    return 0
+}

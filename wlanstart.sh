@@ -222,7 +222,7 @@ run_validation_mode() {
         errors=$((errors + 1))
     fi
 
-    validate_channel || errors=$((errors + 1))
+    validate_channel_strict || errors=$((errors + 1))
 
     validate_ipv4_param SUBNET "${SUBNET}" || errors=$((errors + 1))
     validate_ipv4_param AP_ADDR "${AP_ADDR}" || errors=$((errors + 1))
