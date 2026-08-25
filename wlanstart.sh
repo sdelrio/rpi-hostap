@@ -150,6 +150,10 @@ resolve_config_env
 # Logic lives in lib/extra_opts.sh, shared with tests
 # shellcheck source=lib/extra_opts.sh
 . "$(dirname "$0")/lib/extra_opts.sh"
+# TX_POWER transmit power control
+# Logic lives in lib/radio.sh, shared with tests
+# shellcheck source=lib/radio.sh
+. "$(dirname "$0")/lib/radio.sh"
 # Atomic config file writing (temp file + mv)
 # Logic lives in lib/atomic.sh, shared with tests
 # shellcheck source=lib/atomic.sh
@@ -236,6 +240,7 @@ run_validation_mode() {
     validate_passphrase || errors=$((errors + 1))
     validate_ssid "${SSID}" || errors=$((errors + 1))
     validate_mac_filter || errors=$((errors + 1))
+    validate_tx_power || errors=$((errors + 1))
 
     if [ "${errors}" -ne 0 ] ; then
         echo "[Error] Validation failed with ${errors} error(s)." >&2
@@ -288,6 +293,9 @@ check_interrupted
 if ! validate_vht ; then
     exit 1
 fi
+if ! validate_tx_power ; then
+    exit 1
+fi
 
 validate_ipv4_param SUBNET "${SUBNET}" || exit 1
 validate_ipv4_param AP_ADDR "${AP_ADDR}" || exit 1
@@ -307,6 +315,10 @@ check_interrupted
 if ! setup_interface ; then
     exit 1
 fi
+check_interrupted
+
+# Optional transmit power cap (TX_POWER); fatal on failure (#236)
+apply_tx_power || exit 1
 check_interrupted
 
 # NAT settings
