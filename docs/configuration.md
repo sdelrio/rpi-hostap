@@ -110,6 +110,30 @@ aa:bb:cc:dd:ee:ff
 
 See also: [client inspection](operations.md#client-inspection-optional) - use `clients.sh` to list associated stations and verify the filter allows/blocks the expected MACs.
 
+## Secret-File Inputs (optional)
+
+`SSID` and `WPA_PASSPHRASE` are normally passed with `docker run -e`, which makes them visible via `docker inspect` and shell history. Both support the `_FILE` convention (as used by Docker secrets, e.g. `docker secret` / Swarm / `docker compose` `secrets:`):
+
+- `SSID_FILE`: path to a file whose **first line** holds the SSID
+- `WPA_PASSPHRASE_FILE`: path to a file whose **first line** holds the passphrase
+
+```bash
+docker run -d --name hostap \
+  --privileged --net host \
+  -v /run/secrets:/run/secrets:ro \
+  -e INTERFACE=wlan0 \
+  -e SSID_FILE=/run/secrets/ssid \
+  -e WPA_PASSPHRASE_FILE=/run/secrets/wpa_passphrase \
+  sdelrio/rpi-hostap
+```
+
+Behavior:
+
+- Only the first line of the file is used; a trailing newline is stripped.
+- Values loaded from files go through the same validation as direct values (`validate_ssid`, `validate_passphrase`).
+- If both `VAR` and `VAR_FILE` are set, the `_FILE` value wins and a warning is printed to stderr.
+- Startup fails with `[Error] <VAR>_FILE '...' is not readable` if the file is missing or unreadable.
+
 ## WPA3 (SAE)
 
 ### WPA3-Only (`WPA_VERSION=3`)

@@ -97,6 +97,13 @@ fi
 . "$(dirname "$0")/lib/env.sh"
 resolve_config_env
 
+# Secret-file inputs for SSID/WPA_PASSPHRASE (_FILE convention, issue #232)
+# Logic lives in lib/secret_file.sh, shared with tests
+# shellcheck source=lib/secret_file.sh
+. "$(dirname "$0")/lib/secret_file.sh"
+load_from_file SSID SSID_FILE || exit 1
+load_from_file WPA_PASSPHRASE WPA_PASSPHRASE_FILE || exit 1
+
 # Validate channel against regulatory domain and hardware mode
 # Logic lives in lib/channel.sh, shared with tests
 # shellcheck source=lib/channel.sh
