@@ -51,7 +51,9 @@ It runs on Alpine Linux for minimal footprint.
 - `MAC_FILTER`: `0` = off (default), `1` = allowlist (only listed MACs may
   associate), `2` = denylist (listed MACs rejected).
 - Requires `MAC_ACL_FILE` pointing to a file with one MAC per line (typically
-  mounted read-only from the host); startup fails if it is missing when needed.
+  mounted read-only from the host); startup/validation fails when the filter is
+  enabled but `MAC_ACL_FILE` is unset. A warning is emitted (not fatal) if the
+  file itself is missing or unreadable.
 
 ### 2.4 DHCP
 

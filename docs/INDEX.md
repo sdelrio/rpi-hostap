@@ -34,7 +34,6 @@ Lightweight Docker container that turns a Raspberry Pi into a wireless Access Po
 | Document | Description |
 |----------|-------------|
 | [SPEC](../SPEC.md) | Project requirements: purpose, functional and non-functional requirements, non-goals |
-|----------|-------------|
 | [Configuration](configuration.md) | [HT/VHT tuning](configuration.md#htvht-80211nac-tuning), [MAC filtering](configuration.md#mac-address-filtering-optional), [WPA3/SAE](configuration.md#wpa3-sae), [regional channels](configuration.md#regional-channel-validation) |
 | [Networking](networking.md) | NAT / IP forwarding, IPv6 support, outgoing interfaces |
 | [Validation](validation.md) | Dry-run config checks with [`--validate`](validation.md#dry-run-validation---validate) |
