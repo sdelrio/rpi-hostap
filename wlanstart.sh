@@ -297,15 +297,9 @@ check_interrupted
 echo "NAT settings ip_dynaddr, ip_forward"
 
 
-for i in ip_dynaddr ip_forward ; do
-  if [ "$(cat "/proc/sys/net/ipv4/${i}")" -eq 1 ] ; then
-    echo "${i}" already 1
-  else
-    echo "1" > "/proc/sys/net/ipv4/${i}"
-  fi
-done
+set_sysctls ip_dynaddr ip_forward
 
-cat /proc/sys/net/ipv4/ip_dynaddr
+cat /proc/sys/net/ipv4/ip_dynaddr 2>/dev/null
 cat /proc/sys/net/ipv4/ip_forward
 
 apply_nat_rules
