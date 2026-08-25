@@ -243,6 +243,8 @@ run_validation_mode() {
 
     validate_ipv4_param SUBNET "${SUBNET}" || errors=$((errors + 1))
     validate_ipv4_param AP_ADDR "${AP_ADDR}" || errors=$((errors + 1))
+    validate_ipv4_param PRI_DNS "${PRI_DNS}" || errors=$((errors + 1))
+    validate_ipv4_param SEC_DNS "${SEC_DNS}" || errors=$((errors + 1))
 
     emit_credential_warnings >&2 || true
     validate_passphrase || errors=$((errors + 1))
@@ -303,6 +305,8 @@ fi
 
 validate_ipv4_param SUBNET "${SUBNET}" || exit 1
 validate_ipv4_param AP_ADDR "${AP_ADDR}" || exit 1
+validate_ipv4_param PRI_DNS "${PRI_DNS}" || exit 1
+validate_ipv4_param SEC_DNS "${SEC_DNS}" || exit 1
 
 # Compute DHCP range early so the netmask-derived prefix (DHCP_PREFIX)
 # is available for setup_interface and apply_nat_rules.
