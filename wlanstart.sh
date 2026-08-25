@@ -176,7 +176,7 @@ emit_hostapd_conf() {
     ap_isolation_conf=$(compute_ap_isolation_line)
     ssid_hidden_conf=$(compute_ssid_hidden_line)
     mac_filter_conf=$(compute_mac_filter_conf)
-    max_sta_conf=$(compute_max_sta_conf)
+    max_sta_conf=$(compute_max_sta_conf) || return 1
     ctrl_conf=$(compute_ctrl_interface_conf)
 
     cat <<EOF
