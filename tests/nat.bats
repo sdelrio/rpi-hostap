@@ -132,6 +132,24 @@ setup() {
     [ "$(cat "${dir}/ip_forward")" = "1" ]
 }
 
+@test "show_sysctls prints labeled values" {
+    local dir="${BATS_TEST_TMPDIR}/proc"
+    mkdir -p "${dir}"
+    echo 1 > "${dir}/ip_dynaddr"
+    echo 0 > "${dir}/ip_forward"
+    SYSCTL_BASE="${dir}" run show_sysctls ip_dynaddr ip_forward
+    [ "$status" -eq 0 ]
+    [[ "${output}" == *"ip_dynaddr=1"* ]]
+    [[ "${output}" == *"ip_forward=0"* ]]
+}
+
+@test "show_sysctls prints ? for missing sysctl" {
+    local dir="${BATS_TEST_TMPDIR}/no-such-proc"
+    SYSCTL_BASE="${dir}" run show_sysctls ip_dynaddr
+    [ "$status" -eq 0 ]
+    [[ "${output}" == *"ip_dynaddr=?"* ]]
+}
+
 @test "set_sysctls warns when write fails on non-numeric value" {
     local dir="${BATS_TEST_TMPDIR}/proc"
     mkdir -p "${dir}"

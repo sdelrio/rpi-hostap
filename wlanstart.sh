@@ -314,13 +314,8 @@ fi
 check_interrupted
 
 # NAT settings
-echo "NAT settings ip_dynaddr, ip_forward"
-
-
 set_sysctls ip_dynaddr ip_forward
-
-cat /proc/sys/net/ipv4/ip_dynaddr 2>/dev/null
-cat /proc/sys/net/ipv4/ip_forward
+show_sysctls ip_dynaddr ip_forward
 
 apply_nat_rules
 
