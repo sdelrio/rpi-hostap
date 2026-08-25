@@ -35,7 +35,7 @@ setup() {
     CHANNEL="14"
     run validate_channel
     [ "$status" -eq 1 ]
-    [[ "$output" == *"Error"*"not allowed"* ]]
+    [[ "$output" == *"Error"*"Channel 14 is only allowed in Japan"* ]]
 }
 
 @test "hw_mode=g with channel 36 fails" {
@@ -65,7 +65,7 @@ setup() {
     CHANNEL="14"
     run validate_channel
     [ "$status" -eq 1 ]
-    [[ "$output" == *"Error"*"not allowed"* ]]
+    [[ "$output" == *"Error"*"Channel 14 is only allowed in Japan"* ]]
 }
 
 # --- a mode (5 GHz) ---
@@ -268,7 +268,7 @@ setup() {
     CHANNEL="14"
     run validate_channel
     [ "$status" -eq 1 ]
-    [[ "$output" == *"not allowed for country EU"* ]]
+    [[ "$output" == *"Channel 14 is only allowed in Japan"* ]]
 }
 
 @test "UK/ES/DE treated as Europe (max 13)" {
@@ -284,14 +284,24 @@ setup() {
     done
 }
 
-@test "JP allows channels 1-14" {
+@test "JP + hw_mode=b allows channels 1-14" {
     COUNTRY_CODE="JP"
-    HW_MODE="g"
+    HW_MODE="b"
     for ch in 1 6 12 13 14; do
         CHANNEL="${ch}"
         run validate_channel
         [ "$status" -eq 0 ]
     done
+}
+
+@test "JP + hw_mode=b + channel 14 passes (802.11b Japan exception)" {
+    COUNTRY_CODE="JP"
+    HW_MODE="b"
+    CHANNEL="14"
+    run validate_channel
+    [ "$status" -eq 0 ]
+    run validate_channel_strict
+    [ "$status" -eq 0 ]
 }
 
 @test "unknown country falls back to EU limits (max 13)" {
@@ -310,7 +320,49 @@ setup() {
     CHANNEL="14"
     run validate_channel
     [ "$status" -eq 1 ]
-    [[ "$output" == *"country EU"* ]]
+}
+
+@test "JP + hw_mode=g + channel 14 rejected with clear message" {
+    COUNTRY_CODE="JP"
+    HW_MODE="g"
+    CHANNEL="14"
+    run validate_channel
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"Channel 14 is only allowed in Japan (COUNTRY_CODE=JP) with hw_mode=b (802.11b)"* ]]
+    run validate_channel_strict
+    [ "$status" -eq 1 ]
+}
+
+@test "JP + unknown hw_mode + channel 14 rejected" {
+    COUNTRY_CODE="JP"
+    HW_MODE="n"
+    CHANNEL="14"
+    run validate_channel
+    [ "$status" -eq 1 ]
+}
+
+@test "non-JP + hw_mode=b + channel 14 still rejected" {
+    COUNTRY_CODE="US"
+    HW_MODE="b"
+    CHANNEL="14"
+    run validate_channel
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"Channel 14 is only allowed in Japan"* ]]
+}
+
+@test "acs channel still passes regardless of country/hw_mode" {
+    for pair in "JP b" "EU g" "US a"; do
+        set -- ${pair}
+        COUNTRY_CODE="$1"
+        HW_MODE="$2"
+        unset CHANNEL
+        CHANNEL="acs"
+        run validate_channel
+        [ "$status" -eq 0 ]
+        CHANNEL="ACS"
+        run validate_channel
+        [ "$status" -eq 0 ]
+    done
 }
 
 # --- strict validation mode (unknown hw_mode is an error) ---
