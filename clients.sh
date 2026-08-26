@@ -5,6 +5,7 @@
 #   clients.sh --json       list stations as a JSON array
 #   clients.sh count        print the number of associated stations
 #   clients.sh deauth <mac> deauthenticate a station
+#   clients.sh leases       show dnsmasq DHCP leases
 # Requires CTRL_INTERFACE=1 so hostapd.conf exposes ctrl_interface.
 set -euo pipefail
 
@@ -15,7 +16,7 @@ source "${SCRIPT_DIR}/lib/bootstrap.sh"
 require_module client_env
 
 clients_show_usage() {
-    echo "Usage: clients.sh [--json] [count] [deauth <mac>]" >&2
+    echo "Usage: clients.sh [--json] [count] [deauth <mac>] [leases [--json]]" >&2
 }
 
 # Emit a JSON array of station objects parsed from hostapd_cli all_sta output.
@@ -57,7 +58,49 @@ clients_emit_json() {
     printf ']\n'
 }
 
-# Count associated stations: number of MAC-address lines in all_sta output
+# Resolve the dnsmasq lease file path (overridable for tests).
+_clients_lease_file() {
+    echo "${DHCP_LEASE_FILE:-/tmp/dnsmasq.leases}"
+}
+
+# Fail with a canonical error when the lease file is absent.
+_clients_lease_file_require() {
+    local file
+    file=$(_clients_lease_file)
+    if [[ ! -f "${file}" ]] ; then
+        echo "[Error] Lease file not found at ${file}." >&2
+        exit 1
+    fi
+}
+
+# Print raw dnsmasq lease lines: expiry_epoch mac ip hostname clientid
+clients_leases_show() {
+    _clients_lease_file_require
+    cat "$(_clients_lease_file)"
+}
+
+# Emit a JSON array of {mac, ip, hostname, expires} objects parsed from the
+# dnsmasq lease file (fields: expiry epoch seconds, mac, ip, hostname, clientid).
+clients_emit_leases_json() {
+    local line mac ip hostname expires sep=""
+    _clients_lease_file_require
+    printf '['
+    while IFS= read -r line ; do
+        [[ -z "${line}" || "${line}" == \#* ]] && continue
+        [[ "${line}" == duid\ * ]] && continue
+        read -r expires mac ip hostname _ <<<"${line}"
+        [[ -z "${mac:-}" ]] && continue
+        printf '%s{"mac":"%s","ip":"%s","hostname":"%s","expires":"%s"}' \
+            "${sep}" \
+            "$(clients_json_escape "${mac}")" \
+            "$(clients_json_escape "${ip}")" \
+            "$(clients_json_escape "${hostname}")" \
+            "$(clients_json_escape "${expires}")"
+        sep=","
+    done < <(cat "$(_clients_lease_file)")
+    printf ']\n'
+}
+
 # (same parsing pattern as clients_emit_json, which treats non-key=value lines as
 # station blocks starting with the MAC).
 clients_count_stations() {
@@ -79,6 +122,18 @@ case "${CMD}" in
         ;;
     count)
         clients_count_stations
+        ;;
+    leases)
+        shift
+        if [[ "${1:-}" == "--json" ]] ; then
+            [[ $# -eq 1 ]] || { clients_show_usage ; exit 1 ; }
+            clients_emit_leases_json
+        elif [[ $# -eq 0 ]] ; then
+            clients_leases_show
+        else
+            clients_show_usage
+            exit 1
+        fi
         ;;
     deauth)
         if [[ $# -ne 2 ]] ; then

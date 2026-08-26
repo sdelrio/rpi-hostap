@@ -21,6 +21,7 @@ dnsmasq_conf_emit() {
 interface=${INTERFACE}
 bind-dynamic
 dhcp-authoritative
+dhcp-leasefile=${DHCP_LEASE_FILE:-/tmp/dnsmasq.leases}
 dhcp-range=${dhcp_range}
 dhcp-option=option:router,${AP_ADDR}
 dhcp-option=option:dns-server,${PRI_DNS},${SEC_DNS}

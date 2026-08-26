@@ -38,6 +38,28 @@ docker exec rpi-hostap clients.sh count
 
 It prints a single integer (the number of station MAC blocks in `hostapd_cli all_sta` output), suitable for scripting and monitoring.
 
+### DHCP leases
+
+To inspect current dnsmasq DHCP leases, use the `leases` subcommand:
+
+```bash
+docker exec rpi-hostap clients.sh leases
+```
+
+It prints the raw lease lines in dnsmasq format (`expiry_epoch mac ip hostname clientid`). The lease file path defaults to `/tmp/dnsmasq.leases` (emitted as `dhcp-leasefile` in the generated config) and can be overridden with `DHCP_LEASE_FILE`. If the lease file is absent, an error is reported.
+
+For machine-readable output, pass `--json`:
+
+```bash
+docker exec rpi-hostap clients.sh leases --json
+```
+
+Example output:
+
+```json
+[{"mac":"aa:bb:cc:dd:ee:ff","ip":"192.168.254.100","hostname":"laptop","expires":"1756200000"}]
+```
+
 To deauthenticate a specific station, pass its MAC address as a `deauth` subcommand:
 
 ```bash

@@ -102,6 +102,7 @@ CONF
 interface=wlan0
 bind-dynamic
 dhcp-authoritative
+dhcp-leasefile=/tmp/dnsmasq.leases
 dhcp-range=192.168.254.100,192.168.254.200,255.255.255.0,12h
 dhcp-option=option:router,192.168.254.1
 dhcp-option=option:dns-server,8.8.8.8,8.8.4.4
