@@ -24,6 +24,11 @@ if ! declare -F require_module > /dev/null 2>&1 ; then
     # shellcheck disable=SC2034  # read dynamically via ${!deps_var}
     MODULE_DEPENDENCIES_ipv6="nat"
 
+    # Config emission modules (issue #238) pull their compute helpers
+    # transitively via the loader.
+    MODULE_DEPENDENCIES_hostapd_conf="wpa ap_isolation ssid_hidden mac_filter stations ctrl_interface extra_opts"
+    MODULE_DEPENDENCIES_dnsmasq_conf="dhcp ipv6"
+
     # require_module loads lib/{core,sys}/<module>.sh once, recursively
     # satisfying declared dependencies first. Accepts one or more module
     # names: require_module lifecycle nat interface

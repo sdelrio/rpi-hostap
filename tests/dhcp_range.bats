@@ -383,14 +383,14 @@ setup() {
     run bash -c '
         . "'"${REPO_ROOT}"'/lib/core/env.sh"
         . "'"${REPO_ROOT}"'/lib/core/dhcp.sh"
-        wlanstart="'"${REPO_ROOT}"'/wlanstart.sh"
-        eval "$(sed -n "/^emit_dnsmasq_conf()/,/^}/p" "${wlanstart}")"
+        . "'"${REPO_ROOT}"'/lib/bootstrap.sh"
+        require_module dnsmasq_conf
         SUBNET="192.168.254.0" AP_ADDR="192.168.254.1" INTERFACE="wlan0"
         PRI_DNS="8.8.8.8" SEC_DNS="8.8.4.4" COUNTRY_CODE=EU
         env_resolve_config_env
         DHCP_RANGE_COMPUTED=$(dhcp_compute_range) || exit 1
         export DHCP_RANGE_COMPUTED
-        emit_dnsmasq_conf
+        dnsmasq_conf_emit
     '
     [ "$status" -eq 0 ]
     [[ "${output}" == *'interface=wlan0'* ]]
@@ -398,26 +398,24 @@ setup() {
     [[ "${output}" == *'dhcp-authoritative'* ]]
 }
 
-@test "default-range warning appears once when emit_dnsmasq_conf reuses computed range (#224)" {
+@test "default-range warning appears once when dnsmasq_conf_emit reuses computed range (#224)" {
     # shellcheck disable=SC2016
     run bash -c '
         . "'"${REPO_ROOT}"'/lib/core/env.sh"
         . "'"${REPO_ROOT}"'/lib/core/dhcp.sh"
-        wlanstart="'"${REPO_ROOT}"'/wlanstart.sh"
-        # Extract emit_dnsmasq_conf from wlanstart.sh (same pattern as
-        # tests/atomic_config.bats)
-        eval "$(sed -n "/^emit_dnsmasq_conf()/,/^}/p" "${wlanstart}")"
+        . "'"${REPO_ROOT}"'/lib/bootstrap.sh"
+        require_module dnsmasq_conf
         SUBNET="192.168.254.0" AP_ADDR="192.168.254.1" INTERFACE="wlan0"
         PRI_DNS="8.8.8.8" SEC_DNS="8.8.4.4" COUNTRY_CODE=EU
         env_resolve_config_env
-        # Startup path: compute once, reuse in emit_dnsmasq_conf
+        # Startup path: compute once, reuse in dnsmasq_conf_emit
         DHCP_RANGE_COMPUTED=$(dhcp_compute_range 2> "'"${BATS_TEST_TMPDIR}"'/err1") || exit 1
         export DHCP_RANGE_COMPUTED
-        emit_dnsmasq_conf > /dev/null 2> "'"${BATS_TEST_TMPDIR}"'/err2"
+        dnsmasq_conf_emit > /dev/null 2> "'"${BATS_TEST_TMPDIR}"'/err2"
     '
     [ "$status" -eq 0 ]
     local err1="${BATS_TEST_TMPDIR}/err1" err2="${BATS_TEST_TMPDIR}/err2"
     grep -q "using default" "${err1}"
-    # emit_dnsmasq_conf must not warn again when the range is reused
+    # dnsmasq_conf_emit must not warn again when the range is reused
     [ "$(grep -c "using default" "${err2}")" = "0" ]
 }

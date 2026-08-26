@@ -2,7 +2,7 @@
 
 # Tests exercise atomic_write_config() from lib/sys/atomic.sh - the exact code
 # used by wlanstart.sh (no duplicated logic) - together with the real
-# emit_hostapd_conf/emit_dnsmasq_conf validators, covering the failure
+# hostapd_conf_emit/dnsmasq_conf_emit emitters, covering the failure
 # paths from issue #157: failed config generation must leave any
 # pre-existing config untouched.
 
@@ -19,16 +19,14 @@ teardown() {
 
 load_emit_fns() {
     export INTERFACE=wlan0
-    . "${LIB_DIR}/core/validation.sh"
-    . "${LIB_DIR}/core/wpa.sh"
-    . "${LIB_DIR}/core/dhcp.sh"
-    . "${LIB_DIR}/sys/atomic.sh"
+    . "${LIB_DIR}/bootstrap.sh"
+    require_module hostapd_conf dnsmasq_conf atomic
 }
 
 @test "invalid WPA_VERSION leaves pre-existing hostapd.conf untouched" {
     load_emit_fns
     WPA_VERSION=1   # rejected by wpa_compute_conf
-    run atomic_write_config emit_hostapd_conf "${target}"
+    run atomic_write_config hostapd_conf_emit "${target}"
     [ "$status" -ne 0 ]
     [ "$(cat "${target}")" = "OLD-CONFIG" ]
 }
@@ -36,14 +34,13 @@ load_emit_fns() {
 @test "invalid DHCP_RANGE leaves pre-existing dnsmasq.conf untouched" {
     load_emit_fns
     DHCP_RANGE=not-an-ip,192.168.254.200,255.255.255.0,12h
-    run atomic_write_config emit_dnsmasq_conf "${target}"
+    run atomic_write_config dnsmasq_conf_emit "${target}"
     [ "$status" -ne 0 ]
     [ "$(cat "${target}")" = "OLD-CONFIG" ]
 }
 
 @test "successful generation replaces the target content atomically" {
     . "$LIB_DIR/sys/atomic.sh"
-    # emit_hostapd_conf/emit_dnsmasq_conf live in wlanstart.sh itself;
     # use a representative emitter to verify the atomic replace path.
     good_emit() { printf 'interface=wlan0\n'; }
     run atomic_write_config good_emit "${target}"
