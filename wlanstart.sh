@@ -111,71 +111,9 @@ require_module channel validation warnings passphrase stations \
     wpa ap_isolation ssid_hidden mac_filter ctrl_interface ipv6 \
     dhcp extra_opts radio atomic
 
-# Emit hostapd.conf to stdout from the current environment.
-emit_hostapd_conf() {
-    local wpa_conf ap_isolation_conf ssid_hidden_conf mac_filter_conf max_sta_conf ctrl_conf
-    wpa_conf=$(wpa_compute_conf) || return 1
-    ap_isolation_conf=$(ap_isolation_compute_line)
-    ssid_hidden_conf=$(ssid_hidden_compute_line)
-    mac_filter_conf=$(mac_filter_compute_conf)
-    max_sta_conf=$(stations_compute_max_sta_conf) || return 1
-    ctrl_conf=$(ctrl_interface_compute_conf)
-
-    cat <<EOF
-interface=${INTERFACE}
-${DRIVER+"driver=${DRIVER}"}
-ssid=${SSID}
-${ssid_hidden_conf}
-hw_mode=${HW_MODE}
-channel=${CHANNEL}
-${COUNTRY_CODE+"country_code=${COUNTRY_CODE}"}
-${wpa_conf}
-wpa_ptk_rekey=600
-wmm_enabled=1
-${max_sta_conf}
-${ap_isolation_conf}
-${mac_filter_conf}
-${ctrl_conf}
-
-# Activate channel selection for HT High Throughput (802.11an)
-
-${HT_ENABLED+"ieee80211n=1"}
-${HT_CAPAB+"ht_capab=${HT_CAPAB}"}
-
-# Activate channel selection for VHT Very High Throughput (802.11ac)
-
-${VHT_ENABLED+"ieee80211ac=1"}
-${VHT_CAPAB+"vht_capab=${VHT_CAPAB}"}
-EOF
-
-    extra_opts_compute_lines
-}
-
-# Emit dnsmasq.conf to stdout from the current environment.
-emit_dnsmasq_conf() {
-    local dhcp_range ipv6_conf=""
-    # Reuse the range computed at startup (DHCP_RANGE_COMPUTED) when
-    # available so dhcp_compute_range (and its warnings) runs only once;
-    # validation mode and tests without it still compute on demand.
-    if [ -n "${DHCP_RANGE_COMPUTED:-}" ] ; then
-        dhcp_range=${DHCP_RANGE_COMPUTED}
-    else
-        dhcp_range=$(dhcp_compute_range) || return 1
-    fi
-    if [ "${IPV6:-0}" = "1" ] ; then
-        ipv6_conf=$(ipv6_compute_dnsmasq_conf)
-    fi
-
-    cat <<EOF
-interface=${INTERFACE}
-bind-dynamic
-dhcp-authoritative
-dhcp-range=${dhcp_range}
-dhcp-option=option:router,${AP_ADDR}
-dhcp-option=option:dns-server,${PRI_DNS},${SEC_DNS}
-${ipv6_conf}
-EOF
-}
+# Config emission lives in lib/core (issue #238); this file only wires the
+# generated configs into validation mode and atomic writes below.
+require_module hostapd_conf dnsmasq_conf
 
 # Dry-run validation mode: run every validator, collecting all failures
 # instead of stopping at the first one. On success print the generated
@@ -210,11 +148,11 @@ run_validation_mode() {
 
     # Config generation doubles as DHCP range / WPA config validation.
     local hostapd dnsmasq
-    hostapd=$(emit_hostapd_conf) || {
+    hostapd=$(hostapd_conf_emit) || {
         echo "[Error] Invalid WPA configuration." >&2
         return 1
     }
-    dnsmasq=$(emit_dnsmasq_conf) || {
+    dnsmasq=$(dnsmasq_conf_emit) || {
         echo "[Error] Invalid DHCP_RANGE." >&2
         return 1
     }
@@ -266,13 +204,13 @@ validation_check_ipv4_param SEC_DNS "${SEC_DNS}" || exit 1
 # Compute DHCP range early so the netmask-derived prefix (DHCP_PREFIX)
 # is available for interface_setup and nat_apply_rules, and so the
 # computed range (and its warnings) is produced exactly once per startup;
-# emit_dnsmasq_conf reuses it below (#224).
+# dnsmasq_conf_emit reuses it below (#224).
 DHCP_RANGE_COMPUTED=$(dhcp_compute_range) || exit 1
 export DHCP_RANGE_COMPUTED
 
 # Always regenerate hostapd.conf so env var changes apply between runs.
 # Generated atomically so a failure leaves the old config intact (#157).
-atomic_write_config emit_hostapd_conf "/etc/hostapd.conf" || exit 1
+atomic_write_config hostapd_conf_emit "/etc/hostapd.conf" || exit 1
 check_interrupted
 
 # Setup interface and restart DHCP service
@@ -314,7 +252,7 @@ echo "Configuring DHCP server .."
 
 # Always regenerate dnsmasq.conf so env var changes apply between runs.
 # Generated atomically so a failure leaves the old config intact (#157).
-atomic_write_config emit_dnsmasq_conf "/etc/dnsmasq.conf" || exit 1
+atomic_write_config dnsmasq_conf_emit "/etc/dnsmasq.conf" || exit 1
 
 echo "Starting dnsmasq and hostapd via multirun ..."
 check_interrupted
