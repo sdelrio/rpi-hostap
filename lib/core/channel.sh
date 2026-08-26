@@ -14,10 +14,10 @@ channel_validate() {
     # Automatic channel selection: skip numeric checks, driver decides.
     case "${HW_MODE}:${CHANNEL}" in
         *:[aA][cC][sS])
-            if [ "${_ACS_WARNED:-0}" -eq 0 ]; then
+            if [ "${_channel_ACS_WARNED:-0}" -eq 0 ]; then
                 echo "[Warning] CHANNEL=acs enables automatic channel selection; requires driver support and may delay startup" >&2
                 echo "[Warning] ACS may select a DFS/radar channel; the HEALTHCHECK_START_PERIOD grace period applies while CAC completes" >&2
-                _ACS_WARNED=1
+                _channel_ACS_WARNED=1
             fi
             return 0
             ;;
@@ -33,9 +33,9 @@ channel_validate() {
     fi
 
     case "${COUNTRY_CODE}" in
-        US|CA|MX) _MAX_CHANNEL=11 ;;
-        JP)       _MAX_CHANNEL=14 ;;
-        *)        _MAX_CHANNEL=13 ;;  # fallback: Europe (ETSI)
+        US|CA|MX) _channel_MAX_CHANNEL=11 ;;
+        JP)       _channel_MAX_CHANNEL=14 ;;
+        *)        _channel_MAX_CHANNEL=13 ;;  # fallback: Europe (ETSI)
     esac
 
     case "${HW_MODE}" in
@@ -44,8 +44,8 @@ channel_validate() {
                 echo "[Error] Channel '${CHANNEL}' must be a positive integer" >&2
                 return 1
             fi
-            if [ "${CHANNEL}" -gt "${_MAX_CHANNEL}" ] 2>/dev/null; then
-                echo "[Error] Channel ${CHANNEL} not allowed for country ${COUNTRY_CODE} (max ${_MAX_CHANNEL} for hw_mode=${HW_MODE})" >&2
+            if [ "${CHANNEL}" -gt "${_channel_MAX_CHANNEL}" ] 2>/dev/null; then
+                echo "[Error] Channel ${CHANNEL} not allowed for country ${COUNTRY_CODE} (max ${_channel_MAX_CHANNEL} for hw_mode=${HW_MODE})" >&2
                 return 1
             fi
             ;;
@@ -69,9 +69,9 @@ channel_validate() {
                     esac
                     ;;
                 52|56|60|64|100|104|108|112|116|120|124|128|132|136|140|144)
-                    if [ "${_DFS_WARNED:-0}" -eq 0 ]; then
+                    if [ "${_channel_DFS_WARNED:-0}" -eq 0 ]; then
                         echo "[Warning] Channel ${CHANNEL} is a DFS channel (radar detection/CAC required), may not work on all drivers" >&2
-                        _DFS_WARNED=1
+                        _channel_DFS_WARNED=1
                     fi
                     ;;
                 *)
