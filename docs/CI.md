@@ -43,13 +43,12 @@ the workflow).
 ### Mitigation: master-scope cache warmer
 
 A second job in the same workflow, `warm-hwsim-cache`, builds the modules
-on master and saves them under the exact same key format. It triggers via:
-
-- Pushes to `master` (successful merges) - picks up azure runner kernel
-  bumps that invalidate old entries via the `uname -r` key segment;
-  each merge re-warms the current key, so there is no scheduled run
-  burning runner minutes and no 60-day inactivity auto-disable risk.
-- Manual `workflow_dispatch` with no `ref` input.
+on master and saves them under the exact same key format. It runs on
+demand only: a manual `workflow_dispatch` with no `ref` input (no push
+trigger, no cron schedule), typically after a runner kernel bump that
+invalidates old entries via the `uname -r` key segment. PR runs restore
+from whatever warm entry exists in master's scope; until a dispatch is
+run they simply rebuild the modules locally.
 
 Because PR runs inherit master's cache scope, entries saved by the warmer
 are restorable by every PR run. The shared build recipe lives in the

@@ -13,14 +13,6 @@ on:
         description: 'Git ref (tag or commit id) to test'
         required: false
         default: ''
-  push:
-    branches: [master]
-    # Cache warming on every successful merge to master: PR runs execute
-    # in their own branch cache scope and cannot see caches saved by other
-    # PRs, so a warm entry must be produced in master's scope for them to
-    # hit. This replaces the former daily cron schedule (no runner-minute
-    # burn or auto-disable-after-60-days risk); on a cache hit the warmer
-    # costs about a minute per merge.
 
 permissions:
   contents: read
@@ -68,8 +60,8 @@ jobs:
       #
       # GitHub Actions scopes caches per branch: a PR run can restore from
       # master but never from another PR branch. The `warm-hwsim-cache`
-      # job below builds and saves this exact key in master's scope
-      # (push to master or manual dispatch) so PR runs get hits instead
+      # job below builds and saves this exact key in master's scope on
+      # demand (manual workflow dispatch) so PR runs get hits instead
       # of paying the ~5 min kernel-module build every time.
       - name: Cache wireless stack modules
         id: hwsim-cache
@@ -125,17 +117,16 @@ jobs:
   # master - which is exactly why most PR runs previously reported
   # "Cache not found" despite identical keys.
   #
-   # Triggers: pushes to master (i.e. successful merges) and manual
-   # dispatch with no ref. Kernel bumps on azure runners change `uname -r`,
-   # invalidating old entries; each merge to master re-warms the new key.
-   # actions/cache saves automatically in its post step when the key was
-   # not restored.
+  # Trigger: manual workflow_dispatch only (no push, no cron), e.g. after
+  # a kernel bump on the runners changes `uname -r` and invalidates old
+  # entries. PR runs restore from whatever warm entry exists in master's
+  # scope; until a dispatch is run they simply rebuild locally.
+  # actions/cache saves automatically in its post step when the key was
+  # not restored.
   warm-hwsim-cache:
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    if: |
-      github.event_name == 'push' ||
-      (github.event_name == 'workflow_dispatch' && inputs.ref == '')
+    if: github.event_name == 'workflow_dispatch' && inputs.ref == ''
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
