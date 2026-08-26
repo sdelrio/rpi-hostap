@@ -120,6 +120,8 @@ docker run -d \
 | `HT_CAPAB` | No | 802.11n capabilities string (`ht_capab=` in hostapd.conf); requires `HT_ENABLED` | unset |
 | `VHT_ENABLED` | No | Enable 802.11ac Very High Throughput (`ieee80211ac=1`); requires 5 GHz (`HW_MODE=a`) | unset |
 | `VHT_CAPAB` | No | 802.11ac capabilities string (`vht_capab=` in hostapd.conf); requires `VHT_ENABLED` | unset |
+| `HE_ENABLED` | No | Enable 802.11ax High Efficiency (`ieee80211ax=1`); requires 5 GHz (`HW_MODE=a`); see [HE (802.11ax) tuning](docs/configuration.md#he-80211ax-tuning) | unset |
+| `HE_CAPAB` | No | 802.11ax capabilities string (`he_capab=` in hostapd.conf); requires `HE_ENABLED` | unset |
 | `HOSTAPD_EXTRA_OPTS` | No | Extra hostapd.conf lines, newline-separated, appended verbatim after all generated lines. Unvalidated: invalid values surface as hostapd config errors in logs (e.g. `"auth_algs=3\nbeacon_int=100"`) | unset |
 | `HEALTHCHECK_START_PERIOD` | No | Grace period (seconds) after container start during which the healthcheck always passes. Measured from the container's own recorded start time (`/run/hostap-started`), not host uptime; see [Health Check](docs/healthcheck.md) and [Script grace vs Docker start-period](docs/healthcheck.md#script-grace-vs-docker-start-period). Note: this only extends the script-side grace window - Docker's own `--start-period` stays baked at 15s in the image, so failures after the script grace but during slow bring-up (e.g. DFS CAC) count toward Docker's retries; override with `--health-start-period` or compose `start_period` | `15` |
 | `CTRL_INTERFACE` | No | Enable hostapd control interface (any non-empty value); allows `clients.sh` to list stations, see [Client Inspection](docs/operations.md#client-inspection-optional) | unset |

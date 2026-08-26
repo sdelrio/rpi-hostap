@@ -38,6 +38,11 @@ ${HT_CAPAB+"ht_capab=${HT_CAPAB}"}
 
 ${VHT_ENABLED+"ieee80211ac=1"}
 ${VHT_CAPAB+"vht_capab=${VHT_CAPAB}"}
+
+# Activate channel selection for HE High Efficiency (802.11ax)
+
+${HE_ENABLED+"ieee80211ax=1"}
+${HE_CAPAB+"he_capab=${HE_CAPAB}"}
 EOF
 
     extra_opts_compute_lines

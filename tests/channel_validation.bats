@@ -570,3 +570,50 @@ setup() {
     run channel_validate_vht
     [ "$status" -eq 0 ]
 }
+
+# --- HE_ENABLED requires HW_MODE=a (mirrors VHT rules) ---
+
+@test "HE_ENABLED set with default HW_MODE fails" {
+    unset HW_MODE
+    env_resolve_config_env
+    HE_ENABLED="1"
+    run channel_validate_he
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"[Error] HE_ENABLED requires HW_MODE=a (5 GHz)."* ]]
+}
+
+@test "HE_ENABLED set with HW_MODE=g fails" {
+    HW_MODE="g"
+    HE_ENABLED="1"
+    run channel_validate_he
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"Error"* ]]
+}
+
+@test "HE_ENABLED set with HW_MODE=b fails" {
+    HW_MODE="b"
+    HE_ENABLED="1"
+    run channel_validate_he
+    [ "$status" -eq 1 ]
+}
+
+@test "HE_ENABLED set with HW_MODE=a passes" {
+    HW_MODE="a"
+    HE_ENABLED="1"
+    run channel_validate_he
+    [ "$status" -eq 0 ]
+}
+
+@test "HE_ENABLED set with uppercase HW_MODE=A passes" {
+    HW_MODE="A"
+    HE_ENABLED="1"
+    run channel_validate_he
+    [ "$status" -eq 0 ]
+}
+
+@test "HE_ENABLED unset with HW_MODE=g passes" {
+    HW_MODE="g"
+    unset HE_ENABLED
+    run channel_validate_he
+    [ "$status" -eq 0 ]
+}

@@ -66,6 +66,25 @@ Interpretation:
 
 If hostapd rejects your capability string, it shows up as a config error in `docker logs rpi-hostap` on start.
 
+## HE (802.11ax) Tuning
+
+By default the AP runs without HE (802.11ax/Wi-Fi 6). To enable it:
+
+```bash
+docker run ... \
+  -e HW_MODE=a -e CHANNEL=36 \
+  -e HE_ENABLED=1 \
+  -e HE_CAPAB="[HE80:[0x11ff:0xf]]" \
+   ...
+```
+
+### Notes
+
+- `HE_ENABLED=1` emits `ieee80211ax=1` and requires 5 GHz operation (`HW_MODE=a`), the same band rule as VHT; `HE_CAPAB` sets the optional `he_capab=` line.
+- Capabilities depend on what your WiFi adapter supports - check `iw list` output for an `HE capabilities` block before enabling. If there is no such block, the adapter cannot do 802.11ax and you must not set `HE_ENABLED=1`.
+- `HE_CAPAB` is optional - `ieee80211ax=1` alone works with driver defaults. When set, `he_capab` uses band-specific syntax, e.g. `[HE80:[0x11ff:0xf]]` for 5 GHz (MAC capabilities in hex). See the hostapd `hostapd.conf` documentation for the full format.
+- `HE_CAPAB` values are passed through to hostapd unvalidated; invalid strings surface as hostapd config errors in `docker logs`.
+
 ## Transmit Power (optional)
 
 Regulatory-constrained deployments (labs, embedded products) may need to cap the AP's EIRP. Set `TX_POWER` to a fixed transmit power in dBm, or `auto` to restore driver/regulatory automatic power control:
