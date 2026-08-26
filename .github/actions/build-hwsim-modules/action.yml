@@ -6,7 +6,7 @@ description: >-
 runs:
   using: 'composite'
   steps:
-    - name: Build wireless stack modules
+    - name: Build modules into /tmp/hwsim
       shell: bash
       run: |
         KVER="$(uname -r)"

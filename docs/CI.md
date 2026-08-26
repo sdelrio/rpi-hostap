@@ -13,7 +13,8 @@ The PR trigger label stays `system-test`: it is user-facing, referenced in
 docs and existing PR workflows, so renaming it would break current usage.
 No required checks reference this workflow by name, so no branch-protection
 changes are needed. Artifact name: `e2e-debug-logs`. Concurrency group
-prefix: `e2e-`.
+prefix: `e2e-`. For the same history/link reasons, `tests/system_test.sh`
+also keeps its filename.
 
 ### hwsim module cache and branch scoping
 
@@ -21,7 +22,7 @@ The workflow caches compiled wireless stack modules
 (`/tmp/hwsim`) under key:
 
 ```
-hwsim-modules-<os>-kernel-<uname -r>-<hash of system-test.yml>
+hwsim-modules-<os>-kernel-<uname -r>-<hash of .github/actions/build-hwsim-modules/action.yml>
 ```
 
 Investigation of recent runs (32895001316, 32895972430, 32918439480,
@@ -44,8 +45,10 @@ the workflow).
 A second job in the same workflow, `warm-hwsim-cache`, builds the modules
 on master and saves them under the exact same key format. It triggers via:
 
-- Weekly cron (`0 4 * * 1`) - picks up azure runner kernel bumps that
-  invalidate old entries via the `uname -r` key segment.
+- Daily cron (`0 4 * * *`) - picks up azure runner kernel bumps that
+  invalidate old entries via the `uname -r` key segment; daily keeps
+  entries inside the 7-day unused-eviction window and limits how long
+  PRs pay a full rebuild after a bump.
 - Manual `workflow_dispatch` with no `ref` input.
 
 Because PR runs inherit master's cache scope, entries saved by the warmer
