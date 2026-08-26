@@ -5,6 +5,7 @@
 
 setup() {
     unset WPA_VERSION
+    unset PMF
     unset HW_MODE
     unset _WPA_CONF
     unset _WPA_LEVEL
@@ -92,4 +93,77 @@ load_lib() {
     run wpa_compute_conf
     [ "$status" -ne 0 ]
     [[ "$output" == *"Invalid WPA_VERSION"* ]]
+}
+
+@test "unset PMF with WPA_VERSION=2 emits no ieee80211w" {
+    load_lib
+    WPA_VERSION=2
+    unset PMF
+    run wpa_compute_conf
+    [ "$status" -eq 0 ]
+    [[ "$output" != *"ieee80211w"* ]]
+}
+
+@test "unset PMF with WPA_VERSION=3 derives ieee80211w=2" {
+    load_lib
+    WPA_VERSION=3
+    unset PMF
+    run wpa_compute_conf
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"ieee80211w=2"* ]]
+}
+
+@test "unset PMF with WPA_VERSION=mixed derives ieee80211w=1" {
+    load_lib
+    WPA_VERSION=mixed
+    unset PMF
+    run wpa_compute_conf
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"ieee80211w=1"* ]]
+}
+
+@test "PMF=0 emits ieee80211w=0 for WPA2-only" {
+    load_lib
+    WPA_VERSION=2
+    PMF=0
+    run wpa_compute_conf
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"ieee80211w=0"* ]]
+}
+
+@test "explicit PMF=2 overrides mixed-mode derived default" {
+    load_lib
+    WPA_VERSION=mixed
+    PMF=2
+    run wpa_compute_conf
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"ieee80211w=2"* ]]
+    [[ "$output" != *"ieee80211w=1"* ]]
+}
+
+@test "explicit PMF=1 overrides WPA3-derived default" {
+    load_lib
+    WPA_VERSION=3
+    PMF=1
+    run wpa_compute_conf
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"ieee80211w=1"* ]]
+}
+
+@test "PMF=0 combined with WPA_VERSION=3 is rejected" {
+    load_lib
+    WPA_VERSION=3
+    PMF=0
+    run wpa_compute_conf
+    [ "$status" -ne 0 ]
+    [[ "$output" == *"incompatible with WPA_VERSION=3"* ]]
+}
+
+@test "invalid PMF value fails with clear error" {
+    load_lib
+    WPA_VERSION=2
+    PMF=3
+    run wpa_compute_conf
+    [ "$status" -ne 0 ]
+    [[ "$output" == *"Invalid PMF '3'"* ]]
 }
