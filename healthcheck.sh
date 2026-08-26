@@ -95,7 +95,10 @@ MIN_STATIONS="${HEALTHCHECK_MIN_STATIONS-}"
 if [[ -n "${MIN_STATIONS}" ]]; then
     if ! [[ "${MIN_STATIONS}" =~ ^[0-9]+$ ]]; then
         echo "[Warning] Invalid HEALTHCHECK_MIN_STATIONS '${MIN_STATIONS}', disabling check" >&2
-    elif client_env_resolve_ctrl_iface_dir && [[ -d "${CTRL_IFACE_DIR}" ]]; then
+    elif ! client_env_resolve_ctrl_iface_dir || [[ ! -d "${CTRL_IFACE_DIR}" ]] ; then
+        echo "[Error] CTRL_IFACE_DIR '${CTRL_IFACE_DIR}' missing; cannot count stations" >&2
+        exit 1
+    else
         STATION_COUNT="$(hostapd_cli -p "${CTRL_IFACE_DIR}" -i "${INTERFACE}" all_sta 2>/dev/null \
             | grep -cE '^([0-9a-fA-F]{2}:){5}' || true)"
         if (( STATION_COUNT < MIN_STATIONS )); then
