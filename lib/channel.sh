@@ -55,7 +55,18 @@ validate_channel() {
                 return 1
             fi
             case "${CHANNEL}" in
-                36|40|44|48|149|153|157|161|165)
+                36|40|44|48)
+                    ;;
+                149|153|157|161|165)
+                    # U-NII-3 high band is not legal in ETSI regions; only
+                    # allow it for countries where it is permitted (issue #221).
+                    case "${COUNTRY_CODE}" in
+                        US|CA|MX|JP) ;;
+                        *)
+                            echo "[Error] Channel ${CHANNEL} not allowed for country ${COUNTRY_CODE} (channels 149-165 require US/CA/MX/JP)" >&2
+                            return 1
+                            ;;
+                    esac
                     ;;
                 52|56|60|64|100|104|108|112|116|120|124|128|132|136|140|144)
                     if [ "${_DFS_WARNED:-0}" -eq 0 ]; then

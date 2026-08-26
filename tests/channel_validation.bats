@@ -76,13 +76,47 @@ setup() {
 
 # --- a mode (5 GHz) ---
 
-@test "hw_mode=a with all non-DFS channels passes" {
+@test "hw_mode=a with non-DFS low band channels passes (any country)" {
     HW_MODE="a"
-    for ch in 36 40 44 48 149 153 157 161 165; do
+    for ch in 36 40 44 48; do
         CHANNEL="${ch}"
         run validate_channel
         [ "$status" -eq 0 ]
     done
+}
+
+@test "hw_mode=a with high band channels 149-165 passes in US/CA/MX/JP" {
+    HW_MODE="a"
+    for cc in US CA MX JP us ca mx jp; do
+        COUNTRY_CODE="${cc}"
+        for ch in 149 153 157 161 165; do
+            CHANNEL="${ch}"
+            run validate_channel
+            [ "$status" -eq 0 ]
+        done
+    done
+}
+
+@test "hw_mode=a rejects channel 149-165 in ETSI countries (issue #221)" {
+    HW_MODE="a"
+    for pair in "EU EU" "ES ES" "eu EU" "es ES" "ZZ ZZ"; do
+        set -- ${pair}
+        COUNTRY_CODE="$1"
+        for ch in 149 153 157 161 165; do
+            CHANNEL="${ch}"
+            run validate_channel
+            [ "$status" -eq 1 ]
+            [[ "$output" == *"Error"*"Channel ${ch} not allowed for country $2"* ]]
+        done
+    done
+}
+
+@test "hw_mode=a rejects channel 149 without COUNTRY_CODE (EU fallback)" {
+    HW_MODE="a"
+    CHANNEL="149"
+    run validate_channel
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"Error"*"not allowed for country"* ]]
 }
 
 @test "hw_mode=a with DFS channel 52 warns but passes" {
