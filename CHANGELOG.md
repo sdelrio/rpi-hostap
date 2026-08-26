@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.40.0](https://github.com/sdelrio/rpi-hostap/compare/v0.39.0...v0.40.0) (2026-08-26)
+
+
+### ✨ Features
+
+* **wpa:** add PMF (802.11w) toggle env var ([#235](https://github.com/sdelrio/rpi-hostap/issues/235)) ([#272](https://github.com/sdelrio/rpi-hostap/issues/272)) ([a891db1](https://github.com/sdelrio/rpi-hostap/commit/a891db1f3433e006521133ba9937f7256bbc7acc))
+
+
+### 🩹 Fixes
+
+* **docker:** pin libssl3/libcrypto3 in apk install ([#271](https://github.com/sdelrio/rpi-hostap/issues/271)) ([#273](https://github.com/sdelrio/rpi-hostap/issues/273)) ([5b7e943](https://github.com/sdelrio/rpi-hostap/commit/5b7e943e7e06fe9a4abba106ae923f8e43dea08a))
+* upgrade alpine packages at image build to clear CVE-2026-14456 ([#267](https://github.com/sdelrio/rpi-hostap/issues/267)) ([55939d6](https://github.com/sdelrio/rpi-hostap/commit/55939d62b5cb91ca25323867237238cd16ef88e7))
+
+
+### ♻️ Code Refactoring
+
+* declarative module loading via lib/bootstrap.sh ([#269](https://github.com/sdelrio/rpi-hostap/issues/269)) ([0a16e33](https://github.com/sdelrio/rpi-hostap/commit/0a16e33e5338c0fbbcffc0e7596b4d6a5c0d5c0b)), closes [#239](https://github.com/sdelrio/rpi-hostap/issues/239)
+* deduplicate env plumbing in clients.sh and healthcheck.sh ([#243](https://github.com/sdelrio/rpi-hostap/issues/243)) ([#262](https://github.com/sdelrio/rpi-hostap/issues/262)) ([417d2db](https://github.com/sdelrio/rpi-hostap/commit/417d2db02d61d4f2353c078e502eb514d3dd3a89))
+* enforce &lt;module&gt;_&lt;verb&gt; naming convention across lib/ ([#264](https://github.com/sdelrio/rpi-hostap/issues/264)) ([f2aff80](https://github.com/sdelrio/rpi-hostap/commit/f2aff803aae54e8323fc8f5f3c779a88c79ac7cb))
+* extract config emission from wlanstart.sh into lib/core modules ([#270](https://github.com/sdelrio/rpi-hostap/issues/270)) ([1b4cee4](https://github.com/sdelrio/rpi-hostap/commit/1b4cee4df73440031b6f215b668e374a8111eace))
+* phase-based lifecycle with registered setup/teardown hooks ([#265](https://github.com/sdelrio/rpi-hostap/issues/265)) ([a780aa4](https://github.com/sdelrio/rpi-hostap/commit/a780aa4863fc9524cbac20293b0caaf490f2d118))
+* split lib/ into core/ (pure) and sys/ (effectful) layers ([#268](https://github.com/sdelrio/rpi-hostap/issues/268)) ([04b8ae8](https://github.com/sdelrio/rpi-hostap/commit/04b8ae8a8331720ac28cd588d83dbecdb192eb10)), closes [#240](https://github.com/sdelrio/rpi-hostap/issues/240)
+
 ## [0.39.0](https://github.com/sdelrio/rpi-hostap/compare/v0.38.0...v0.39.0) (2026-08-26)
 
 
