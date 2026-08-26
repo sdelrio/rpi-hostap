@@ -65,6 +65,19 @@ run_validate() {
     [[ "$output" != *"=== /etc/hostapd.conf ==="* ]]
 }
 
+@test "--validate rejects channel 149 in ETSI region (issue #221)" {
+    run run_validate INTERFACE=wlan0 HW_MODE=a CHANNEL=149 COUNTRY_CODE=EU SSID=x WPA_PASSPHRASE=supersecret
+    [ "$status" -ne 0 ]
+    [[ "$output" == *"Channel 149 not allowed for country EU"* ]]
+    [[ "$output" != *"=== /etc/hostapd.conf ==="* ]]
+}
+
+@test "--validate accepts channel 149 in US (issue #221)" {
+    run run_validate INTERFACE=wlan0 HW_MODE=a CHANNEL=149 COUNTRY_CODE=US SSID=x WPA_PASSPHRASE=supersecret
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"=== /etc/hostapd.conf ==="* ]]
+}
+
 @test "--validate rejects short passphrase" {
     run run_validate INTERFACE=wlan0 WPA_PASSPHRASE=short SSID=x
     [ "$status" -ne 0 ]
