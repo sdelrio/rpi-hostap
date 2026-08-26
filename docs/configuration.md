@@ -110,7 +110,7 @@ docker run ... \
 MAC filtering is **off by default**; behavior is unchanged unless you set `MAC_FILTER`. When enabled:
 
 - `MAC_FILTER=1` (allowlist): only MACs listed in the file can associate (`macaddr_acl=1` + `accept_mac_file=`).
-- `MAC_FILTER=2` (denylist): listed MACs are rejected (`macaddr_acl=1` + `deny_mac_file=`).
+- `MAC_FILTER=2` (denylist): listed MACs are rejected (`macaddr_acl=0` + `deny_mac_file=`).
 - Startup fails with an error if the filter is enabled without `MAC_ACL_FILE`, and warns if the file is missing or unreadable.
 - Note that MAC filtering is a weak control on its own (MACs can be spoofed); combine it with [WPA3/SAE](#wpa3-sae).
 

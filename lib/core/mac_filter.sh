@@ -41,7 +41,7 @@ mac_filter_compute_conf() {
             echo "accept_mac_file=${MAC_ACL_FILE}"
             ;;
         2)
-            echo "macaddr_acl=1"
+            echo "macaddr_acl=0"
             echo "deny_mac_file=${MAC_ACL_FILE}"
             ;;
         *)

@@ -31,12 +31,12 @@ setup() {
     [ "${lines[1]}" = "accept_mac_file=/etc/hostapd.accept" ]
 }
 
-@test "MAC_FILTER=2 emits macaddr_acl=1 and deny_mac_file" {
+@test "MAC_FILTER=2 emits macaddr_acl=0 and deny_mac_file" {
     MAC_FILTER=2
     MAC_ACL_FILE="/etc/hostapd.deny"
     run mac_filter_compute_conf
     [ "$status" -eq 0 ]
-    [ "${lines[0]}" = "macaddr_acl=1" ]
+    [ "${lines[0]}" = "macaddr_acl=0" ]
     [ "${lines[1]}" = "deny_mac_file=/etc/hostapd.deny" ]
 }
 
