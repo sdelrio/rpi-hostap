@@ -377,3 +377,27 @@ setup() {
     [ "$status" -eq 1 ]
     [[ "${lines[*]}" == *"AP_ADDR '10.0.0.1' is not inside SUBNET 192.168.0.0/16"* ]]
 }
+
+@test "default-range warning appears once when emit_dnsmasq_conf reuses computed range (#224)" {
+    # shellcheck disable=SC2016
+    run bash -c '
+        . "'"${REPO_ROOT}"'/lib/env.sh"
+        . "'"${REPO_ROOT}"'/lib/dhcp.sh"
+        wlanstart="'"${REPO_ROOT}"'/wlanstart.sh"
+        # Extract emit_dnsmasq_conf from wlanstart.sh (same pattern as
+        # tests/atomic_config.bats)
+        eval "$(sed -n "/^emit_dnsmasq_conf()/,/^}/p" "${wlanstart}")"
+        SUBNET="192.168.254.0" AP_ADDR="192.168.254.1" INTERFACE="wlan0"
+        PRI_DNS="8.8.8.8" SEC_DNS="8.8.4.4" COUNTRY_CODE=EU
+        resolve_config_env
+        # Startup path: compute once, reuse in emit_dnsmasq_conf
+        DHCP_RANGE_COMPUTED=$(compute_dhcp_range 2> "'"${BATS_TEST_TMPDIR}"'/err1") || exit 1
+        export DHCP_RANGE_COMPUTED
+        emit_dnsmasq_conf > /dev/null 2> "'"${BATS_TEST_TMPDIR}"'/err2"
+    '
+    [ "$status" -eq 0 ]
+    local err1="${BATS_TEST_TMPDIR}/err1" err2="${BATS_TEST_TMPDIR}/err2"
+    grep -q "using default" "${err1}"
+    # emit_dnsmasq_conf must not warn again when the range is reused
+    [ "$(grep -c "using default" "${err2}")" = "0" ]
+}
