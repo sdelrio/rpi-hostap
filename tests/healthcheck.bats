@@ -313,12 +313,13 @@ EOF
     [[ "$output" == *"got 1"* ]]
 }
 
-@test "min-stations is skipped when control interface dir does not exist" {
+@test "min-stations fails when control interface dir does not exist (issue #283)" {
     export HEALTHCHECK_MIN_STATIONS=1
     mock_bin pidof 'exit 0'
     mock_bin ip 'if [ "$1" = "link" ]; then echo "state UP"; fi; exit 0'
     run env CTRL_IFACE_DIR="$BATS_TEST_TMPDIR/no-such-dir" ./healthcheck.sh
-    [ "$status" -eq 0 ]
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"cannot count stations"* ]]
 }
 
 @test "invalid HEALTHCHECK_MIN_STATIONS warns and disables the check" {

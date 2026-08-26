@@ -73,7 +73,7 @@ An AP that beacons and reports `state=ENABLED` may still accept no associations.
 docker run ... -e CTRL_INTERFACE=1 -e HEALTHCHECK_MIN_STATIONS=1 ...
 ```
 
-When enabled, after all other checks (and only once the grace period has elapsed), `healthcheck.sh` counts associated stations via `hostapd_cli all_sta` - the same count printed by [`clients.sh count`](operations.md#client-inspection-optional) - and fails with a message naming the expected vs actual count if fewer than `N` stations are connected, marking the container `unhealthy`. The check is skipped when the control interface socket directory does not exist.
+When enabled, after all other checks (and only once the grace period has elapsed), `healthcheck.sh` counts associated stations via `hostapd_cli all_sta` - the same count printed by [`clients.sh count`](operations.md#client-inspection-optional) - and fails with a message naming the expected vs actual count if fewer than `N` stations are connected, marking the container `unhealthy`. If the control interface socket directory does not exist, the check fails as well: an explicit station floor cannot be verified without it (see issue #283). The check is silently disabled only when `HEALTHCHECK_MIN_STATIONS` is set to a non-numeric value.
 
 **DFS/CAC caveat**: the same [DFS](https://en.wikipedia.org/wiki/Dynamic_frequency_selection) caveat as the deep check applies here - on radar channels stations cannot join until beaconing starts after Channel Availability Check (CAC), which can take 60s+. Raise `HEALTHCHECK_START_PERIOD` accordingly or the min-stations check will fail during CAC even on a healthy AP.
 
