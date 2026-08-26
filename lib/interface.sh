@@ -1,6 +1,12 @@
 # shellcheck shell=bash
 # Shared interface bring-up/teardown logic used by wlanstart.sh and tests.
 
+# Teardown hook registration for the phase-based lifecycle (issue #241).
+# Interface is registered last: teardown runs in reverse-dependency order
+# (nat -> ipv6 -> interface), so the interface goes down after the rules
+# that reference it have been removed.
+PHASE_TEARDOWN+=("interface_teardown")
+
 # interface_setup brings the AP interface up and assigns the AP address.
 interface_setup() {
     ip link set "${INTERFACE}" up || {

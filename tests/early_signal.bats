@@ -5,6 +5,7 @@
 SCRIPT="${BATS_TEST_DIRNAME}/../wlanstart.sh"
 
 extract_functions() {
+    echo ". '${BATS_TEST_DIRNAME}/../lib/lifecycle.sh'"
     echo ". '${BATS_TEST_DIRNAME}/../lib/nat.sh'"
     echo ". '${BATS_TEST_DIRNAME}/../lib/interface.sh'"
     echo ". '${BATS_TEST_DIRNAME}/../lib/ipv6.sh'"

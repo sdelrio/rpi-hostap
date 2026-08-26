@@ -1,5 +1,13 @@
 #!/bin/bash
 
+# Phase-based lifecycle (issue #241): modules register setup/teardown
+# hooks into PHASE_* arrays at source time; cleanup() below just runs
+# the teardown phase. Must be sourced before any module that registers
+# hooks.
+# Logic lives in lib/lifecycle.sh, shared with tests
+# shellcheck source=lib/lifecycle.sh
+. "$(dirname "$0")/lib/lifecycle.sh"
+
 # NAT and interface logic lives in lib/nat.sh and lib/interface.sh,
 # shared with tests
 # shellcheck source=lib/nat.sh
@@ -7,17 +15,14 @@
 # shellcheck source=lib/interface.sh
 . "$(dirname "$0")/lib/interface.sh"
 
+# cleanup() is feature-agnostic: every module registers its own teardown
+# hook into PHASE_TEARDOWN when its lib is sourced, in reverse-dependency
+# order (nat -> ipv6 -> interface). lifecycle_run_teardown guarantees the
+# phase runs exactly once even if a signal arrives mid-setup.
 cleanup() {
     echo "Shutting down..."
 
-    nat_remove_rules
-
-    if [ "${IPV6:-0}" = "1" ] ; then
-        echo "Removing ip6tables rules..."
-        ipv6_remove_rules
-    fi
-
-    interface_teardown
+    lifecycle_run_teardown
 }
 
 # multirun manages hostapd/dnsmasq and exits when any child dies.
@@ -334,6 +339,9 @@ atomic_write_config emit_hostapd_conf "/etc/hostapd.conf" || exit 1
 check_interrupted
 
 # Setup interface and restart DHCP service
+# Modules can register extra pre-setup hooks without editing this file (#241)
+lifecycle_run_phase pre_setup || exit 1
+
 if ! interface_setup ; then
     exit 1
 fi
@@ -356,6 +364,9 @@ if [ "${IPV6:-0}" = "1" ] ; then
     echo "Setting ip6tables rules for outgoing traffics..."
     ipv6_apply_rules
 fi
+
+# Modules can register extra post-setup hooks without editing this file (#241)
+lifecycle_run_phase post_setup || exit 1
 
 echo "Configuring DHCP server .."
 
