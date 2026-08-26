@@ -36,6 +36,7 @@ load_lib() {
     [ "$status" -eq 0 ]
     [[ "$output" == *"wpa=3"* ]]
     [[ "$output" == *"wpa_key_mgmt=SAE"* ]]
+    [[ "$output" == *"ieee80211w=2"* ]]
     [[ "$output" == *"rsn_pairwise=CCMP"* ]]
 }
 
@@ -54,6 +55,7 @@ load_lib() {
     [ "$status" -eq 0 ]
     [[ "$output" == *"wpa=3"* ]]
     [[ "$output" == *"wpa_key_mgmt=WPA-PSK SAE"* ]]
+    [[ "$output" == *"ieee80211w=1"* ]]
     [[ "$output" == *"wpa_pairwise=CCMP"* ]]
     [[ "$output" == *"rsn_pairwise=CCMP"* ]]
 }
@@ -74,6 +76,14 @@ load_lib() {
     run compute_wpa_conf
     [ "$status" -eq 0 ]
     [[ "$output" != *"hw_mode=b"* ]]
+}
+
+@test "WPA_VERSION=2 does not include ieee80211w" {
+    load_lib
+    WPA_VERSION=2
+    run compute_wpa_conf
+    [ "$status" -eq 0 ]
+    [[ "$output" != *"ieee80211w"* ]]
 }
 
 @test "invalid WPA_VERSION fails with error" {

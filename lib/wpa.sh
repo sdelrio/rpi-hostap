@@ -7,6 +7,7 @@
 compute_wpa_conf() {
     # Defaults (WPA_VERSION, HW_MODE, WPA_PASSPHRASE) are applied
     # centrally by lib/env.sh (issue #237).
+    _PMF=""
     case "${WPA_VERSION}" in
         2)
             _WPA_LEVEL="wpa=2"
@@ -25,9 +26,11 @@ rsn_pairwise=CCMP"
             if [ "${WPA_VERSION}" = "3" ] ; then
                 echo "[Info] WPA3-SAE enabled. Requires client devices with SAE support (wpa_supplicant 2.7+)." >&2
                 _WPA_KEY_MGMT="wpa_key_mgmt=SAE"
+                _PMF="ieee80211w=2"
             else
                 echo "[Info] WPA2/WPA3 transition mode enabled. Legacy WPA2 clients allowed alongside SAE." >&2
                 _WPA_KEY_MGMT="wpa_key_mgmt=WPA-PSK SAE"
+                _PMF="ieee80211w=1"
                 _WPA_PAIRWISE="wpa_pairwise=CCMP
 ${_WPA_PAIRWISE}"
             fi
@@ -37,8 +40,11 @@ ${_WPA_PAIRWISE}"
             return 1
             ;;
     esac
+    _PMF_LINE=""
+    [ -n "${_PMF}" ] && _PMF_LINE="
+${_PMF}"
     echo "${_WPA_LEVEL}
 wpa_passphrase=${WPA_PASSPHRASE}
-${_WPA_KEY_MGMT}
+${_WPA_KEY_MGMT}${_PMF_LINE}
 ${_WPA_PAIRWISE}"
 }
