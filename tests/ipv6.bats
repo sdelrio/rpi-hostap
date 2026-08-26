@@ -113,3 +113,9 @@ setup() {
     [ "$status" -eq 0 ]
     [[ "${output}" == *"[Warning] Cannot set net.ipv6.conf.all.forwarding"* ]]
 }
+
+@test "ipv6_apply_rules returns non-zero when ip6tables fails (issue #279)" {
+    ip6tables() { return 1; }
+    run ipv6_apply_rules
+    [ "$status" -eq 1 ]
+}

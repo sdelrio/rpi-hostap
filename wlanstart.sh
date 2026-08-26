@@ -267,14 +267,14 @@ check_interrupted
 nat_set_sysctls ip_dynaddr ip_forward
 nat_show_sysctls ip_dynaddr ip_forward
 
-nat_apply_rules
+nat_apply_rules || { cleanup ; exit 1 ; }
 
 # Optional IPv6 support (off by default, enable with IPV6=1)
 if [ "${IPV6:-0}" = "1" ] ; then
     echo "Enabling IPv6 forwarding..."
     ipv6_enable_forwarding
     echo "Setting ip6tables rules for outgoing traffics..."
-    ipv6_apply_rules
+    ipv6_apply_rules || { cleanup ; exit 1 ; }
 fi
 
 # Modules can register extra post-setup hooks without editing this file (#241).
