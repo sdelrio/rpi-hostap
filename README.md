@@ -131,7 +131,7 @@ docker run -d \
 | `FAILURE_LOG_KEEP` | No | Number of crash logs retained (oldest pruned); see [Preserved failure logs](docs/troubleshooting.md#preserved-failure-logs) | `5` |
 | `FAILURE_LOG_PATH` | No | Explicit path for the preserved log (overrides dir/keep, no rotation); see [Preserved failure logs](docs/troubleshooting.md#preserved-failure-logs) | unset |
 
-Detailed topics and examples are split across the [docs/](docs/INDEX.md) folder: radio/security topics in [docs/configuration.md](docs/configuration.md), config validation in [docs/validation.md](docs/validation.md), and runtime diagnostics in [docs/operations.md](docs/operations.md).
+Detailed topics and examples are split across the [docs/](docs/INDEX.md) folder: radio/security topics in [docs/configuration.md](docs/configuration.md), config validation in [docs/validation.md](docs/validation.md) (`--validate` dry-run and the read-only `--check` runtime state audit), and runtime diagnostics in [docs/operations.md](docs/operations.md).
 
 ### Full-Featured Example
 
