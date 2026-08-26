@@ -55,6 +55,20 @@ ipv6_apply_rules() {
     fi
 }
 
+# ipv6_teardown removes the ip6tables rules, but only when IPv6 support
+# was actually enabled at startup. Registered as a teardown hook so the
+# IPV6 flag check lives next to the feature instead of in cleanup().
+ipv6_teardown() {
+    if [ "${IPV6:-0}" = "1" ] ; then
+        echo "Removing ip6tables rules..."
+        ipv6_remove_rules
+    fi
+}
+
+# Teardown hook registration for the phase-based lifecycle (issue #241).
+# Reverse-dependency order: registered after nat, before interface.
+PHASE_TEARDOWN+=("ipv6_teardown")
+
 # ipv6_remove_rules deletes the ip6tables rules added by ipv6_apply_rules.
 ipv6_remove_rules() {
     if [ "${OUTGOINGS}" ] ; then

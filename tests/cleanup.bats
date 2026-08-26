@@ -9,6 +9,8 @@ setup() {
 }
 
 load_cleanup() {
+    # shellcheck source=../lib/lifecycle.sh
+    . "$(dirname "$BATS_TEST_FILENAME")/../lib/lifecycle.sh"
     # shellcheck source=../lib/nat.sh
     . "$(dirname "$BATS_TEST_FILENAME")/../lib/nat.sh"
     # shellcheck source=../lib/interface.sh
@@ -29,6 +31,7 @@ iptables() { _mock_log \"iptables \$@\"; }
 ip() { _mock_log \"ip \$@\"; }
 kill() { _mock_log \"kill \$@\"; }
 wait() { _mock_log \"wait \$@\"; }
+. '$PWD/lib/lifecycle.sh'
 . '$PWD/lib/nat.sh'
 . '$PWD/lib/interface.sh'
 . '$PWD/lib/ipv6.sh'

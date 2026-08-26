@@ -93,6 +93,11 @@ nat_show_sysctls() {
     done
 }
 
+# Teardown hook registration for the phase-based lifecycle (issue #241).
+# NAT is registered first: teardown must run in reverse-dependency order
+# (nat -> ipv6 -> interface), matching the historical cleanup() sequence.
+PHASE_TEARDOWN+=("nat_remove_rules")
+
 # nat_remove_rules deletes the rules added by nat_apply_rules.
 nat_remove_rules() {
     echo "Removing iptables rules..."
