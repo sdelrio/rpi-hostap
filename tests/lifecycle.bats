@@ -136,3 +136,35 @@ EOF
     [ "$(cat "$log")" = $'setup\nteardown' ]
     rm -f "$log"
 }
+
+@test "wlanstart runs cleanup when a setup-phase hook fails" {
+    local snippet
+    for phase in pre_setup post_setup ; do
+        snippet=$(grep -F "lifecycle_run_phase ${phase} ||" "$(dirname "$BATS_TEST_FILENAME")/../wlanstart.sh")
+        [[ "${snippet}" == *"cleanup"* ]]
+        [[ "${snippet}" != *"|| exit 1"* ]]
+    done
+}
+
+@test "teardown hooks run when a post_setup hook fails" {
+    local log script
+    log=$(mktemp)
+    script=$(mktemp)
+    cat > "${script}" <<INNER
+. "$(dirname "$BATS_TEST_FILENAME")/../lib/lifecycle.sh"
+. "$(dirname "$BATS_TEST_FILENAME")/../lib/nat.sh"
+. "$(dirname "$BATS_TEST_FILENAME")/../lib/interface.sh"
+. "$(dirname "$BATS_TEST_FILENAME")/../lib/ipv6.sh"
+eval "\$(sed -n '/^cleanup()/,/^}/p' "$(dirname "$BATS_TEST_FILENAME")/../wlanstart.sh")"
+export INTERFACE=wlan0 SUBNET=192.168.254.0 OUTGOINGS=
+iptables() { echo "iptables \$*" >> "${log}"; }
+ip() { : ; }
+failing_post_setup_hook() { return 9; }
+lifecycle_register post_setup failing_post_setup_hook
+$(grep -F 'lifecycle_run_phase post_setup ||' "$(dirname "$BATS_TEST_FILENAME")/../wlanstart.sh")
+INNER
+    run bash "${script}"
+    [ "$status" -ne 0 ]
+    grep -q "iptables -t nat -D POSTROUTING" "${log}"
+    rm -f "${log}" "${script}"
+}
