@@ -16,6 +16,21 @@ If any check fails, the container is reported as `unhealthy`.
 
 There are two independent grace mechanisms. `HEALTHCHECK_START_PERIOD` (env var) controls the *script-side* grace window measured from the recorded start time. The Dockerfile's `HEALTHCHECK --start-period=15s` is the Docker-side outer bound during which failing checks do not count towards the `unhealthy` transition. If you raise the env var (e.g. `HEALTHCHECK_START_PERIOD=60`), the script keeps passing for 60s after start regardless of the Docker setting; the Dockerfile start-period only affects when Docker itself starts counting failures.
 
+**Remediation**: if you raise the env var beyond 15s (e.g. 90s for [DFS CAC](#deep-healthcheck-optional)), also raise the Docker-level start period or failures that occur after the script grace but before bring-up completes will count toward the 3 retries and can flip the container to `unhealthy`. Override at runtime without rebuilding:
+
+```bash
+docker run --health-start-period=90s ...
+```
+
+or in Compose:
+
+```yaml
+services:
+  hostapd:
+    healthcheck:
+      start_period: 90s
+```
+
 **Why `--start-period` cannot be set via env var**: `HEALTHCHECK` instructions are evaluated at image build time and their flags (`--interval`, `--retries`, `--start-period`) do not expand runtime environment variables - there is no shell involved in parsing them. Writing something like `HEALTHCHECK --start-period=${HEALTHCHECK_START_PERIOD}s CMD ...` would pass the literal string `${...}` to the Docker engine and fail validation. Only the `CMD` payload runs at container runtime (and only via the shell if `CMD-SHELL` form is used), which is why this image parameterizes the *script-side* grace period instead: the script can read `$HEALTHCHECK_START_PERIOD`, but Docker's own knobs stay baked into the image.
 
 **Overriding interval/retries/start-period**: users who need different Docker-level values can override the whole healthcheck without rebuilding, e.g. with a `docker-compose.override.yml`:
