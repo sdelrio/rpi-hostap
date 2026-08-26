@@ -45,10 +45,10 @@ the workflow).
 A second job in the same workflow, `warm-hwsim-cache`, builds the modules
 on master and saves them under the exact same key format. It triggers via:
 
-- Daily cron (`0 4 * * *`) - picks up azure runner kernel bumps that
-  invalidate old entries via the `uname -r` key segment; daily keeps
-  entries inside the 7-day unused-eviction window and limits how long
-  PRs pay a full rebuild after a bump.
+- Pushes to `master` (successful merges) - picks up azure runner kernel
+  bumps that invalidate old entries via the `uname -r` key segment;
+  each merge re-warms the current key, so there is no scheduled run
+  burning runner minutes and no 60-day inactivity auto-disable risk.
 - Manual `workflow_dispatch` with no `ref` input.
 
 Because PR runs inherit master's cache scope, entries saved by the warmer
