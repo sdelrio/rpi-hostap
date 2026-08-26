@@ -1,6 +1,10 @@
 #!/bin/bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib/client_env.sh
+source "${SCRIPT_DIR}/lib/client_env.sh"
+
 # Health check script for rpi-hostap container
 # Checks if hostapd, dnsmasq are running and the interface is up
 
@@ -88,8 +92,8 @@ MIN_STATIONS="${HEALTHCHECK_MIN_STATIONS-}"
 if [[ -n "${MIN_STATIONS}" ]]; then
     if ! [[ "${MIN_STATIONS}" =~ ^[0-9]+$ ]]; then
         echo "[Warning] Invalid HEALTHCHECK_MIN_STATIONS '${MIN_STATIONS}', disabling check" >&2
-    elif [[ -d "${CTRL_IFACE_DIR:-/var/run/hostapd}" ]]; then
-        STATION_COUNT="$(hostapd_cli -p "${CTRL_IFACE_DIR:-/var/run/hostapd}" -i "${INTERFACE}" all_sta 2>/dev/null \
+    elif resolve_ctrl_iface_dir && [[ -d "${CTRL_IFACE_DIR}" ]]; then
+        STATION_COUNT="$(hostapd_cli -p "${CTRL_IFACE_DIR}" -i "${INTERFACE}" all_sta 2>/dev/null \
             | grep -cE '^([0-9a-fA-F]{2}:){5}' || true)"
         if (( STATION_COUNT < MIN_STATIONS )); then
             echo "station count below minimum: expected at least ${MIN_STATIONS}, got ${STATION_COUNT}" >&2
