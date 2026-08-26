@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.41.0](https://github.com/sdelrio/rpi-hostap/compare/v0.40.0...v0.41.0) (2026-08-26)
+
+
+### ✨ Features
+
+* 802.11ax (HE) support via HE_ENABLED/HE_CAPAB ([#296](https://github.com/sdelrio/rpi-hostap/issues/296)) ([e095da1](https://github.com/sdelrio/rpi-hostap/commit/e095da1c7738ad0e8f19b8fe1438a9c5d1f18bac))
+* clients.sh leases subcommand showing dnsmasq DHCP leases ([#297](https://github.com/sdelrio/rpi-hostap/issues/297)) ([a07fb21](https://github.com/sdelrio/rpi-hostap/commit/a07fb21df7836f77a628de04aa97c55051496bbf))
+* fail healthcheck when HEALTHCHECK_MIN_STATIONS set but control interface missing ([#283](https://github.com/sdelrio/rpi-hostap/issues/283)) ([#300](https://github.com/sdelrio/rpi-hostap/issues/300)) ([fc0ddc0](https://github.com/sdelrio/rpi-hostap/commit/fc0ddc0d205253e17b630b1e25b78aefb00ab24f))
+* wlanstart.sh --check runtime state audit ([#288](https://github.com/sdelrio/rpi-hostap/issues/288)) ([#294](https://github.com/sdelrio/rpi-hostap/issues/294)) ([c2ea720](https://github.com/sdelrio/rpi-hostap/commit/c2ea72074fed4efcd98c63635ca263a2b224329f))
+
+
+### 🩹 Fixes
+
+* check nat_apply_rules/ipv6_apply_rules exit status ([#279](https://github.com/sdelrio/rpi-hostap/issues/279)) ([#304](https://github.com/sdelrio/rpi-hostap/issues/304)) ([f3ff8d7](https://github.com/sdelrio/rpi-hostap/commit/f3ff8d7798fd838f3f5ec736a3d4e6ab899ce6cc))
+* clients.sh reports error when hostapd_cli fails ([#281](https://github.com/sdelrio/rpi-hostap/issues/281)) ([#302](https://github.com/sdelrio/rpi-hostap/issues/302)) ([d6e9ee1](https://github.com/sdelrio/rpi-hostap/commit/d6e9ee13a741eaac19e87faea415bd40f0c78e0b))
+* COUNTRY_CODE set-but-empty skips regulatory default warning ([#301](https://github.com/sdelrio/rpi-hostap/issues/301)) ([09f66b1](https://github.com/sdelrio/rpi-hostap/commit/09f66b139726232059779acfdd80b982af7af01f))
+* deep healthcheck now honors CTRL_IFACE_DIR ([#280](https://github.com/sdelrio/rpi-hostap/issues/280)) ([#303](https://github.com/sdelrio/rpi-hostap/issues/303)) ([9cd5d1f](https://github.com/sdelrio/rpi-hostap/commit/9cd5d1f24c87c6b7d5036a4c0b7035524535965c))
+* MAC_FILTER=2 denylist emits macaddr_acl=0 ([#278](https://github.com/sdelrio/rpi-hostap/issues/278)) ([#305](https://github.com/sdelrio/rpi-hostap/issues/305)) ([837904d](https://github.com/sdelrio/rpi-hostap/commit/837904dfca27143ca00e0b41b0e2e851f3a0344c))
+
+
+### ♻️ Code Refactoring
+
+* module-prefix private globals in lib/core/channel.sh ([#285](https://github.com/sdelrio/rpi-hostap/issues/285)) ([#298](https://github.com/sdelrio/rpi-hostap/issues/298)) ([6a927f0](https://github.com/sdelrio/rpi-hostap/commit/6a927f0343d665b55655e0ced8242d0d227b7a6d))
+
 ## [0.40.0](https://github.com/sdelrio/rpi-hostap/compare/v0.39.0...v0.40.0) (2026-08-26)
 
 
