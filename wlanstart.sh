@@ -52,9 +52,14 @@ trap handle_signal SIGINT SIGTERM SIGHUP
 # run every validator and print the generated hostapd.conf/dnsmasq.conf
 # to stdout instead of touching the system.
 VALIDATE_ONLY=0
+CHECK_ONLY=0
 case "${1:-}" in
     --validate|-t|--test)
         VALIDATE_ONLY=1
+        shift
+        ;;
+    --check|-c)
+        CHECK_ONLY=1
         shift
         ;;
     --version|-V)
@@ -70,12 +75,12 @@ case "${1:-}" in
     "")
         ;;
     *)
-        echo "[Error] Unknown option '${1}'. Usage: wlanstart.sh [--version|-V|--validate|-t|--test]" >&2
+        echo "[Error] Unknown option '${1}'. Usage: wlanstart.sh [--version|-V|--validate|-t|--test|--check|-c]" >&2
         exit 1
         ;;
 esac
 
-if [ "${VALIDATE_ONLY}" != "1" ] ; then
+if [ "${VALIDATE_ONLY}" != "1" ] && [ "${CHECK_ONLY}" != "1" ] ; then
     # Record container start time so healthcheck.sh can measure the grace
     # period from the actual start (not host uptime via /proc/uptime).
     date +%s > /run/hostap-started 2>/dev/null || true
@@ -162,6 +167,32 @@ run_validation_mode() {
     echo "=== /etc/dnsmasq.conf ==="
     printf '%s\n' "${dnsmasq}"
 }
+
+# Read-only runtime audit (--check, -c): resolve env the same way a normal
+# start does, then compare live system state against it per item. Never
+# mutates state; exits non-zero listing failures like validation mode.
+run_check_mode() {
+    local errors=0
+
+    if [ ! "${INTERFACE:-}" ] ; then
+        echo "[Error] An interface must be specified." >&2
+        return 1
+    fi
+
+    if ! DHCP_RANGE_COMPUTED=$(dhcp_compute_range) ; then
+        echo "[Error] Invalid DHCP_RANGE." >&2
+        return 1
+    fi
+    export DHCP_RANGE_COMPUTED
+
+    check_run_audit
+}
+
+if [ "${CHECK_ONLY}" = "1" ] ; then
+    require_module check
+    run_check_mode
+    exit $?
+fi
 
 if [ "${VALIDATE_ONLY}" = "1" ] ; then
     run_validation_mode
