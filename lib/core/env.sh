@@ -18,7 +18,7 @@ env_resolve_config_env() {
     : "${CHANNEL:=11}"
     # Regulatory domain. Warn when defaulted: channel availability
     # differs per country (e.g. US allows 1-11, EU 1-13).
-    if [ -z "${COUNTRY_CODE+x}" ] ; then
+    if [ -z "${COUNTRY_CODE:-}" ] ; then
         echo "[Warning] COUNTRY_CODE not set, defaulting to 'EU' (ETSI: channels 1-13)." >&2
         echo "          Set COUNTRY_CODE (e.g. US, CA, JP) to match your local regulations." >&2
     fi

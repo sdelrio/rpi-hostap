@@ -70,6 +70,14 @@ setup() {
     [[ "$output" == *"COUNTRY_CODE not set, defaulting to 'EU'"* ]]
 }
 
+@test "env_resolve_config_env warns when COUNTRY_CODE is empty (issue #282)" {
+    unset COUNTRY_CODE
+    COUNTRY_CODE=
+    run env_resolve_config_env
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"COUNTRY_CODE not set, defaulting to 'EU'"* ]]
+}
+
 @test "env_resolve_config_env stays silent when COUNTRY_CODE is set" {
     COUNTRY_CODE=JP
     run env_resolve_config_env
