@@ -16,13 +16,13 @@ FAILURE_LOG_PATH="${FAILURE_LOG_PATH:-}"
 FAILURE_LOG_DIR="${FAILURE_LOG_DIR:-/var/log/hostap-failures}"
 FAILURE_LOG_KEEP="${FAILURE_LOG_KEEP:-5}"
 
-# _failure_log_target
+# _logging_failure_log_target
 #
 # Print the path the daemon log should be preserved at. When an explicit
 # FAILURE_LOG_PATH is set it is used as-is; otherwise a timestamped file
 # inside FAILURE_LOG_DIR is chosen (with a numeric suffix if two crashes
 # land in the same second).
-_failure_log_target() {
+_logging_failure_log_target() {
     local epoch target n=0
     if [ -n "${FAILURE_LOG_PATH}" ] ; then
         printf '%s' "${FAILURE_LOG_PATH}"
@@ -40,11 +40,11 @@ _failure_log_target() {
     printf '%s' "${target}"
 }
 
-# _failure_log_prune
+# _logging_failure_prune
 #
 # Remove the oldest timestamped failure logs so at most FAILURE_LOG_KEEP
 # remain. No-op when an explicit FAILURE_LOG_PATH is set.
-_failure_log_prune() {
+_logging_failure_prune() {
     local old
     if [ -n "${FAILURE_LOG_PATH}" ] ; then
         return 0
@@ -91,7 +91,7 @@ logging_report_failure() {
         # destination is unwritable (bad dir, permissions), warn and carry on.
         local _try copied=1 dest
         for _try in 1 2 ; do
-            if ! dest=$(_failure_log_target) || ! cp "${log}" "${dest}" 2>/dev/null ; then
+            if ! dest=$(_logging_failure_log_target) || ! cp "${log}" "${dest}" 2>/dev/null ; then
                 echo "Warning: could not save daemon log to ${dest:-${FAILURE_LOG_DIR}}." >&2
                 copied=0
                 break
@@ -100,7 +100,7 @@ logging_report_failure() {
               "$(wc -c < "${dest}" 2>/dev/null || echo 0)" ] && break
             sleep 0.1
         done
-        _failure_log_prune
+        _logging_failure_prune
         [ "${copied}" = "1" ] && saved=" Full daemon log saved to ${dest}."
     fi
 

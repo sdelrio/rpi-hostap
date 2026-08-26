@@ -80,23 +80,23 @@ setup() {
 # Lib modules must not re-default their own vars (#237): sourcing only
 # the module and calling it with an empty environment must fail loudly
 # rather than silently resolving defaults.
-@test "compute_wpa_conf without resolved env does not apply defaults" {
+@test "wpa_compute_conf without resolved env does not apply defaults" {
     . "${BATS_TEST_DIRNAME}/../lib/wpa.sh"
     unset WPA_VERSION
-    run compute_wpa_conf
+    run wpa_compute_conf
     [ "$status" -ne 0 ]
 }
 
-@test "compute_max_sta_conf without MAX_STATIONS errors instead of defaulting" {
+@test "stations_compute_max_sta_conf without MAX_STATIONS errors instead of defaulting" {
     . "${BATS_TEST_DIRNAME}/../lib/stations.sh"
     unset MAX_STATIONS
-    run compute_max_sta_conf
+    run stations_compute_max_sta_conf
     [ "$status" -ne 0 ]
 }
 
-@test "validate_channel with unresolved empty env fails loudly" {
+@test "channel_validate with unresolved empty env fails loudly" {
     . "${BATS_TEST_DIRNAME}/../lib/channel.sh"
     unset HW_MODE CHANNEL COUNTRY_CODE
-    run validate_channel_strict
+    run channel_validate_strict
     [ "$status" -ne 0 ]
 }

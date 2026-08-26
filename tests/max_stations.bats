@@ -14,35 +14,35 @@ setup() {
 }
 
 @test "default MAX_STATIONS=0 produces no config line" {
-    run compute_max_sta_conf
+    run stations_compute_max_sta_conf
     [ "$status" -eq 0 ]
     [ "$output" = "" ]
 }
 
 @test "MAX_STATIONS=1 produces max_num_sta=1" {
     MAX_STATIONS=1
-    run compute_max_sta_conf
+    run stations_compute_max_sta_conf
     [ "$status" -eq 0 ]
     [ "$output" = "max_num_sta=1" ]
 }
 
 @test "MAX_STATIONS=10 produces max_num_sta=10" {
     MAX_STATIONS=10
-    run compute_max_sta_conf
+    run stations_compute_max_sta_conf
     [ "$status" -eq 0 ]
     [ "$output" = "max_num_sta=10" ]
 }
 
 @test "MAX_STATIONS=0 produces no config line" {
     MAX_STATIONS=0
-    run compute_max_sta_conf
+    run stations_compute_max_sta_conf
     [ "$status" -eq 0 ]
     [ "$output" = "" ]
 }
 
 @test "negative MAX_STATIONS fails with error and no config line" {
     MAX_STATIONS=-5
-    run compute_max_sta_conf
+    run stations_compute_max_sta_conf
     [ "$status" -ne 0 ]
     [[ "$output" == *"Invalid MAX_STATIONS"* ]]
     [[ "$output" != *"max_num_sta"* ]]
@@ -50,7 +50,7 @@ setup() {
 
 @test "non-numeric MAX_STATIONS fails with error and no config line" {
     MAX_STATIONS="abc"
-    run compute_max_sta_conf
+    run stations_compute_max_sta_conf
     [ "$status" -ne 0 ]
     [[ "$output" == *"Invalid MAX_STATIONS"* ]]
     [[ "$output" != *"max_num_sta"* ]]
@@ -58,14 +58,14 @@ setup() {
 
 @test "MAX_STATIONS=0 does not produce warning" {
     MAX_STATIONS=0
-    run compute_max_sta_conf
+    run stations_compute_max_sta_conf
     [ "$status" -eq 0 ]
     [[ "$output" != *"Invalid"* ]]
 }
 
 @test "MAX_STATIONS=10 does not produce warning" {
     MAX_STATIONS=10
-    run compute_max_sta_conf
+    run stations_compute_max_sta_conf
     [ "$status" -eq 0 ]
     [[ "$output" != *"Invalid"* ]]
 }

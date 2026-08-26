@@ -85,6 +85,6 @@ load_lib() {
     WPA_PASSPHRASE_FILE="${SECRET_FILE}"
     secret_file_load WPA_PASSPHRASE WPA_PASSPHRASE_FILE
     [ "${WPA_PASSPHRASE}" = "passw0rd-from-file" ]
-    run validate_passphrase
+    run passphrase_validate
     [ "$status" -eq 0 ]
 }

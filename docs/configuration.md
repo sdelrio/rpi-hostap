@@ -130,7 +130,7 @@ docker run -d --name hostap \
 Behavior:
 
 - Only the first line of the file is used; a trailing newline is stripped.
-- Values loaded from files go through the same validation as direct values (`validate_ssid`, `validate_passphrase`).
+- Values loaded from files go through the same validation as direct values (`validation_check_ssid`, `passphrase_validate`).
 - If both `VAR` and `VAR_FILE` are set, the `_FILE` value wins and a warning is printed to stderr.
 - Startup fails with `[Error] <VAR>_FILE '...' is not readable` if the file is missing or unreadable.
 

@@ -1,10 +1,10 @@
 # shellcheck shell=bash
 # Shared WPA configuration logic used by wlanstart.sh and tests.
 #
-# compute_wpa_conf reads WPA_VERSION (2 | 3 | mixed) and HW_MODE from the
+# wpa_compute_conf reads WPA_VERSION (2 | 3 | mixed) and HW_MODE from the
 # environment and writes the hostapd wpa_* block to stdout. Messages go to
 # stderr. Returns non-zero for invalid WPA_VERSION values.
-compute_wpa_conf() {
+wpa_compute_conf() {
     # Defaults (WPA_VERSION, HW_MODE, WPA_PASSPHRASE) are applied
     # centrally by lib/env.sh (issue #237).
     _PMF=""

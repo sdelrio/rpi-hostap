@@ -13,19 +13,19 @@ setup() {
 
 @test "IPv6 disabled by default: no dnsmasq conf" {
     unset IPV6
-    run compute_dnsmasq_ipv6_conf
+    run ipv6_compute_dnsmasq_conf
     [ "$status" -eq 1 ]
 }
 
 @test "IPv6 disabled explicitly (IPV6=0): no dnsmasq conf" {
     IPV6=0
-    run compute_dnsmasq_ipv6_conf
+    run ipv6_compute_dnsmasq_conf
     [ "$status" -eq 1 ]
 }
 
 @test "IPV6=1 emits RA/stateless DHCPv6 range for AP interface" {
     IPV6=1
-    run compute_dnsmasq_ipv6_conf
+    run ipv6_compute_dnsmasq_conf
     [ "$status" -eq 0 ]
     [ "${lines[@]: -1}" = "dhcp-range=::,constructor:wlan0,ra-names,stateless" ]
 }

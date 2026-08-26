@@ -1,7 +1,7 @@
 # shellcheck shell=bash
 # Shared DHCP_RANGE logic used by wlanstart.sh and tests.
 #
-# compute_dhcp_range reads SUBNET, DHCP_RANGE and DHCP_LEASE from the
+# dhcp_compute_range reads SUBNET, DHCP_RANGE and DHCP_LEASE from the
 # environment. If DHCP_RANGE is unset it computes a default from SUBNET
 # (.100 - .200 / 255.255.255.0). Otherwise each field of the explicit
 # DHCP_RANGE (start_ip,end_ip,netmask,lease_time) is validated: the first
@@ -52,7 +52,7 @@ dhcp_check_ap_addr_in_subnet() {
     if [ -z "${AP_ADDR:-}" ] || [ -z "${SUBNET:-}" ] ; then
         return 0
     fi
-    if ! validate_ipv4 "${AP_ADDR}" || ! validate_ipv4 "${SUBNET}" ; then
+    if ! validation_check_ipv4 "${AP_ADDR}" || ! validation_check_ipv4 "${SUBNET}" ; then
         return 0
     fi
     local m1 m2 m3 m4 ap_masked subnet_int
@@ -71,7 +71,7 @@ dhcp_validate_lease_time() {
     [[ "${1:-}" =~ ^[0-9]+[hms]?$ ]]
 }
 
-compute_dhcp_range() {
+dhcp_compute_range() {
     # DHCP_LEASE default is applied centrally by lib/env.sh (#237)
     if [ ! "${DHCP_LEASE}" ] || ! dhcp_validate_lease_time "${DHCP_LEASE}" ; then
         echo "[Error] Invalid DHCP_LEASE: '${DHCP_LEASE}' is not a valid lease time." >&2
@@ -84,7 +84,7 @@ compute_dhcp_range() {
             echo "[Error] SUBNET not set: cannot compute default DHCP_RANGE." >&2
             return 1
         fi
-        if ! validate_ipv4 "${SUBNET}" ; then
+        if ! validation_check_ipv4 "${SUBNET}" ; then
             echo "[Error] Invalid SUBNET: '${SUBNET}' is not a valid IPv4 address." >&2
             return 1
         fi
@@ -113,15 +113,15 @@ compute_dhcp_range() {
 
         local start_ip end_ip netmask lease_time
         IFS=',' read -r start_ip end_ip netmask lease_time <<<"${DHCP_RANGE}"
-        if ! validate_ipv4 "${start_ip}" ; then
+        if ! validation_check_ipv4 "${start_ip}" ; then
             echo "[Error] Invalid DHCP_RANGE: field 1 '${start_ip}' is not a valid IPv4 address" >&2
             return 1
         fi
-        if ! validate_ipv4 "${end_ip}" ; then
+        if ! validation_check_ipv4 "${end_ip}" ; then
             echo "[Error] Invalid DHCP_RANGE: field 2 '${end_ip}' is not a valid IPv4 address" >&2
             return 1
         fi
-        if ! validate_ipv4 "${netmask}" ; then
+        if ! validation_check_ipv4 "${netmask}" ; then
             echo "[Error] Invalid DHCP_RANGE: field 3 '${netmask}' is not a valid IPv4 address" >&2
             return 1
         fi
@@ -132,7 +132,7 @@ compute_dhcp_range() {
             return 1
         fi
         # SUBNET must be the network address for the configured mask.
-        if [ -n "${SUBNET:-}" ] && validate_ipv4 "${SUBNET}" \
+        if [ -n "${SUBNET:-}" ] && validation_check_ipv4 "${SUBNET}" \
            && ! validation_is_network_address "${SUBNET}" "${netmask}" ; then
             echo "[Error] Invalid SUBNET: '${SUBNET}' is not a network address for mask ${netmask} (host bits must be 0)." >&2
             return 1
@@ -153,7 +153,7 @@ compute_dhcp_range() {
             echo "[Error] Invalid DHCP_RANGE: field 1 '${start_ip}' is greater than field 2 '${end_ip}' (start must not exceed end)." >&2
             return 1
         fi
-        if [ -n "${SUBNET:-}" ] && validate_ipv4 "${SUBNET}" ; then
+        if [ -n "${SUBNET:-}" ] && validation_check_ipv4 "${SUBNET}" ; then
             local subnet_int addr masked mask_int
             subnet_int=$(dhcp_ip_to_int "${SUBNET}")
             IFS=. read -r m1 m2 m3 m4 <<<"${netmask}"
@@ -169,7 +169,7 @@ compute_dhcp_range() {
                 return 1
             fi
         fi
-        if [ -n "${AP_ADDR:-}" ] && validate_ipv4 "${AP_ADDR}" ; then
+        if [ -n "${AP_ADDR:-}" ] && validation_check_ipv4 "${AP_ADDR}" ; then
             local ap_int
             ap_int=$(dhcp_ip_to_int "${AP_ADDR}")
             if [ "${ap_int}" -ge "$(dhcp_ip_to_int "${start_ip}")" ] \

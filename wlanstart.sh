@@ -112,7 +112,7 @@ secret_file_load WPA_PASSPHRASE WPA_PASSPHRASE_FILE || exit 1
 # shellcheck source=lib/channel.sh
 . "$(dirname "$0")/lib/channel.sh"
 
-# IPv4 address validation (validate_ipv4)
+# IPv4 address validation (validation_check_ipv4)
 # Logic lives in lib/validation.sh, shared with tests
 # shellcheck source=lib/validation.sh
 . "$(dirname "$0")/lib/validation.sh"
@@ -172,12 +172,12 @@ secret_file_load WPA_PASSPHRASE WPA_PASSPHRASE_FILE || exit 1
 # Emit hostapd.conf to stdout from the current environment.
 emit_hostapd_conf() {
     local wpa_conf ap_isolation_conf ssid_hidden_conf mac_filter_conf max_sta_conf ctrl_conf
-    wpa_conf=$(compute_wpa_conf) || return 1
-    ap_isolation_conf=$(compute_ap_isolation_line)
-    ssid_hidden_conf=$(compute_ssid_hidden_line)
-    mac_filter_conf=$(compute_mac_filter_conf)
-    max_sta_conf=$(compute_max_sta_conf) || return 1
-    ctrl_conf=$(compute_ctrl_interface_conf)
+    wpa_conf=$(wpa_compute_conf) || return 1
+    ap_isolation_conf=$(ap_isolation_compute_line)
+    ssid_hidden_conf=$(ssid_hidden_compute_line)
+    mac_filter_conf=$(mac_filter_compute_conf)
+    max_sta_conf=$(stations_compute_max_sta_conf) || return 1
+    ctrl_conf=$(ctrl_interface_compute_conf)
 
     cat <<EOF
 interface=${INTERFACE}
@@ -206,22 +206,22 @@ ${VHT_ENABLED+"ieee80211ac=1"}
 ${VHT_CAPAB+"vht_capab=${VHT_CAPAB}"}
 EOF
 
-    compute_extra_opts_lines
+    extra_opts_compute_lines
 }
 
 # Emit dnsmasq.conf to stdout from the current environment.
 emit_dnsmasq_conf() {
     local dhcp_range ipv6_conf=""
     # Reuse the range computed at startup (DHCP_RANGE_COMPUTED) when
-    # available so compute_dhcp_range (and its warnings) runs only once;
+    # available so dhcp_compute_range (and its warnings) runs only once;
     # validation mode and tests without it still compute on demand.
     if [ -n "${DHCP_RANGE_COMPUTED:-}" ] ; then
         dhcp_range=${DHCP_RANGE_COMPUTED}
     else
-        dhcp_range=$(compute_dhcp_range) || return 1
+        dhcp_range=$(dhcp_compute_range) || return 1
     fi
     if [ "${IPV6:-0}" = "1" ] ; then
-        ipv6_conf=$(compute_dnsmasq_ipv6_conf)
+        ipv6_conf=$(ipv6_compute_dnsmasq_conf)
     fi
 
     cat <<EOF
@@ -247,19 +247,19 @@ run_validation_mode() {
         errors=$((errors + 1))
     fi
 
-    validate_channel_strict || errors=$((errors + 1))
-    validate_vht || errors=$((errors + 1))
+    channel_validate_strict || errors=$((errors + 1))
+    channel_validate_vht || errors=$((errors + 1))
 
-    validate_ipv4_param SUBNET "${SUBNET}" || errors=$((errors + 1))
-    validate_ipv4_param AP_ADDR "${AP_ADDR}" || errors=$((errors + 1))
-    validate_ipv4_param PRI_DNS "${PRI_DNS}" || errors=$((errors + 1))
-    validate_ipv4_param SEC_DNS "${SEC_DNS}" || errors=$((errors + 1))
+    validation_check_ipv4_param SUBNET "${SUBNET}" || errors=$((errors + 1))
+    validation_check_ipv4_param AP_ADDR "${AP_ADDR}" || errors=$((errors + 1))
+    validation_check_ipv4_param PRI_DNS "${PRI_DNS}" || errors=$((errors + 1))
+    validation_check_ipv4_param SEC_DNS "${SEC_DNS}" || errors=$((errors + 1))
 
     warnings_emit_credential_warnings >&2 || true
-    validate_passphrase || errors=$((errors + 1))
-    validate_ssid "${SSID}" || errors=$((errors + 1))
-    validate_mac_filter || errors=$((errors + 1))
-    validate_tx_power || errors=$((errors + 1))
+    passphrase_validate || errors=$((errors + 1))
+    validation_check_ssid "${SSID}" || errors=$((errors + 1))
+    mac_filter_validate || errors=$((errors + 1))
+    radio_validate_tx_power || errors=$((errors + 1))
 
     if [ "${errors}" -ne 0 ] ; then
         echo "[Error] Validation failed with ${errors} error(s)." >&2
@@ -291,46 +291,46 @@ fi
 # Startup warnings for default credentials (normal mode only; validation
 # mode emits them above so they are not interleaved with stdout configs).
 warnings_emit_credential_warnings
-if ! validate_passphrase ; then
+if ! passphrase_validate ; then
     exit 1
 fi
-if ! validate_ssid "${SSID}" ; then
-    exit 1
-fi
-check_interrupted
-
-if ! validate_mac_filter ; then
+if ! validation_check_ssid "${SSID}" ; then
     exit 1
 fi
 check_interrupted
 
-if ! validate_channel ; then
+if ! mac_filter_validate ; then
     exit 1
 fi
 check_interrupted
 
-if ! validate_vht ; then
+if ! channel_validate ; then
     exit 1
 fi
-if ! validate_tx_power ; then
+check_interrupted
+
+if ! channel_validate_vht ; then
+    exit 1
+fi
+if ! radio_validate_tx_power ; then
     exit 1
 fi
 
-validate_ipv4_param SUBNET "${SUBNET}" || exit 1
-validate_ipv4_param AP_ADDR "${AP_ADDR}" || exit 1
-validate_ipv4_param PRI_DNS "${PRI_DNS}" || exit 1
-validate_ipv4_param SEC_DNS "${SEC_DNS}" || exit 1
+validation_check_ipv4_param SUBNET "${SUBNET}" || exit 1
+validation_check_ipv4_param AP_ADDR "${AP_ADDR}" || exit 1
+validation_check_ipv4_param PRI_DNS "${PRI_DNS}" || exit 1
+validation_check_ipv4_param SEC_DNS "${SEC_DNS}" || exit 1
 
 # Compute DHCP range early so the netmask-derived prefix (DHCP_PREFIX)
 # is available for interface_setup and nat_apply_rules, and so the
 # computed range (and its warnings) is produced exactly once per startup;
 # emit_dnsmasq_conf reuses it below (#224).
-DHCP_RANGE_COMPUTED=$(compute_dhcp_range) || exit 1
+DHCP_RANGE_COMPUTED=$(dhcp_compute_range) || exit 1
 export DHCP_RANGE_COMPUTED
 
 # Always regenerate hostapd.conf so env var changes apply between runs.
 # Generated atomically so a failure leaves the old config intact (#157).
-write_atomic_config emit_hostapd_conf "/etc/hostapd.conf" || exit 1
+atomic_write_config emit_hostapd_conf "/etc/hostapd.conf" || exit 1
 check_interrupted
 
 # Setup interface and restart DHCP service
@@ -340,7 +340,7 @@ fi
 check_interrupted
 
 # Optional transmit power cap (TX_POWER); fatal on failure (#236)
-apply_tx_power || exit 1
+radio_apply_tx_power || exit 1
 check_interrupted
 
 # NAT settings
@@ -361,7 +361,7 @@ echo "Configuring DHCP server .."
 
 # Always regenerate dnsmasq.conf so env var changes apply between runs.
 # Generated atomically so a failure leaves the old config intact (#157).
-write_atomic_config emit_dnsmasq_conf "/etc/dnsmasq.conf" || exit 1
+atomic_write_config emit_dnsmasq_conf "/etc/dnsmasq.conf" || exit 1
 
 echo "Starting dnsmasq and hostapd via multirun ..."
 check_interrupted

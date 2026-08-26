@@ -10,14 +10,14 @@ setup() {
 }
 
 @test "MAC filter disabled by default: silent no-op success" {
-    run compute_mac_filter_conf
+    run mac_filter_compute_conf
     [ "$status" -eq 0 ]
     [ "$output" = "" ]
 }
 
 @test "MAC_FILTER=0 explicitly: silent no-op success" {
     MAC_FILTER=0
-    run compute_mac_filter_conf
+    run mac_filter_compute_conf
     [ "$status" -eq 0 ]
     [ "$output" = "" ]
 }
@@ -25,7 +25,7 @@ setup() {
 @test "MAC_FILTER=1 emits macaddr_acl=1 and accept_mac_file" {
     MAC_FILTER=1
     MAC_ACL_FILE="/etc/hostapd.accept"
-    run compute_mac_filter_conf
+    run mac_filter_compute_conf
     [ "$status" -eq 0 ]
     [ "${lines[0]}" = "macaddr_acl=1" ]
     [ "${lines[1]}" = "accept_mac_file=/etc/hostapd.accept" ]
@@ -34,21 +34,21 @@ setup() {
 @test "MAC_FILTER=2 emits macaddr_acl=1 and deny_mac_file" {
     MAC_FILTER=2
     MAC_ACL_FILE="/etc/hostapd.deny"
-    run compute_mac_filter_conf
+    run mac_filter_compute_conf
     [ "$status" -eq 0 ]
     [ "${lines[0]}" = "macaddr_acl=1" ]
     [ "${lines[1]}" = "deny_mac_file=/etc/hostapd.deny" ]
 }
 
 @test "validation passes when filter disabled without file" {
-    run validate_mac_filter
+    run mac_filter_validate
     [ "$status" -eq 0 ]
 }
 
 @test "validation errors if allowlist enabled without file" {
     MAC_FILTER=1
     unset MAC_ACL_FILE
-    run validate_mac_filter
+    run mac_filter_validate
     [ "$status" -eq 1 ]
     [[ "${output}" == *"[Error]"*"MAC_ACL_FILE"* ]]
 }
@@ -56,14 +56,14 @@ setup() {
 @test "validation errors if denylist enabled without file" {
     MAC_FILTER=2
     unset MAC_ACL_FILE
-    run validate_mac_filter
+    run mac_filter_validate
     [ "$status" -eq 1 ]
 }
 
 @test "validation warns if ACL file missing" {
     MAC_FILTER=1
     MAC_ACL_FILE="${BATS_TEST_TMPDIR}/does-not-exist"
-    run validate_mac_filter
+    run mac_filter_validate
     [ "$status" -eq 0 ]
     [[ "${output}" == *"[Warning]"* ]]
 }
@@ -73,7 +73,7 @@ setup() {
     echo "aa:bb:cc:dd:ee:ff" > "${f}"
     MAC_FILTER=2
     MAC_ACL_FILE="${f}"
-    run validate_mac_filter
+    run mac_filter_validate
     [ "$status" -eq 0 ]
     [ "$output" = "" ]
 }
@@ -81,7 +81,7 @@ setup() {
 @test "validation rejects invalid MAC_FILTER value" {
     MAC_FILTER=3
     MAC_ACL_FILE="/etc/hostapd.accept"
-    run validate_mac_filter
+    run mac_filter_validate
     [ "$status" -eq 1 ]
     [[ "${output}" == *"[Error]"*"Invalid MAC_FILTER"* ]]
 }

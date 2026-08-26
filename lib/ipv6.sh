@@ -6,7 +6,7 @@
 #   - dnsmasq announces RA/stateless DHCPv6 on the AP interface
 #   - ip6tables FORWARD rules mirror the IPv4 handling
 #
-# compute_dnsmasq_ipv6_conf prints the extra dnsmasq.conf line (or nothing
+# ipv6_compute_dnsmasq_conf prints the extra dnsmasq.conf line (or nothing
 # when disabled). Messages go to stderr.
 
 # Ensure nat_parse_outgoings (lib/nat.sh) is available so the rule functions
@@ -15,7 +15,7 @@ if ! declare -F nat_parse_outgoings > /dev/null 2>&1 ; then
     # shellcheck source=lib/nat.sh
     . "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/nat.sh"
 fi
-compute_dnsmasq_ipv6_conf() {
+ipv6_compute_dnsmasq_conf() {
     if [ "${IPV6:-0}" != "1" ] ; then
         echo "[Info] IPV6 not enabled, skipping IPv6 RA/DHCPv6 configuration." >&2
         return 1

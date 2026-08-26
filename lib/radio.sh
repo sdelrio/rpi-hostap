@@ -7,9 +7,9 @@
 # The value must respect the regulatory limits of COUNTRY_CODE - iw will
 # reject powers above the allowed EIRP for the configured domain.
 #
-# validate_tx_power checks the value without touching the system
+# radio_validate_tx_power checks the value without touching the system
 # (used by --validate mode and before any system change).
-validate_tx_power() {
+radio_validate_tx_power() {
     [ -z "${TX_POWER:-}" ] && return 0
     case "${TX_POWER}" in
         auto) return 0 ;;
@@ -21,10 +21,10 @@ validate_tx_power() {
     return 0
 }
 
-# apply_tx_power applies TX_POWER to INTERFACE via iw. Fails fatally when
+# radio_apply_tx_power applies TX_POWER to INTERFACE via iw. Fails fatally when
 # iw rejects the value: the operator asked explicitly for a power cap,
 # silently running at full power would violate that intent.
-apply_tx_power() {
+radio_apply_tx_power() {
     [ -n "${TX_POWER:-}" ] || return 0
     if ! command -v iw >/dev/null 2>&1 ; then
         echo "[Error] TX_POWER set but 'iw' is not available on ${INTERFACE}" >&2

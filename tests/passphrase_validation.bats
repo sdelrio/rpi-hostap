@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-# Tests exercise validate_passphrase() from lib/passphrase.sh — the exact
+# Tests exercise passphrase_validate() from lib/passphrase.sh — the exact
 # code used by wlanstart.sh (no duplicated logic).
 
 setup() {
@@ -14,21 +14,21 @@ load_lib() {
 @test "8-character passphrase is accepted" {
     load_lib
     WPA_PASSPHRASE=12345678
-    run validate_passphrase
+    run passphrase_validate
     [ "$status" -eq 0 ]
 }
 
 @test "63-character passphrase is accepted" {
     load_lib
     WPA_PASSPHRASE=$(printf 'a%.0s' {1..63})
-    run validate_passphrase
+    run passphrase_validate
     [ "$status" -eq 0 ]
 }
 
 @test "7-character passphrase is rejected with error message" {
     load_lib
     WPA_PASSPHRASE=1234567
-    run validate_passphrase
+    run passphrase_validate
     [ "$status" -ne 0 ]
     [[ "$output" == *"Invalid WPA_PASSPHRASE"* ]]
     [[ "$output" == *"8-63"* ]]
@@ -37,7 +37,7 @@ load_lib() {
 @test "64-character passphrase is rejected with error message" {
     load_lib
     WPA_PASSPHRASE=$(printf 'a%.0s' {1..64})
-    run validate_passphrase
+    run passphrase_validate
     [ "$status" -ne 0 ]
     [[ "$output" == *"Invalid WPA_PASSPHRASE"* ]]
     [[ "$output" == *"8-63"* ]]
@@ -46,7 +46,7 @@ load_lib() {
 @test "empty passphrase is rejected" {
     load_lib
     WPA_PASSPHRASE=""
-    run validate_passphrase
+    run passphrase_validate
     [ "$status" -ne 0 ]
     [[ "$output" == *"Invalid WPA_PASSPHRASE"* ]]
 }

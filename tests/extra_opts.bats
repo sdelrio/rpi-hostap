@@ -6,28 +6,28 @@ setup() {
 }
 
 @test "HOSTAPD_EXTRA_OPTS unset produces no output" {
-    run compute_extra_opts_lines
+    run extra_opts_compute_lines
     [ "$status" -eq 0 ]
     [ "$output" = "" ]
 }
 
 @test "HOSTAPD_EXTRA_OPTS empty string produces no output" {
     HOSTAPD_EXTRA_OPTS=""
-    run compute_extra_opts_lines
+    run extra_opts_compute_lines
     [ "$status" -eq 0 ]
     [ "$output" = "" ]
 }
 
 @test "HOSTAPD_EXTRA_OPTS single line is passed through verbatim" {
     HOSTAPD_EXTRA_OPTS="auth_algs=3"
-    run compute_extra_opts_lines
+    run extra_opts_compute_lines
     [ "$status" -eq 0 ]
     [ "$output" = "auth_algs=3" ]
 }
 
 @test "HOSTAPD_EXTRA_OPTS multiple lines are emitted in order" {
     HOSTAPD_EXTRA_OPTS=$'auth_algs=3\nignore_broadcast_ssid=1\nbeacon_int=100'
-    run compute_extra_opts_lines
+    run extra_opts_compute_lines
     [ "$status" -eq 0 ]
     [ "${lines[0]}" = "auth_algs=3" ]
     [ "${lines[1]}" = "ignore_broadcast_ssid=1" ]
@@ -36,7 +36,7 @@ setup() {
 
 @test "HOSTAPD_EXTRA_OPTS blank lines are skipped" {
     HOSTAPD_EXTRA_OPTS=$'auth_algs=3\n\n\nbeacon_int=100\n'
-    run compute_extra_opts_lines
+    run extra_opts_compute_lines
     [ "$status" -eq 0 ]
     [ "${#lines[@]}" -eq 2 ]
 }
