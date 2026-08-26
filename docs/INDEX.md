@@ -40,6 +40,7 @@ Lightweight Docker container that turns a Raspberry Pi into a wireless Access Po
 | [Operations](operations.md) | [Client inspection](operations.md#client-inspection-optional), runtime diagnostics |
 | [Troubleshooting](troubleshooting.md) | Common errors: kernel driver conflicts, containers exiting immediately |
 | [Health Check](healthcheck.md) | Container healthcheck internals, grace periods, deep healthcheck |
+| [CI](CI.md) | E2E Test workflow, hwsim module cache and branch scoping |
 
 ## Quick reference
 

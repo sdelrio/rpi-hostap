@@ -1,0 +1,56 @@
+name: 'Build wireless stack modules'
+description: >-
+  Build cfg80211/mac80211/mac80211_hwsim/libarc4 out-of-tree against the
+  running kernel and stage them in /tmp/hwsim. Requires linux-headers for
+  $(uname -r) to be installed first.
+runs:
+  using: 'composite'
+  steps:
+    - name: Build wireless stack modules
+      shell: bash
+      run: |
+        KVER="$(uname -r)"
+        TAG="v$(echo "${KVER}" | grep -oE '^[0-9]+\.[0-9]+')"
+        echo "Kernel ${KVER}, building from tag ${TAG}"
+        git clone --depth 1 --filter=blob:none --sparse \
+          --branch "${TAG}" \
+          https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git \
+          /tmp/linux-src
+        cd /tmp/linux-src
+        git sparse-checkout set net/wireless net/mac80211 \
+          drivers/net/wireless/virtual lib/crypto
+
+        # libarc4 (ARC4 cipher library): required by mac80211, absent on azure
+        mkdir -p /tmp/crypto-src
+        cp lib/crypto/arc4.c /tmp/crypto-src/
+        cat > /tmp/crypto-src/Makefile <<'EOF'
+        obj-m += libarc4.o
+        libarc4-y := arc4.o
+        EOF
+
+        # cfg80211 + mac80211: build via a wrapper external-module tree
+        mkdir -p /tmp/wl/net
+        cp -r net/wireless net/mac80211 /tmp/wl/net/
+        cat > /tmp/wl/Makefile <<'EOF'
+        obj-m += net/wireless/ net/mac80211/
+        EOF
+
+        # mac80211_hwsim: standalone external module (single .c file)
+        mkdir -p /tmp/hwsim-src /tmp/hwsim
+        cp drivers/net/wireless/virtual/mac80211_hwsim.c \
+           drivers/net/wireless/virtual/mac80211_hwsim.h \
+           /tmp/hwsim-src/
+        printf 'obj-m := mac80211_hwsim.o\n' > /tmp/hwsim-src/Makefile
+
+        KDIR="/lib/modules/${KVER}/build"
+        make -C "${KDIR}" M="/tmp/crypto-src" modules
+        make -C "${KDIR}" M="/tmp/wl" \
+          CONFIG_CFG80211=m CONFIG_MAC80211=m modules
+        make -C "${KDIR}" M="/tmp/hwsim-src" CONFIG_MAC80211_HWSIM=m modules
+
+        cp /tmp/crypto-src/libarc4.ko \
+           /tmp/wl/net/wireless/cfg80211.ko \
+           /tmp/wl/net/mac80211/mac80211.ko \
+           /tmp/hwsim-src/mac80211_hwsim.ko \
+           /tmp/hwsim/
+        ls -l /tmp/hwsim
