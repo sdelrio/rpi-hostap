@@ -9,8 +9,10 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck source=lib/core/client_env.sh
-source "${SCRIPT_DIR}/lib/core/client_env.sh"
+# Declarative module loading (issue #239)
+# shellcheck source=lib/bootstrap.sh
+source "${SCRIPT_DIR}/lib/bootstrap.sh"
+require_module client_env
 
 clients_show_usage() {
     echo "Usage: clients.sh [--json] [count] [deauth <mac>]" >&2

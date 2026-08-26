@@ -11,7 +11,11 @@
 
 # Ensure nat_parse_outgoings (lib/sys/nat.sh) is available so the rule functions
 # below are self-contained and can be called without nat_apply_rules first.
-if ! declare -F nat_parse_outgoings > /dev/null 2>&1 ; then
+# Prefer the declarative loader when present; fall back to a direct source
+# for consumers that source this module without lib/bootstrap.sh.
+if declare -F require_module > /dev/null 2>&1 ; then
+    require_module nat
+elif ! declare -F nat_parse_outgoings > /dev/null 2>&1 ; then
     # shellcheck source=lib/sys/nat.sh
     . "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/nat.sh"
 fi

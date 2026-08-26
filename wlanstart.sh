@@ -4,16 +4,13 @@
 # hooks into PHASE_* arrays at source time; cleanup() below just runs
 # the teardown phase. Must be sourced before any module that registers
 # hooks.
-# Logic lives in lib/core/lifecycle.sh, shared with tests
-# shellcheck source=lib/core/lifecycle.sh
-. "$(dirname "$0")/lib/core/lifecycle.sh"
+# Declarative module loading (issue #239): bootstrap resolves core/ vs sys/
+# paths, tracks what is already loaded (_LOADED) so double-sourcing is a
+# no-op, and pulls declared dependencies via require_module.
+# shellcheck source=lib/bootstrap.sh
+. "$(dirname "$0")/lib/bootstrap.sh"
 
-# NAT and interface logic lives in lib/sys/nat.sh and lib/sys/interface.sh,
-# shared with tests
-# shellcheck source=lib/sys/nat.sh
-. "$(dirname "$0")/lib/sys/nat.sh"
-# shellcheck source=lib/sys/interface.sh
-. "$(dirname "$0")/lib/sys/interface.sh"
+require_module lifecycle nat interface
 
 # cleanup() is feature-agnostic: every module registers its own teardown
 # hook into PHASE_TEARDOWN when its lib is sourced, in reverse-dependency
@@ -101,78 +98,18 @@ fi
 
 # Apply all environment defaults in one place (issue #237).
 # Logic lives in lib/core/env.sh, shared with tests
-# shellcheck source=lib/core/env.sh
-. "$(dirname "$0")/lib/core/env.sh"
+require_module env
 env_resolve_config_env
 
 # Secret-file inputs for SSID/WPA_PASSPHRASE (_FILE convention, issue #232)
-# Logic lives in lib/core/secret_file.sh, shared with tests
-# shellcheck source=lib/core/secret_file.sh
-. "$(dirname "$0")/lib/core/secret_file.sh"
+require_module secret_file
 secret_file_load SSID SSID_FILE || exit 1
 secret_file_load WPA_PASSPHRASE WPA_PASSPHRASE_FILE || exit 1
 
-# Validate channel against regulatory domain and hardware mode
-# Logic lives in lib/core/channel.sh, shared with tests
-# shellcheck source=lib/core/channel.sh
-. "$(dirname "$0")/lib/core/channel.sh"
-
-# IPv4 address validation (validation_check_ipv4)
-# Logic lives in lib/core/validation.sh, shared with tests
-# shellcheck source=lib/core/validation.sh
-. "$(dirname "$0")/lib/core/validation.sh"
-# Startup warnings for default credentials
-# Logic lives in lib/core/warnings.sh, shared with tests
-# shellcheck source=lib/core/warnings.sh
-. "$(dirname "$0")/lib/core/warnings.sh"
-# WPA_PASSPHRASE length validation
-# Logic lives in lib/core/passphrase.sh, shared with tests
-# shellcheck source=lib/core/passphrase.sh
-. "$(dirname "$0")/lib/core/passphrase.sh"
-# MAX_STATIONS
-# Logic lives in lib/core/stations.sh, shared with tests
-# shellcheck source=lib/core/stations.sh
-. "$(dirname "$0")/lib/core/stations.sh"
-# WPA version
-# Logic lives in lib/core/wpa.sh, shared with tests
-# shellcheck source=lib/core/wpa.sh
-. "$(dirname "$0")/lib/core/wpa.sh"
-# AP isolation
-# Logic lives in lib/core/ap_isolation.sh, shared with tests
-# shellcheck source=lib/core/ap_isolation.sh
-. "$(dirname "$0")/lib/core/ap_isolation.sh"
-# Hidden SSID
-# Logic lives in lib/core/ssid_hidden.sh, shared with tests
-# shellcheck source=lib/core/ssid_hidden.sh
-. "$(dirname "$0")/lib/core/ssid_hidden.sh"
-# MAC address filtering
-# Logic lives in lib/core/mac_filter.sh, shared with tests
-# shellcheck source=lib/core/mac_filter.sh
-. "$(dirname "$0")/lib/core/mac_filter.sh"
-# Control interface
-# Logic lives in lib/core/ctrl_interface.sh, shared with tests
-# shellcheck source=lib/core/ctrl_interface.sh
-. "$(dirname "$0")/lib/core/ctrl_interface.sh"
-# Optional IPv6 support
-# Logic lives in lib/sys/ipv6.sh, shared with tests
-# shellcheck source=lib/sys/ipv6.sh
-. "$(dirname "$0")/lib/sys/ipv6.sh"
-# DHCP_RANGE computation
-# Logic lives in lib/core/dhcp.sh, shared with tests
-# shellcheck source=lib/core/dhcp.sh
-. "$(dirname "$0")/lib/core/dhcp.sh"
-# Extra hostapd.conf options (HOSTAPD_EXTRA_OPTS)
-# Logic lives in lib/core/extra_opts.sh, shared with tests
-# shellcheck source=lib/core/extra_opts.sh
-. "$(dirname "$0")/lib/core/extra_opts.sh"
-# TX_POWER transmit power control
-# Logic lives in lib/sys/radio.sh, shared with tests
-# shellcheck source=lib/sys/radio.sh
-. "$(dirname "$0")/lib/sys/radio.sh"
-# Atomic config file writing (temp file + mv)
-# Logic lives in lib/sys/atomic.sh, shared with tests
-# shellcheck source=lib/sys/atomic.sh
-. "$(dirname "$0")/lib/sys/atomic.sh"
+# Remaining validation/config modules (each loaded once, idempotently)
+require_module channel validation warnings passphrase stations \
+    wpa ap_isolation ssid_hidden mac_filter ctrl_interface ipv6 \
+    dhcp extra_opts radio atomic
 
 # Emit hostapd.conf to stdout from the current environment.
 emit_hostapd_conf() {
@@ -386,8 +323,7 @@ check_interrupted
 # Output is teed to a temp log via process substitution so that the PID we
 # signal (_MULTIRUN_PID) remains multirun itself, keeping forwarding intact.
 # Failure reporting logic lives in lib/sys/logging.sh, shared with tests
-# shellcheck source=lib/sys/logging.sh
-. "$(dirname "$0")/lib/sys/logging.sh"
+require_module logging
 _DAEMON_LOG=$(mktemp)
 multirun \
     "sh -c 'exec dnsmasq --no-daemon 2>&1 | sed \"s/^/[dnsmasq] /\"'" \
