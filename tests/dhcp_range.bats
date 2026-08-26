@@ -378,6 +378,26 @@ setup() {
     [[ "${lines[*]}" == *"AP_ADDR '10.0.0.1' is not inside SUBNET 192.168.0.0/16"* ]]
 }
 
+@test "generated dnsmasq.conf binds to AP interface only (#223)" {
+    # shellcheck disable=SC2016
+    run bash -c '
+        . "'"${REPO_ROOT}"'/lib/env.sh"
+        . "'"${REPO_ROOT}"'/lib/dhcp.sh"
+        wlanstart="'"${REPO_ROOT}"'/wlanstart.sh"
+        eval "$(sed -n "/^emit_dnsmasq_conf()/,/^}/p" "${wlanstart}")"
+        SUBNET="192.168.254.0" AP_ADDR="192.168.254.1" INTERFACE="wlan0"
+        PRI_DNS="8.8.8.8" SEC_DNS="8.8.4.4" COUNTRY_CODE=EU
+        resolve_config_env
+        DHCP_RANGE_COMPUTED=$(compute_dhcp_range) || exit 1
+        export DHCP_RANGE_COMPUTED
+        emit_dnsmasq_conf
+    '
+    [ "$status" -eq 0 ]
+    [[ "${output}" == *'interface=wlan0'* ]]
+    [[ "${output}" == *'bind-dynamic'* ]]
+    [[ "${output}" == *'dhcp-authoritative'* ]]
+}
+
 @test "default-range warning appears once when emit_dnsmasq_conf reuses computed range (#224)" {
     # shellcheck disable=SC2016
     run bash -c '
