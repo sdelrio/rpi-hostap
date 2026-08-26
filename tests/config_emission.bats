@@ -48,6 +48,7 @@ wmm_enabled=1
 
 
 
+
 # Activate channel selection for HE High Efficiency (802.11ax)
 
 
