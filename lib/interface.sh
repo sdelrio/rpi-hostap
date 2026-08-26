@@ -1,8 +1,8 @@
 # shellcheck shell=bash
 # Shared interface bring-up/teardown logic used by wlanstart.sh and tests.
 
-# setup_interface brings the AP interface up and assigns the AP address.
-setup_interface() {
+# interface_setup brings the AP interface up and assigns the AP address.
+interface_setup() {
     ip link set "${INTERFACE}" up || {
         echo "[Error] Failed to bring up interface ${INTERFACE}" >&2
         return 1
@@ -17,10 +17,10 @@ setup_interface() {
     }
 }
 
-# teardown_interface removes only the AP address this container configured
+# interface_teardown removes only the AP address this container configured
 # (a blanket `ip addr flush` would wipe unrelated host addresses when running
 # with --net host) and brings the link down.
-teardown_interface() {
+interface_teardown() {
     if [ -n "${INTERFACE}" ] ; then
         echo "Removing ${AP_ADDR}/${DHCP_PREFIX:-24} from interface ${INTERFACE}..."
         ip addr del "${AP_ADDR}/${DHCP_PREFIX:-24}" dev "${INTERFACE}" 2>/dev/null || true

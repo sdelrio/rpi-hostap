@@ -8,7 +8,7 @@ setup() {
     # shellcheck source=../lib/env.sh
     . "$(dirname "$BATS_TEST_FILENAME")/../lib/env.sh"
     # Default MAX_STATIONS now applied centrally in lib/env.sh (issue #237)
-    resolve_config_env
+    env_resolve_config_env
     # shellcheck source=../lib/stations.sh
     . "$(dirname "$BATS_TEST_FILENAME")/../lib/stations.sh"
 }

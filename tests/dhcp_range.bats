@@ -16,7 +16,7 @@ setup() {
     unset DHCP_RANGE
     unset DHCP_LEASE
     # DHCP_LEASE default now applied centrally in lib/env.sh (issue #237)
-    resolve_config_env
+    env_resolve_config_env
 }
 
 @test "default DHCP_RANGE computed from SUBNET 192.168.254.0" {
@@ -197,7 +197,7 @@ setup() {
         . "'"${REPO_ROOT}"'/lib/dhcp.sh"
         SUBNET="192.168.254.16" AP_ADDR="192.168.254.17" INTERFACE="wlan0"
         PRI_DNS="8.8.8.8" SEC_DNS="8.8.4.4" COUNTRY_CODE=EU
-        resolve_config_env
+        env_resolve_config_env
         DHCP_RANGE="192.168.254.20,192.168.254.30,255.255.255.240,12h"
         compute_dhcp_range > /dev/null || exit 1
         echo "${DHCP_PREFIX}"
@@ -213,7 +213,7 @@ setup() {
         . "'"${REPO_ROOT}"'/lib/dhcp.sh"
         SUBNET="192.168.254.0" AP_ADDR="192.168.254.1" INTERFACE="wlan0"
         PRI_DNS="8.8.8.8" SEC_DNS="8.8.4.4" COUNTRY_CODE=EU
-        resolve_config_env
+        env_resolve_config_env
         compute_dhcp_range > /dev/null 2>&1 || exit 1
         echo "${DHCP_PREFIX}"
     '
@@ -228,7 +228,7 @@ setup() {
         . "'"${REPO_ROOT}"'/lib/dhcp.sh"
         SUBNET="10.10.10.0" AP_ADDR="10.10.10.1" INTERFACE="wlan0"
         PRI_DNS="8.8.8.8" SEC_DNS="8.8.4.4" COUNTRY_CODE=EU
-        resolve_config_env
+        env_resolve_config_env
         DHCP_RANGE="10.10.10.50,10.10.10.150,255.255.255.0,12h"
         compute_dhcp_range > /dev/null || exit 1
         echo "${DHCP_PREFIX}"
@@ -244,7 +244,7 @@ setup() {
         . "'"${REPO_ROOT}"'/lib/dhcp.sh"
         SUBNET="192.168.0.0" AP_ADDR="192.168.254.1" INTERFACE="wlan0"
         PRI_DNS="8.8.8.8" SEC_DNS="8.8.4.4" COUNTRY_CODE=EU
-        resolve_config_env
+        env_resolve_config_env
         DHCP_RANGE="192.168.100.50,192.168.200.150,255.255.0.0,12h"
         compute_dhcp_range > /dev/null || exit 1
         echo "${DHCP_PREFIX}"
@@ -387,7 +387,7 @@ setup() {
         eval "$(sed -n "/^emit_dnsmasq_conf()/,/^}/p" "${wlanstart}")"
         SUBNET="192.168.254.0" AP_ADDR="192.168.254.1" INTERFACE="wlan0"
         PRI_DNS="8.8.8.8" SEC_DNS="8.8.4.4" COUNTRY_CODE=EU
-        resolve_config_env
+        env_resolve_config_env
         DHCP_RANGE_COMPUTED=$(compute_dhcp_range) || exit 1
         export DHCP_RANGE_COMPUTED
         emit_dnsmasq_conf
@@ -409,7 +409,7 @@ setup() {
         eval "$(sed -n "/^emit_dnsmasq_conf()/,/^}/p" "${wlanstart}")"
         SUBNET="192.168.254.0" AP_ADDR="192.168.254.1" INTERFACE="wlan0"
         PRI_DNS="8.8.8.8" SEC_DNS="8.8.4.4" COUNTRY_CODE=EU
-        resolve_config_env
+        env_resolve_config_env
         # Startup path: compute once, reuse in emit_dnsmasq_conf
         DHCP_RANGE_COMPUTED=$(compute_dhcp_range 2> "'"${BATS_TEST_TMPDIR}"'/err1") || exit 1
         export DHCP_RANGE_COMPUTED

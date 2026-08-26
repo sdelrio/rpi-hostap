@@ -56,13 +56,13 @@ _failure_log_prune() {
         done
 }
 
-# report_failure <exit-status> [tagged-output-log]
+# logging_report_failure <exit-status> [tagged-output-log]
 #
 # Print a final error pointing at the likely failing daemon based on the
 # last tagged line of captured daemon output. When a non-empty log is
 # given, it is preserved under FAILURE_LOG_DIR so operators can inspect the
 # full tagged output after exit.
-report_failure() {
+logging_report_failure() {
     local status="$1"
     local log="${2:-}"
     local tag="[daemon]"

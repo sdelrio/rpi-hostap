@@ -10,7 +10,7 @@ setup() {
     # shellcheck source=../lib/env.sh
     . "${ROOT}/lib/env.sh"
     # Defaults now live centrally in lib/env.sh (issue #237)
-    resolve_config_env
+    env_resolve_config_env
     # shellcheck source=../lib/channel.sh
     . "${ROOT}/lib/channel.sh"
 }
@@ -524,7 +524,7 @@ setup() {
 
 @test "strict: default hw_mode (g) passes" {
     unset HW_MODE
-    resolve_config_env
+    env_resolve_config_env
     CHANNEL="1"
     run validate_channel_strict
     [ "$status" -eq 0 ]
@@ -541,7 +541,7 @@ setup() {
 
 @test "VHT_ENABLED set with default HW_MODE fails" {
     unset HW_MODE
-    resolve_config_env
+    env_resolve_config_env
     VHT_ENABLED="1"
     run validate_vht
     [ "$status" -eq 1 ]

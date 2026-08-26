@@ -10,7 +10,7 @@ setup() {
 check_warnings() {
     : "${SSID:=raspberry}"
     : "${WPA_PASSPHRASE:=passw0rd}"
-    emit_credential_warnings
+    warnings_emit_credential_warnings
 }
 
 @test "default WPA passphrase triggers warning" {

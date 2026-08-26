@@ -10,14 +10,14 @@
 cleanup() {
     echo "Shutting down..."
 
-    remove_nat_rules
+    nat_remove_rules
 
     if [ "${IPV6:-0}" = "1" ] ; then
         echo "Removing ip6tables rules..."
-        remove_ipv6_rules
+        ipv6_remove_rules
     fi
 
-    teardown_interface
+    interface_teardown
 }
 
 # multirun manages hostapd/dnsmasq and exits when any child dies.
@@ -98,14 +98,14 @@ fi
 # Logic lives in lib/env.sh, shared with tests
 # shellcheck source=lib/env.sh
 . "$(dirname "$0")/lib/env.sh"
-resolve_config_env
+env_resolve_config_env
 
 # Secret-file inputs for SSID/WPA_PASSPHRASE (_FILE convention, issue #232)
 # Logic lives in lib/secret_file.sh, shared with tests
 # shellcheck source=lib/secret_file.sh
 . "$(dirname "$0")/lib/secret_file.sh"
-load_from_file SSID SSID_FILE || exit 1
-load_from_file WPA_PASSPHRASE WPA_PASSPHRASE_FILE || exit 1
+secret_file_load SSID SSID_FILE || exit 1
+secret_file_load WPA_PASSPHRASE WPA_PASSPHRASE_FILE || exit 1
 
 # Validate channel against regulatory domain and hardware mode
 # Logic lives in lib/channel.sh, shared with tests
@@ -255,7 +255,7 @@ run_validation_mode() {
     validate_ipv4_param PRI_DNS "${PRI_DNS}" || errors=$((errors + 1))
     validate_ipv4_param SEC_DNS "${SEC_DNS}" || errors=$((errors + 1))
 
-    emit_credential_warnings >&2 || true
+    warnings_emit_credential_warnings >&2 || true
     validate_passphrase || errors=$((errors + 1))
     validate_ssid "${SSID}" || errors=$((errors + 1))
     validate_mac_filter || errors=$((errors + 1))
@@ -290,7 +290,7 @@ fi
 
 # Startup warnings for default credentials (normal mode only; validation
 # mode emits them above so they are not interleaved with stdout configs).
-emit_credential_warnings
+warnings_emit_credential_warnings
 if ! validate_passphrase ; then
     exit 1
 fi
@@ -322,7 +322,7 @@ validate_ipv4_param PRI_DNS "${PRI_DNS}" || exit 1
 validate_ipv4_param SEC_DNS "${SEC_DNS}" || exit 1
 
 # Compute DHCP range early so the netmask-derived prefix (DHCP_PREFIX)
-# is available for setup_interface and apply_nat_rules, and so the
+# is available for interface_setup and nat_apply_rules, and so the
 # computed range (and its warnings) is produced exactly once per startup;
 # emit_dnsmasq_conf reuses it below (#224).
 DHCP_RANGE_COMPUTED=$(compute_dhcp_range) || exit 1
@@ -334,7 +334,7 @@ write_atomic_config emit_hostapd_conf "/etc/hostapd.conf" || exit 1
 check_interrupted
 
 # Setup interface and restart DHCP service
-if ! setup_interface ; then
+if ! interface_setup ; then
     exit 1
 fi
 check_interrupted
@@ -344,17 +344,17 @@ apply_tx_power || exit 1
 check_interrupted
 
 # NAT settings
-set_sysctls ip_dynaddr ip_forward
-show_sysctls ip_dynaddr ip_forward
+nat_set_sysctls ip_dynaddr ip_forward
+nat_show_sysctls ip_dynaddr ip_forward
 
-apply_nat_rules
+nat_apply_rules
 
 # Optional IPv6 support (off by default, enable with IPV6=1)
 if [ "${IPV6:-0}" = "1" ] ; then
     echo "Enabling IPv6 forwarding..."
-    enable_ipv6_forwarding
+    ipv6_enable_forwarding
     echo "Setting ip6tables rules for outgoing traffics..."
-    apply_ipv6_rules
+    ipv6_apply_rules
 fi
 
 echo "Configuring DHCP server .."
@@ -399,9 +399,9 @@ if [ "${_SIGNALED}" = "1" ] ; then
 fi
 if [ "${STATUS}" -ne 0 ] ; then
     # Preserve the full tagged daemon log for post-mortem (issue #162);
-    # report_failure preserves a timestamped copy and mentions the path.
+    # logging_report_failure preserves a timestamped copy and mentions the path.
     # The temp log is only removed on clean shutdown / signal exit.
-    report_failure "${STATUS}" "${_DAEMON_LOG}"
+    logging_report_failure "${STATUS}" "${_DAEMON_LOG}"
 else
     rm -f "${_DAEMON_LOG}"
 fi

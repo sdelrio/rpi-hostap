@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-# Tests for resolve_config_env() in lib/env.sh - the single place where
+# Tests for env_resolve_config_env() in lib/env.sh - the single place where
 # environment defaults are applied (issue #237).
 
 setup() {
@@ -13,10 +13,10 @@ setup() {
     . "${BATS_TEST_DIRNAME}/../lib/env.sh"
 }
 
-@test "resolve_config_env applies all defaults when env is empty" {
+@test "env_resolve_config_env applies all defaults when env is empty" {
     run bash -c '
         . "'"${BATS_TEST_DIRNAME}"'/../lib/env.sh"
-        resolve_config_env 2>/dev/null
+        env_resolve_config_env 2>/dev/null
         printf "%s\n" "${HW_MODE}" "${CHANNEL}" "${COUNTRY_CODE}" \
             "${SUBNET}" "${AP_ADDR}" "${PRI_DNS}" "${SEC_DNS}" \
             "${DHCP_LEASE}" "${SSID}" "${WPA_PASSPHRASE}" \
@@ -37,13 +37,13 @@ setup() {
     [ "${lines[11]}" = "0" ]
 }
 
-@test "resolve_config_env never overrides explicitly set variables" {
+@test "env_resolve_config_env never overrides explicitly set variables" {
     run bash -c '
         . "'"${BATS_TEST_DIRNAME}"'/../lib/env.sh"
         export HW_MODE=a CHANNEL=36 COUNTRY_CODE=US SUBNET=10.0.0.0 AP_ADDR=10.0.0.1
         export PRI_DNS=1.1.1.1 SEC_DNS=1.0.0.1 DHCP_LEASE=24h SSID=myssid
         export WPA_PASSPHRASE=supersecret WPA_VERSION=3 MAX_STATIONS=16
-        resolve_config_env 2>/dev/null
+        env_resolve_config_env 2>/dev/null
         printf "%s\n" "${HW_MODE}" "${CHANNEL}" "${COUNTRY_CODE}" \
             "${SUBNET}" "${AP_ADDR}" "${PRI_DNS}" "${SEC_DNS}" \
             "${DHCP_LEASE}" "${SSID}" "${WPA_PASSPHRASE}" \
@@ -64,15 +64,15 @@ setup() {
     [ "${lines[11]}" = "16" ]
 }
 
-@test "resolve_config_env warns when COUNTRY_CODE is not set" {
-    run resolve_config_env
+@test "env_resolve_config_env warns when COUNTRY_CODE is not set" {
+    run env_resolve_config_env
     [ "$status" -eq 0 ]
     [[ "$output" == *"COUNTRY_CODE not set, defaulting to 'EU'"* ]]
 }
 
-@test "resolve_config_env stays silent when COUNTRY_CODE is set" {
+@test "env_resolve_config_env stays silent when COUNTRY_CODE is set" {
     COUNTRY_CODE=JP
-    run resolve_config_env
+    run env_resolve_config_env
     [ "$status" = 0 ]
     [ "$output" = "" ]
 }

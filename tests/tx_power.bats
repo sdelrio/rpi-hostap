@@ -8,7 +8,7 @@ setup() {
     COUNTRY_CODE=EU
     # shellcheck source=../lib/env.sh
     . "$(dirname "$BATS_TEST_FILENAME")/../lib/env.sh"
-    resolve_config_env
+    env_resolve_config_env
     # shellcheck source=../lib/radio.sh
     . "$(dirname "$BATS_TEST_FILENAME")/../lib/radio.sh"
 }

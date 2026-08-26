@@ -4,6 +4,10 @@
 
 - Never use the em dash "—". Use plain dash "-" instead.
 
+## Bash Function Naming Convention
+
+All functions in `lib/*.sh` must follow the `<module>_<verb>` convention, where `<module>` is the library filename without `.sh` (e.g. `nat_parse_outgoings`, `ipv6_apply_rules`, `validation_netmask_to_prefix`). Private helpers use a leading underscore plus the module prefix (e.g. `_log_emit`). The bare `log()` function in `lib/log.sh` is an accepted exception since it is the module's own namespace. Entry-point scripts at the repo root (`wlanstart.sh`, `clients.sh`, `healthcheck.sh`) follow the same rule for their helper functions (`clients_emit_json`, `wlanstart_cleanup`); small script-local handlers like `cleanup`, `handle_signal`, and `check_interrupted` are exempt. Do not create name collisions between modules.
+
 ## Temporary Files
 
 Write all temporary files (PR bodies, issue bodies, scratch files, etc.) to `<repo-root>/tmp/`, e.g. `tmp/pr-<slug>.md`. This directory is gitignored; never use `/tmp` or other system paths.

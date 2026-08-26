@@ -12,7 +12,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=lib/client_env.sh
 source "${SCRIPT_DIR}/lib/client_env.sh"
 
-usage() {
+clients_show_usage() {
     echo "Usage: clients.sh [--json] [count] [deauth <mac>]" >&2
 }
 
@@ -20,14 +20,14 @@ usage() {
 # Blocks start with the station MAC line, followed by key=value lines. Only a
 # fixed set of well-known fields (aid, signal, connected_time) are exposed as
 # strings; values are escaped conservatively.
-json_escape() {
+clients_json_escape() {
     local s="${1}"
     s="${s//\\/\\\\}"
     s="${s//\"/\\\"}"
     printf '%s' "${s}"
 }
 
-emit_json() {
+clients_emit_json() {
     local line key value in_obj=0 sep=""
     printf '['
     while IFS= read -r line ; do
@@ -38,7 +38,7 @@ emit_json() {
             if [[ ${in_obj} -eq 1 ]] ; then
                 printf '}'
             fi
-            printf '%s{"mac":"%s"' "${sep}" "$(json_escape "${line}")"
+            printf '%s{"mac":"%s"' "${sep}" "$(clients_json_escape "${line}")"
             sep=","
             in_obj=1
         else
@@ -46,7 +46,7 @@ emit_json() {
             value="${line#*=}"
             case "${key}" in
                 aid|signal|connected_time)
-                    printf ',"%s":"%s"' "${key}" "$(json_escape "${value}")"
+                    printf ',"%s":"%s"' "${key}" "$(clients_json_escape "${value}")"
                     ;;
             esac
         fi
@@ -56,15 +56,15 @@ emit_json() {
 }
 
 # Count associated stations: number of MAC-address lines in all_sta output
-# (same parsing pattern as emit_json, which treats non-key=value lines as
+# (same parsing pattern as clients_emit_json, which treats non-key=value lines as
 # station blocks starting with the MAC).
-station_count() {
+clients_count_stations() {
     hostapd_cli -p "${CTRL_IFACE_DIR}" -i "${INTERFACE}" all_sta \
         | grep -cE '^([0-9a-fA-F]{2}:){5}' || true
 }
 
-require_interface
-require_ctrl_interface
+client_env_require_interface
+client_env_require_ctrl_interface
 
 CMD="${1:-}"
 
@@ -73,14 +73,14 @@ case "${CMD}" in
         exec hostapd_cli -p "${CTRL_IFACE_DIR}" -i "${INTERFACE}" all_sta
         ;;
     --json)
-        emit_json
+        clients_emit_json
         ;;
     count)
-        station_count
+        clients_count_stations
         ;;
     deauth)
         if [[ $# -ne 2 ]] ; then
-            usage
+            clients_show_usage
             exit 1
         fi
         MAC="${2}"
@@ -91,7 +91,7 @@ case "${CMD}" in
         exec hostapd_cli -p "${CTRL_IFACE_DIR}" -i "${INTERFACE}" deauthenticate "${MAC}"
         ;;
     *)
-        usage
+        clients_show_usage
         exit 1
         ;;
 esac

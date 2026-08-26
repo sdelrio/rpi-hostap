@@ -59,11 +59,11 @@ validate_ssid() {
     fi
 }
 
-# netmask_to_prefix converts a dotted-decimal netmask to its CIDR prefix
+# validation_netmask_to_prefix converts a dotted-decimal netmask to its CIDR prefix
 # length (e.g. 255.255.255.240 -> 28). The mask must be contiguous
 # (255s, then optionally one partial octet, then 0s). Pure bash so it can
 # be tested on macOS without network tools. Prints the prefix on stdout.
-netmask_to_prefix() {
+validation_netmask_to_prefix() {
     local mask=${1:-} octet prefix=0 seen_partial=0
     if ! validate_ipv4 "${mask}" ; then
         echo "[Error] Invalid netmask: '${mask}' is not a valid IPv4 address." >&2
@@ -98,9 +98,9 @@ netmask_to_prefix() {
     echo "${prefix}"
 }
 
-# is_network_address checks that addr has all host bits zero for the
+# validation_is_network_address checks that addr has all host bits zero for the
 # given dotted-decimal netmask (i.e. addr & mask == addr). Pure bash.
-is_network_address() {
+validation_is_network_address() {
     local addr=${1:-} mask=${2:-}
     local a1 a2 a3 a4 m1 m2 m3 m4
     IFS=. read -r a1 a2 a3 a4 <<<"${addr}"

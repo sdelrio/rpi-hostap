@@ -9,9 +9,9 @@
 # compute_dnsmasq_ipv6_conf prints the extra dnsmasq.conf line (or nothing
 # when disabled). Messages go to stderr.
 
-# Ensure parse_outgoings (lib/nat.sh) is available so the rule functions
-# below are self-contained and can be called without apply_nat_rules first.
-if ! declare -F parse_outgoings > /dev/null 2>&1 ; then
+# Ensure nat_parse_outgoings (lib/nat.sh) is available so the rule functions
+# below are self-contained and can be called without nat_apply_rules first.
+if ! declare -F nat_parse_outgoings > /dev/null 2>&1 ; then
     # shellcheck source=lib/nat.sh
     . "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/nat.sh"
 fi
@@ -23,22 +23,22 @@ compute_dnsmasq_ipv6_conf() {
     echo "dhcp-range=::,constructor:${INTERFACE},ra-names,stateless"
 }
 
-# enable_ipv6_forwarding sets the forwarding sysctl via /proc, tolerating
+# ipv6_enable_forwarding sets the forwarding sysctl via /proc, tolerating
 # missing entries. IPV6_SYSCTL_BASE can be overridden in tests to point at
 # a stubbed procfs tree.
 IPV6_SYSCTL_BASE="${IPV6_SYSCTL_BASE:-/proc/sys/net/ipv6}"
 
-enable_ipv6_forwarding() {
+ipv6_enable_forwarding() {
     echo 1 > "${IPV6_SYSCTL_BASE}/conf/all/forwarding" 2>/dev/null \
         || echo "[Warning] Cannot set net.ipv6.conf.all.forwarding" >&2
 }
 
-# apply_ipv6_rules adds ip6tables FORWARD rules mirroring the IPv4 ones.
+# ipv6_apply_rules adds ip6tables FORWARD rules mirroring the IPv4 ones.
 # shellcheck disable=SC2154
-apply_ipv6_rules() {
+ipv6_apply_rules() {
     if [ "${OUTGOINGS}" ] ; then
         local int
-        validate_outgoings || return 1
+        nat_validate_outgoings || return 1
         for int in "${ints[@]}" ; do
             ip6tables -D FORWARD -i "${int}" -o "${INTERFACE}" -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT > /dev/null 2>&1 || true
             ip6tables -A FORWARD -i "${int}" -o "${INTERFACE}" -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
@@ -55,11 +55,11 @@ apply_ipv6_rules() {
     fi
 }
 
-# remove_ipv6_rules deletes the ip6tables rules added by apply_ipv6_rules.
-remove_ipv6_rules() {
+# ipv6_remove_rules deletes the ip6tables rules added by ipv6_apply_rules.
+ipv6_remove_rules() {
     if [ "${OUTGOINGS}" ] ; then
         local int
-        parse_outgoings
+        nat_parse_outgoings
         for int in "${ints[@]}" ; do
             ip6tables -D FORWARD -i "${int}" -o "${INTERFACE}" -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT > /dev/null 2>&1 || true
             ip6tables -D FORWARD -i "${INTERFACE}" -o "${int}" -j ACCEPT > /dev/null 2>&1 || true

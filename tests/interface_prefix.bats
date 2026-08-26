@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-# Tests exercise setup_interface() from lib/interface.sh with a stubbed
+# Tests exercise interface_setup() from lib/interface.sh with a stubbed
 # ip command, verifying the netmask-derived prefix (DHCP_PREFIX).
 
 REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/.." && pwd)"
@@ -17,21 +17,21 @@ setup() {
     ip() { echo "ip $*" >> "${LOG}"; }
 }
 
-@test "setup_interface defaults to /24 when DHCP_PREFIX is unset" {
-    run setup_interface
+@test "interface_setup defaults to /24 when DHCP_PREFIX is unset" {
+    run interface_setup
     [ "$status" -eq 0 ]
     grep -q -- "ip addr add 192.168.254.1/24 dev wlan0" "${LOG}"
 }
 
-@test "setup_interface uses DHCP_PREFIX for the interface address" {
+@test "interface_setup uses DHCP_PREFIX for the interface address" {
     DHCP_PREFIX=28
-    run setup_interface
+    run interface_setup
     [ "$status" -eq 0 ]
     grep -q -- "ip addr add 192.168.254.1/28 dev wlan0" "${LOG}"
 }
 
-@test "setup_interface flushes addresses before assigning" {
-    run setup_interface
+@test "interface_setup flushes addresses before assigning" {
+    run interface_setup
     [ "$status" -eq 0 ]
     [ "$(grep -n 'addr add' "${LOG}" | cut -d: -f1)" -gt "$(grep -n 'addr flush' "${LOG}" | cut -d: -f1)" ]
 }
