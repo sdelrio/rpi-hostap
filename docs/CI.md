@@ -40,18 +40,16 @@ vice versa. `restore-keys` cannot cross branch scopes either, which is why
 they are not used (in addition to the stale-module risk already noted in
 the workflow).
 
-### Mitigation: master-scope cache warmer
+### Mitigation: master-scope cache warming
 
-A second job in the same workflow, `warm-hwsim-cache`, builds the modules
-on master and saves them under the exact same key format. It triggers via:
+Cache warming is a side effect of a manual `workflow_dispatch` run with no
+`ref` input (no push trigger, no cron schedule): such a run checks out
+master, so the `e2e-test` job's post-step cache save lands in master's
+scope. This is typically done after a runner kernel bump that invalidates
+old entries via the `uname -r` key segment; it also runs the full system
+test, which is exactly what you want before cutting a release. PR runs
+restore from whatever warm entry exists in master's scope; until a dispatch
+is run they simply rebuild the modules locally.
 
-- Daily cron (`0 4 * * *`) - picks up azure runner kernel bumps that
-  invalidate old entries via the `uname -r` key segment; daily keeps
-  entries inside the 7-day unused-eviction window and limits how long
-  PRs pay a full rebuild after a bump.
-- Manual `workflow_dispatch` with no `ref` input.
-
-Because PR runs inherit master's cache scope, entries saved by the warmer
-are restorable by every PR run. The shared build recipe lives in the
-composite action `.github/actions/build-hwsim-modules/`, used by both the
-test job and the warmer.
+The shared build recipe lives in the composite action
+`.github/actions/build-hwsim-modules/`.

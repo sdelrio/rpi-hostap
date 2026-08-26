@@ -10,18 +10,9 @@ on:
   workflow_dispatch:
     inputs:
       ref:
-        description: 'Git ref (tag or commit id) to test'
+        description: 'Git ref (tag or commit id) to test; empty = master (also warms the module cache in master''s scope)'
         required: false
         default: ''
-  # Weekly cache-warming run on master: PR runs execute in their own
-  # branch cache scope and cannot see caches saved by other PRs, so a
-  # warm entry must be produced in master's scope for them to hit.
-  schedule:
-    # Daily: azure runner kernel bumps can happen any day; a stale key
-    # would leave PRs paying the full module build until the next warm.
-    # Daily also keeps entries safely inside the 7-day unused-eviction
-    # window. On a cache hit the warmer costs about a minute.
-    - cron: '0 4 * * *'
 
 permissions:
   contents: read
@@ -68,10 +59,10 @@ jobs:
       # restored.
       #
       # GitHub Actions scopes caches per branch: a PR run can restore from
-      # master but never from another PR branch. The `warm-hwsim-cache`
-      # job below builds and saves this exact key in master's scope
-      # (daily schedule or manual dispatch) so PR runs get hits instead
-      # of paying the ~5 min kernel-module build every time.
+      # master but never from another PR branch. A manual workflow_dispatch
+      # run with an empty ref checks out master, so its post-step cache save
+      # lands in master's scope - warming the entry that all subsequent PR
+      # runs restore (no separate warmer job needed).
       - name: Cache wireless stack modules
         id: hwsim-cache
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
@@ -118,43 +109,3 @@ jobs:
           if-no-files-found: ignore
           retention-days: 5
 
-  # Cache warmer: builds the wireless stack modules on master and saves
-  # them under the SAME key format used by the test job above. Because
-  # GitHub Actions cache scoping is branch-based, an entry saved here is
-  # visible to every pull_request run (they inherit master's scope),
-  # whereas entries saved by one PR are invisible to other PRs and to
-  # master - which is exactly why most PR runs previously reported
-  # "Cache not found" despite identical keys.
-  #
-  # Triggers: manual dispatch and a daily cron (kernel bumps on azure
-  # runners change `uname -r`, invalidating old entries). actions/cache
-  # saves automatically in its post step when the key was not restored.
-  warm-hwsim-cache:
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    if: |
-      github.event_name == 'schedule' ||
-      (github.event_name == 'workflow_dispatch' && inputs.ref == '')
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Install build dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y "linux-headers-$(uname -r)"
-
-      - name: Get kernel version
-        id: kver
-        run: echo "version=$(uname -r)" >> "$GITHUB_OUTPUT"
-
-      - name: Cache wireless stack modules
-        id: hwsim-cache
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          key: hwsim-modules-${{ runner.os }}-kernel-${{ steps.kver.outputs.version }}-${{ hashFiles('.github/actions/build-hwsim-modules/action.yml') }}
-          path: /tmp/hwsim
-
-      - name: Build wireless stack modules
-        if: steps.hwsim-cache.outputs.cache-hit != 'true'
-        uses: ./.github/actions/build-hwsim-modules
