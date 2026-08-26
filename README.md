@@ -108,6 +108,7 @@ docker run -d \
 | `AP_ISOLATION` | No | Isolate clients from each other (`1` = enabled) | `0` |
 | `COUNTRY_CODE` | No | Regulatory domain (`US`/`CA`/`MX`: ch 1-11, `JP`: ch 1-14, others: ch 1-13). Sets `country_code` in hostapd.conf | `EU` |
 | `WPA_VERSION` | No | WPA version: `2` = WPA2-PSK, `3` = WPA3-SAE (requires client support), `mixed` = WPA2/WPA3 transition (legacy clients allowed) | `2` |
+| `PMF` | No | Protected Management Frames / 802.11w (`ieee80211w=`): `0` = disabled, `1` = optional, `2` = required. Overrides the WPA-derived default (`2` for `WPA_VERSION=3`, `1` for `mixed`, none for `2`); `0` is rejected with `WPA_VERSION=3`. See [PMF](docs/configuration.md#pmf-80211w) | unset |
 | `IPV6` | No | Enable IPv6 RA/DHCPv6 for clients (`1` = enabled) | `0` |
 | `MAC_FILTER` | No | MAC address filtering: `0` = off, `1` = allowlist (only listed MACs), `2` = denylist (listed MACs rejected). Requires `MAC_ACL_FILE` | `0` |
 | `MAC_ACL_FILE` | No | Path to MAC list file (one MAC per line, mounted volume); required when `MAC_FILTER` is `1` or `2` | unset |

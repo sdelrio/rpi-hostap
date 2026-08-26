@@ -158,6 +158,40 @@ If any required client lacks SAE support, use `WPA_VERSION=mixed` instead.
 
 Setting `WPA_VERSION=mixed` enables WPA2/WPA3 transition mode: WPA3-SAE capable devices use SAE, while legacy WPA2 clients can still connect with WPA2-PSK. Note that transition mode is considered less secure than WPA3-only.
 
+## PMF (802.11w)
+
+Protected Management Frames (PMF, IEEE 802.11w) encrypt deauthentication and other management frames, protecting clients from spoofed deauth attacks. It is configured in hostapd.conf via `ieee80211w`.
+
+By default PMF is derived from `WPA_VERSION`:
+
+| WPA_VERSION | Emitted | Why |
+|-------------|-----------------|-----|
+| `2` | nothing | WPA2-only keeps maximum legacy compatibility |
+| `3` | `ieee80211w=2` | WPA3-SAE mandates PMF |
+| `mixed` | `ieee80211w=1` | transition mode makes PMF optional so legacy clients can join |
+
+Set `PMF` explicitly to override the derived default:
+
+| Value | Emitted | Meaning |
+|-------|---------|---------|
+| `0` | `ieee80211w=0` | disabled |
+| `1` | `ieee80211w=1` | optional |
+| `2` | `ieee80211w=2` | required |
+
+Notes:
+
+- Any other value fails startup with `[Error] Invalid PMF '...'. Must be 0 (disabled), 1 (optional) or 2 (required).`
+- `PMF=0` combined with `WPA_VERSION=3` is rejected: WPA3-SAE requires Protected Management Frames.
+- Enabling `PMF=2` on a WPA2-only network requires client support for 802.11w; older devices will fail to associate.
+
+```bash
+docker run -d --name hostap \
+  --privileged --net host \
+  -e INTERFACE=wlan0 -e SSID=myap -e WPA_PASSPHRASE=changeme \
+  -e WPA_VERSION=mixed -e PMF=2 \
+  sdelrio/rpi-hostap
+```
+
 ## Regional Channel Validation
 
 When `COUNTRY_CODE` is set, channels are validated against regional limits.
