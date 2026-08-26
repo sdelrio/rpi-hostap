@@ -9,10 +9,10 @@
 # ipv6_compute_dnsmasq_conf prints the extra dnsmasq.conf line (or nothing
 # when disabled). Messages go to stderr.
 
-# Ensure nat_parse_outgoings (lib/nat.sh) is available so the rule functions
+# Ensure nat_parse_outgoings (lib/sys/nat.sh) is available so the rule functions
 # below are self-contained and can be called without nat_apply_rules first.
 if ! declare -F nat_parse_outgoings > /dev/null 2>&1 ; then
-    # shellcheck source=lib/nat.sh
+    # shellcheck source=lib/sys/nat.sh
     . "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/nat.sh"
 fi
 ipv6_compute_dnsmasq_conf() {

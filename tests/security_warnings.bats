@@ -1,7 +1,7 @@
-# Shared credential warning logic from lib/warnings.sh
+# Shared credential warning logic from lib/core/warnings.sh
 
 setup() {
-    . "$(dirname "$BATS_TEST_FILENAME")/../lib/warnings.sh"
+    . "$(dirname "$BATS_TEST_FILENAME")/../lib/core/warnings.sh"
     export INTERFACE="wlan0"
     unset SSID
     unset WPA_PASSPHRASE

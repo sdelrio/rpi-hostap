@@ -3,7 +3,7 @@
 #
 # Modules register callbacks into named phase arrays at source time instead
 # of wlanstart.sh hardcoding every feature's setup/teardown. A new module
-# can add behaviour by sourcing lib/lifecycle.sh and appending to the
+# can add behaviour by sourcing lib/core/lifecycle.sh and appending to the
 # relevant PHASE_* array (or calling lifecycle_register) - no edits to
 # wlanstart.sh needed.
 #

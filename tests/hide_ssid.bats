@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 
 setup() {
-    . "${BATS_TEST_DIRNAME}/../lib/ssid_hidden.sh"
+    . "${BATS_TEST_DIRNAME}/../lib/core/ssid_hidden.sh"
     unset HIDE_SSID
 }
 

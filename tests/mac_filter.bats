@@ -2,8 +2,8 @@
 
 # Logic shared with wlanstart.sh
 REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/.." && pwd)"
-# shellcheck source=../lib/mac_filter.sh
-. "${REPO_ROOT}/lib/mac_filter.sh"
+# shellcheck source=../lib/core/mac_filter.sh
+. "${REPO_ROOT}/lib/core/mac_filter.sh"
 
 setup() {
     unset MAC_FILTER MAC_ACL_FILE

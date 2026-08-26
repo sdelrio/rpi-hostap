@@ -1,10 +1,10 @@
 #!/usr/bin/env bats
 
-# Tests exercise validation_check_ssid() from lib/validation.sh - the exact
+# Tests exercise validation_check_ssid() from lib/core/validation.sh - the exact
 # code used by wlanstart.sh (no duplicated logic).
 
 load_lib() {
-    . "${BATS_TEST_DIRNAME}/../lib/validation.sh"
+    . "${BATS_TEST_DIRNAME}/../lib/core/validation.sh"
 }
 
 @test "default SSID 'raspberry' is accepted" {

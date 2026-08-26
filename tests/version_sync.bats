@@ -16,7 +16,9 @@ setup() {
 
 @test "Dockerfile copies every source dir referenced by wlanstart.sh" {
     grep -q "COPY lib/ /bin/lib/" "$ROOT/Dockerfile"
-    for f in "$ROOT"/lib/*.sh; do
-        [ -f "$f" ]
+    found=0
+    for f in "$ROOT"/lib/core/*.sh "$ROOT"/lib/sys/*.sh; do
+        [ -f "$f" ] && found=1
     done
+    [ "$found" = "1" ]
 }

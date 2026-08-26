@@ -9,14 +9,14 @@ setup() {
 }
 
 load_cleanup() {
-    # shellcheck source=../lib/lifecycle.sh
-    . "$(dirname "$BATS_TEST_FILENAME")/../lib/lifecycle.sh"
-    # shellcheck source=../lib/nat.sh
-    . "$(dirname "$BATS_TEST_FILENAME")/../lib/nat.sh"
-    # shellcheck source=../lib/interface.sh
-    . "$(dirname "$BATS_TEST_FILENAME")/../lib/interface.sh"
-    # shellcheck source=../lib/ipv6.sh
-    . "$(dirname "$BATS_TEST_FILENAME")/../lib/ipv6.sh"
+    # shellcheck source=../lib/core/lifecycle.sh
+    . "$(dirname "$BATS_TEST_FILENAME")/../lib/core/lifecycle.sh"
+    # shellcheck source=../lib/sys/nat.sh
+    . "$(dirname "$BATS_TEST_FILENAME")/../lib/sys/nat.sh"
+    # shellcheck source=../lib/sys/interface.sh
+    . "$(dirname "$BATS_TEST_FILENAME")/../lib/sys/interface.sh"
+    # shellcheck source=../lib/sys/ipv6.sh
+    . "$(dirname "$BATS_TEST_FILENAME")/../lib/sys/ipv6.sh"
     eval "$(sed -n '/^cleanup()/,/^}/p' wlanstart.sh)"
 }
 
@@ -31,10 +31,10 @@ iptables() { _mock_log \"iptables \$@\"; }
 ip() { _mock_log \"ip \$@\"; }
 kill() { _mock_log \"kill \$@\"; }
 wait() { _mock_log \"wait \$@\"; }
-. '$PWD/lib/lifecycle.sh'
-. '$PWD/lib/nat.sh'
-. '$PWD/lib/interface.sh'
-. '$PWD/lib/ipv6.sh'
+. '$PWD/lib/core/lifecycle.sh'
+. '$PWD/lib/sys/nat.sh'
+. '$PWD/lib/sys/interface.sh'
+. '$PWD/lib/sys/ipv6.sh'
 $(sed -n '/^cleanup()/,/^}/p' wlanstart.sh)
 INTERFACE="$INTERFACE"
 AP_ADDR="${AP_ADDR:-192.168.254.1}"
@@ -165,7 +165,7 @@ handle_signal
 }
 
 @test "interface_teardown removes only AP_ADDR (issue #188)" {
-    . lib/interface.sh
+    . lib/sys/interface.sh
     INTERFACE="wlan0"
     AP_ADDR="192.168.254.1"
     DHCP_PREFIX=""

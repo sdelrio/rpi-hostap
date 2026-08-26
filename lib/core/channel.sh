@@ -2,7 +2,7 @@
 # Shared channel/hw_mode/country validation logic used by wlanstart.sh and tests.
 #
 # channel_validate reads HW_MODE, CHANNEL and COUNTRY_CODE from the
-# environment (defaults applied centrally by lib/env.sh, see issue
+# environment (defaults applied centrally by lib/core/env.sh, see issue
 # #237) and returns non-zero when the channel is not allowed.
 # Messages go to stderr.
 channel_validate() {

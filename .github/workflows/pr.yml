@@ -66,6 +66,9 @@ jobs:
       - name: Run Bats tests
         run: bats tests/
 
+      - name: Enforce lib/ layering (core vs sys)
+        run: make layer-check
+
   lint:
     runs-on: ubuntu-latest
     needs: changes

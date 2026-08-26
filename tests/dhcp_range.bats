@@ -2,10 +2,10 @@
 
 # Logic shared with wlanstart.sh
 REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/.." && pwd)"
-# shellcheck source=../lib/env.sh
-. "${REPO_ROOT}/lib/env.sh"
-# shellcheck source=../lib/dhcp.sh
-. "${REPO_ROOT}/lib/dhcp.sh"
+# shellcheck source=../lib/core/env.sh
+. "${REPO_ROOT}/lib/core/env.sh"
+# shellcheck source=../lib/core/dhcp.sh
+. "${REPO_ROOT}/lib/core/dhcp.sh"
 
 setup() {
     export SUBNET="192.168.254.0"
@@ -15,7 +15,7 @@ setup() {
     export INTERFACE="wlan0"
     unset DHCP_RANGE
     unset DHCP_LEASE
-    # DHCP_LEASE default now applied centrally in lib/env.sh (issue #237)
+    # DHCP_LEASE default now applied centrally in lib/core/env.sh (issue #237)
     env_resolve_config_env
 }
 
@@ -193,8 +193,8 @@ setup() {
 @test "/28 DHCP_RANGE sets DHCP_PREFIX to 28" {
     # shellcheck disable=SC2016
     run bash -c '
-        . "'"${REPO_ROOT}"'/lib/env.sh"
-        . "'"${REPO_ROOT}"'/lib/dhcp.sh"
+        . "'"${REPO_ROOT}"'/lib/core/env.sh"
+        . "'"${REPO_ROOT}"'/lib/core/dhcp.sh"
         SUBNET="192.168.254.16" AP_ADDR="192.168.254.17" INTERFACE="wlan0"
         PRI_DNS="8.8.8.8" SEC_DNS="8.8.4.4" COUNTRY_CODE=EU
         env_resolve_config_env
@@ -209,8 +209,8 @@ setup() {
 @test "default range sets DHCP_PREFIX to 24" {
     # shellcheck disable=SC2016
     run bash -c '
-        . "'"${REPO_ROOT}"'/lib/env.sh"
-        . "'"${REPO_ROOT}"'/lib/dhcp.sh"
+        . "'"${REPO_ROOT}"'/lib/core/env.sh"
+        . "'"${REPO_ROOT}"'/lib/core/dhcp.sh"
         SUBNET="192.168.254.0" AP_ADDR="192.168.254.1" INTERFACE="wlan0"
         PRI_DNS="8.8.8.8" SEC_DNS="8.8.4.4" COUNTRY_CODE=EU
         env_resolve_config_env
@@ -224,8 +224,8 @@ setup() {
 @test "explicit /24 DHCP_RANGE sets DHCP_PREFIX to 24" {
     # shellcheck disable=SC2016
     run bash -c '
-        . "'"${REPO_ROOT}"'/lib/env.sh"
-        . "'"${REPO_ROOT}"'/lib/dhcp.sh"
+        . "'"${REPO_ROOT}"'/lib/core/env.sh"
+        . "'"${REPO_ROOT}"'/lib/core/dhcp.sh"
         SUBNET="10.10.10.0" AP_ADDR="10.10.10.1" INTERFACE="wlan0"
         PRI_DNS="8.8.8.8" SEC_DNS="8.8.4.4" COUNTRY_CODE=EU
         env_resolve_config_env
@@ -240,8 +240,8 @@ setup() {
 @test "/16 DHCP_RANGE sets DHCP_PREFIX to 16" {
     # shellcheck disable=SC2016
     run bash -c '
-        . "'"${REPO_ROOT}"'/lib/env.sh"
-        . "'"${REPO_ROOT}"'/lib/dhcp.sh"
+        . "'"${REPO_ROOT}"'/lib/core/env.sh"
+        . "'"${REPO_ROOT}"'/lib/core/dhcp.sh"
         SUBNET="192.168.0.0" AP_ADDR="192.168.254.1" INTERFACE="wlan0"
         PRI_DNS="8.8.8.8" SEC_DNS="8.8.4.4" COUNTRY_CODE=EU
         env_resolve_config_env
@@ -381,8 +381,8 @@ setup() {
 @test "generated dnsmasq.conf binds to AP interface only (#223)" {
     # shellcheck disable=SC2016
     run bash -c '
-        . "'"${REPO_ROOT}"'/lib/env.sh"
-        . "'"${REPO_ROOT}"'/lib/dhcp.sh"
+        . "'"${REPO_ROOT}"'/lib/core/env.sh"
+        . "'"${REPO_ROOT}"'/lib/core/dhcp.sh"
         wlanstart="'"${REPO_ROOT}"'/wlanstart.sh"
         eval "$(sed -n "/^emit_dnsmasq_conf()/,/^}/p" "${wlanstart}")"
         SUBNET="192.168.254.0" AP_ADDR="192.168.254.1" INTERFACE="wlan0"
@@ -401,8 +401,8 @@ setup() {
 @test "default-range warning appears once when emit_dnsmasq_conf reuses computed range (#224)" {
     # shellcheck disable=SC2016
     run bash -c '
-        . "'"${REPO_ROOT}"'/lib/env.sh"
-        . "'"${REPO_ROOT}"'/lib/dhcp.sh"
+        . "'"${REPO_ROOT}"'/lib/core/env.sh"
+        . "'"${REPO_ROOT}"'/lib/core/dhcp.sh"
         wlanstart="'"${REPO_ROOT}"'/wlanstart.sh"
         # Extract emit_dnsmasq_conf from wlanstart.sh (same pattern as
         # tests/atomic_config.bats)

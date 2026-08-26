@@ -1,9 +1,9 @@
 #!/usr/bin/env bats
 
-# Tests targeting the shared env helpers in lib/client_env.sh (issue #243).
+# Tests targeting the shared env helpers in lib/core/client_env.sh (issue #243).
 
 load_client_env() {
-    run bash -c 'set -euo pipefail; source lib/client_env.sh; '"$1"
+    run bash -c 'set -euo pipefail; source lib/core/client_env.sh; '"$1"
 }
 
 setup() {

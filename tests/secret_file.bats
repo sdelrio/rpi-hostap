@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-# Tests exercise secret_file_load() from lib/secret_file.sh - the exact
+# Tests exercise secret_file_load() from lib/core/secret_file.sh - the exact
 # code used by wlanstart.sh (no duplicated logic).
 
 setup() {
@@ -9,7 +9,7 @@ setup() {
 }
 
 load_lib() {
-    . "${BATS_TEST_DIRNAME}/../lib/secret_file.sh"
+    . "${BATS_TEST_DIRNAME}/../lib/core/secret_file.sh"
 }
 
 @test "SSID_FILE loads value from first line of file" {
@@ -80,7 +80,7 @@ load_lib() {
 
 @test "value loaded from file passes existing validation" {
     load_lib
-    . "${BATS_TEST_DIRNAME}/../lib/passphrase.sh"
+    . "${BATS_TEST_DIRNAME}/../lib/core/passphrase.sh"
     printf 'passw0rd-from-file\n' > "${SECRET_FILE}"
     WPA_PASSPHRASE_FILE="${SECRET_FILE}"
     secret_file_load WPA_PASSPHRASE WPA_PASSPHRASE_FILE

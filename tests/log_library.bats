@@ -1,9 +1,9 @@
 #!/usr/bin/env bats
 
-# Tests exercise log() and friends from lib/log.sh — the exact code used
+# Tests exercise log() and friends from lib/sys/log.sh — the exact code used
 # by scripts sourcing the library.
 
-LIB="${BATS_TEST_DIRNAME}/../lib/log.sh"
+LIB="${BATS_TEST_DIRNAME}/../lib/sys/log.sh"
 
 setup() {
     unset LOG_LEVEL LOG_FILE NO_COLOR
@@ -17,7 +17,7 @@ load_lib() {
 }
 
 @test "sourcing is clean under set -euo pipefail" {
-    run bash -c 'set -euo pipefail; source ./lib/log.sh'
+    run bash -c 'set -euo pipefail; source ./lib/sys/log.sh'
     [ "$status" -eq 0 ]
 }
 

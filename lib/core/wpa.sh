@@ -6,7 +6,7 @@
 # stderr. Returns non-zero for invalid WPA_VERSION values.
 wpa_compute_conf() {
     # Defaults (WPA_VERSION, HW_MODE, WPA_PASSPHRASE) are applied
-    # centrally by lib/env.sh (issue #237).
+    # centrally by lib/core/env.sh (issue #237).
     _PMF=""
     case "${WPA_VERSION}" in
         2)

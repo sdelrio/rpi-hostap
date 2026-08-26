@@ -10,7 +10,7 @@ run_validate() {
 }
 
 load_passphrase_lib() {
-    . "${BATS_TEST_DIRNAME}/../lib/passphrase.sh"
+    . "${BATS_TEST_DIRNAME}/../lib/core/passphrase.sh"
 }
 
 @test "passphrase with embedded newline is rejected (startup validator)" {

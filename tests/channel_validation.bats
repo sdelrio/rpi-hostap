@@ -7,12 +7,12 @@ setup() {
     unset COUNTRY_CODE
     unset _ACS_WARNED
     unset _DFS_WARNED
-    # shellcheck source=../lib/env.sh
-    . "${ROOT}/lib/env.sh"
-    # Defaults now live centrally in lib/env.sh (issue #237)
+    # shellcheck source=../lib/core/env.sh
+    . "${ROOT}/lib/core/env.sh"
+    # Defaults now live centrally in lib/core/env.sh (issue #237)
     env_resolve_config_env
-    # shellcheck source=../lib/channel.sh
-    . "${ROOT}/lib/channel.sh"
+    # shellcheck source=../lib/core/channel.sh
+    . "${ROOT}/lib/core/channel.sh"
 }
 
 # --- g/b mode (2.4 GHz) ---
@@ -218,7 +218,7 @@ setup() {
 
 @test "ACS warning printed once across repeated calls" {
     run bash -c '
-        . "'"${ROOT}"'/lib/channel.sh"
+        . "'"${ROOT}"'/lib/core/channel.sh"
         HW_MODE="g"; CHANNEL="acs"; COUNTRY_CODE="EU"
         channel_validate || exit 1
         channel_validate || exit 1
@@ -230,7 +230,7 @@ setup() {
 
 @test "DFS warning printed once across repeated calls" {
     run bash -c '
-        . "'"${ROOT}"'/lib/channel.sh"
+        . "'"${ROOT}"'/lib/core/channel.sh"
         HW_MODE="a"; CHANNEL="52"; COUNTRY_CODE="EU"
         channel_validate || exit 1
         CHANNEL="100"
@@ -259,13 +259,13 @@ setup() {
     export HW_MODE=g CHANNEL=acs COUNTRY_CODE=EU WPA_VERSION=2
     export MAX_STATIONS=0
     eval "$(sed -n '/^emit_hostapd_conf()/,/^}/p' "${BATS_TEST_DIRNAME}/../wlanstart.sh")"
-    . "${BATS_TEST_DIRNAME}/../lib/stations.sh"
-    . "${BATS_TEST_DIRNAME}/../lib/ctrl_interface.sh"
-    . "${BATS_TEST_DIRNAME}/../lib/wpa.sh"
-    . "${BATS_TEST_DIRNAME}/../lib/ssid_hidden.sh"
-    . "${BATS_TEST_DIRNAME}/../lib/mac_filter.sh"
-    . "${BATS_TEST_DIRNAME}/../lib/ap_isolation.sh"
-    . "${BATS_TEST_DIRNAME}/../lib/extra_opts.sh"
+    . "${BATS_TEST_DIRNAME}/../lib/core/stations.sh"
+    . "${BATS_TEST_DIRNAME}/../lib/core/ctrl_interface.sh"
+    . "${BATS_TEST_DIRNAME}/../lib/core/wpa.sh"
+    . "${BATS_TEST_DIRNAME}/../lib/core/ssid_hidden.sh"
+    . "${BATS_TEST_DIRNAME}/../lib/core/mac_filter.sh"
+    . "${BATS_TEST_DIRNAME}/../lib/core/ap_isolation.sh"
+    . "${BATS_TEST_DIRNAME}/../lib/core/extra_opts.sh"
     run emit_hostapd_conf
     [ "$status" -eq 0 ]
     grep -qx 'channel=acs' <<< "$output"

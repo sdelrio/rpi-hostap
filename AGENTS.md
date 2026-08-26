@@ -1,12 +1,21 @@
 # Agent Task Management
 
+## lib/ Layering Rule (issue #240)
+
+`lib/` is split into two layers:
+
+- `lib/core/`: pure modules (validation.sh, dhcp.sh, channel.sh, wpa.sh, stations.sh, mac_filter.sh, env.sh, lifecycle.sh, ctrl_interface.sh, client_env.sh, ap_isolation.sh, extra_opts.sh, passphrase.sh, secret_file.sh, ssid_hidden.sh, warnings.sh). Core modules must NOT invoke external system commands (`iptables`, `ip`, `iw`, `sysctl`, `hostapd_cli`, `dnsmasq`, ...) or touch `/proc`. Their bats tests run anywhere without stubs.
+- `lib/sys/`: effectful modules (nat.sh, ipv6.sh, interface.sh, radio.sh, atomic.sh, log.sh, logging.sh). All system interaction goes here. Tests use existing stub patterns (`SYSCTL_BASE`, `IPV6_SYSCTL_BASE`, overridable commands).
+
+Enforcement: `make layer-check` plus `tests/layering.bats`; both are run in CI.
+
 ## Writing Style
 
 - Never use the em dash "—". Use plain dash "-" instead.
 
 ## Bash Function Naming Convention
 
-All functions in `lib/*.sh` must follow the `<module>_<verb>` convention, where `<module>` is the library filename without `.sh` (e.g. `nat_parse_outgoings`, `ipv6_apply_rules`, `validation_netmask_to_prefix`). Private helpers use a leading underscore plus the module prefix (e.g. `_log_emit`). The bare `log()` function in `lib/log.sh` is an accepted exception since it is the module's own namespace. Entry-point scripts at the repo root (`wlanstart.sh`, `clients.sh`, `healthcheck.sh`) follow the same rule for their helper functions (`clients_emit_json`, `wlanstart_cleanup`); small script-local handlers like `cleanup`, `handle_signal`, and `check_interrupted` are exempt. Do not create name collisions between modules.
+All functions in `lib/*.sh` must follow the `<module>_<verb>` convention, where `<module>` is the library filename without `.sh` (e.g. `nat_parse_outgoings`, `ipv6_apply_rules`, `validation_netmask_to_prefix`). Private helpers use a leading underscore plus the module prefix (e.g. `_log_emit`). The bare `log()` function in `lib/sys/log.sh` is an accepted exception since it is the module's own namespace. Entry-point scripts at the repo root (`wlanstart.sh`, `clients.sh`, `healthcheck.sh`) follow the same rule for their helper functions (`clients_emit_json`, `wlanstart_cleanup`); small script-local handlers like `cleanup`, `handle_signal`, and `check_interrupted` are exempt. Do not create name collisions between modules.
 
 ## Temporary Files
 
