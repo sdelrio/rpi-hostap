@@ -339,8 +339,10 @@ atomic_write_config emit_hostapd_conf "/etc/hostapd.conf" || exit 1
 check_interrupted
 
 # Setup interface and restart DHCP service
-# Modules can register extra pre-setup hooks without editing this file (#241)
-lifecycle_run_phase pre_setup || exit 1
+# Modules can register extra pre-setup hooks without editing this file (#241).
+# Failure runs cleanup for symmetry with post_setup (harmless before any
+# state is applied; protective once hooks mutate state).
+lifecycle_run_phase pre_setup || { cleanup ; exit 1 ; }
 
 if ! interface_setup ; then
     exit 1
@@ -365,8 +367,11 @@ if [ "${IPV6:-0}" = "1" ] ; then
     ipv6_apply_rules
 fi
 
-# Modules can register extra post-setup hooks without editing this file (#241)
-lifecycle_run_phase post_setup || exit 1
+# Modules can register extra post-setup hooks without editing this file (#241).
+# On failure run cleanup so already-applied state (interface, NAT, ip6tables)
+# is torn down instead of leaking (review of PR #265). The teardown-once
+# guard makes this safe even if a signal-triggered cleanup also runs.
+lifecycle_run_phase post_setup || { cleanup ; exit 1 ; }
 
 echo "Configuring DHCP server .."
 
