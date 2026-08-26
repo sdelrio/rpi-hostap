@@ -237,6 +237,63 @@ setup() {
     grep -qx 'channel=acs' <<< "$output"
 }
 
+# --- case normalization (issue #222) ---
+
+@test "lowercase country code 'us' limits channel to 11" {
+    COUNTRY_CODE="us"
+    HW_MODE="g"
+    CHANNEL="12"
+    run validate_channel
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"country US"* ]]
+}
+
+@test "lowercase country code 'jp' allows channel 14 with hw_mode=b" {
+    COUNTRY_CODE="jp"
+    HW_MODE="b"
+    CHANNEL="14"
+    run validate_channel
+    [ "$status" -eq 0 ]
+}
+
+@test "uppercase hw_mode 'G' validates like 'g'" {
+    HW_MODE="G"
+    CHANNEL="1"
+    run validate_channel_strict
+    [ "$status" -eq 0 ]
+}
+
+@test "uppercase hw_mode 'A' validates like 'a'" {
+    HW_MODE="A"
+    CHANNEL="36"
+    run validate_channel_strict
+    [ "$status" -eq 0 ]
+}
+
+@test "uppercase hw_mode 'B' allows JP channel 14" {
+    COUNTRY_CODE="JP"
+    HW_MODE="B"
+    CHANNEL="14"
+    run validate_channel_strict
+    [ "$status" -eq 0 ]
+}
+
+@test "VHT_ENABLED set with uppercase HW_MODE=A passes" {
+    HW_MODE="A"
+    VHT_ENABLED="1"
+    run validate_vht
+    [ "$status" -eq 0 ]
+}
+
+@test "validate_channel normalizes env for generated hostapd.conf" {
+    COUNTRY_CODE="us"
+    HW_MODE="G"
+    CHANNEL="6"
+    validate_channel || exit 1
+    [ "${HW_MODE}" = "g" ]
+    [ "${COUNTRY_CODE}" = "US" ]
+}
+
 # --- non-numeric channel ---
 
 @test "non-numeric channel with hw_mode=g fails" {
