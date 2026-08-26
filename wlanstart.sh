@@ -134,6 +134,7 @@ run_validation_mode() {
 
     channel_validate_strict || errors=$((errors + 1))
     channel_validate_vht || errors=$((errors + 1))
+    channel_validate_he || errors=$((errors + 1))
 
     validation_check_ipv4_param SUBNET "${SUBNET}" || errors=$((errors + 1))
     validation_check_ipv4_param AP_ADDR "${AP_ADDR}" || errors=$((errors + 1))
@@ -221,6 +222,9 @@ fi
 check_interrupted
 
 if ! channel_validate_vht ; then
+    exit 1
+fi
+if ! channel_validate_he ; then
     exit 1
 fi
 if ! radio_validate_tx_power ; then

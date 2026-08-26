@@ -31,7 +31,9 @@ It runs on Alpine Linux for minimal footprint.
 - Channel validation: channels are validated against the regulatory domain
   (`US`/`CA`/`MX`: 1-11, `JP`: 1-14, others: 1-13) and hardware mode.
 - Optional 802.11n (`HT_ENABLED`, `HT_CAPAB`) and 802.11ac (`VHT_ENABLED`,
-  `VHT_CAPAB`; requires `HW_MODE=a`) High Throughput tuning lines.
+`VHT_CAPAB`; requires `HW_MODE=a`) High Throughput tuning lines.
+- Optional 802.11ax (`HE_ENABLED`, `HE_CAPAB`; requires `HW_MODE=a`) High
+Efficiency tuning lines, mirroring the HT/VHT pattern.
 - An optional `DRIVER` override replaces the default nl80211 driver line
   (e.g. for Realtek adapters needing `rtl871xdrv`).
 - Optional hidden SSID (`HIDE_SSID=1`), client limit (`MAX_STATIONS`, `0` =

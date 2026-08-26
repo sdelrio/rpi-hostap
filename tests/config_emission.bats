@@ -48,6 +48,10 @@ wmm_enabled=1
 
 
 
+# Activate channel selection for HE High Efficiency (802.11ax)
+
+
+
 CONF
 }
 
@@ -62,6 +66,24 @@ CONF
     [[ "$output" == *"ht_capab=[SHORT-GI-20]"* ]]
     [[ "$output" == *"max_num_sta=10"* ]]
     [[ "$output" == *"ap_isolate=1"* ]]
+}
+
+@test "hostapd_conf_emit emits ieee80211ax and he_capab when HE is enabled" {
+    load_modules
+    export HW_MODE=a CHANNEL=36 HE_ENABLED=1 HE_CAPAB="[MAX-MPDU-11454][SHORT-GI-80]"
+    run hostapd_conf_emit
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"ieee80211ax=1"* ]]
+    [[ "$output" == *"he_capab=[MAX-MPDU-11454][SHORT-GI-80]"* ]]
+}
+
+@test "hostapd_conf_emit omits HE lines when unset" {
+    load_modules
+    export HW_MODE=g
+    run hostapd_conf_emit
+    [ "$status" -eq 0 ]
+    [[ "$output" != *"ieee80211ax"* ]]
+    [[ "$output" != *"he_capab"* ]]
 }
 
 @test "hostapd_conf_emit fails on invalid WPA_VERSION" {

@@ -98,6 +98,17 @@ channel_validate_vht() {
     return 0
 }
 
+# HE (802.11ax) requires 5 GHz operation, same band rules as VHT.
+# Reads HE_ENABLED and HW_MODE from the environment.
+channel_validate_he() {
+    HW_MODE="$(printf '%s' "${HW_MODE:-}" | tr '[:upper:]' '[:lower:]')"
+    if [ -n "${HE_ENABLED:-}" ] && [ "${HW_MODE}" != "a" ] ; then
+        echo "[Error] HE_ENABLED requires HW_MODE=a (5 GHz)." >&2
+        return 1
+    fi
+    return 0
+}
+
 # Strict variant used by validation mode: unknown HW_MODE is an error.
 channel_validate_strict() {
     if ! channel_validate ; then
