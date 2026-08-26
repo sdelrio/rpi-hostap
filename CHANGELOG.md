@@ -1,5 +1,33 @@
 # Changelog
 
+## [0.39.0](https://github.com/sdelrio/rpi-hostap/compare/v0.38.0...v0.39.0) (2026-08-26)
+
+
+### ✨ Features
+
+* **clients:** station count command and optional min-stations healthcheck ([#247](https://github.com/sdelrio/rpi-hostap/issues/247)) ([29257e4](https://github.com/sdelrio/rpi-hostap/commit/29257e4cf029e1ac5aae3a0fd5742b1e350dbbac)), closes [#234](https://github.com/sdelrio/rpi-hostap/issues/234)
+* **nat:** validate OUTGOINGS interfaces exist before applying rules ([#227](https://github.com/sdelrio/rpi-hostap/issues/227)) ([#253](https://github.com/sdelrio/rpi-hostap/issues/253)) ([c8c57aa](https://github.com/sdelrio/rpi-hostap/commit/c8c57aa2f304c067dd06a84fa9abca05c2bc0fa2))
+* **radio:** add TX_POWER env var for transmit power control ([#236](https://github.com/sdelrio/rpi-hostap/issues/236)) ([#246](https://github.com/sdelrio/rpi-hostap/issues/246)) ([f5c0422](https://github.com/sdelrio/rpi-hostap/commit/f5c04223c8bc41dc6ca11e5e9445f8e0c4e3cfec))
+* **secrets:** add SSID_FILE and WPA_PASSPHRASE_FILE inputs ([#232](https://github.com/sdelrio/rpi-hostap/issues/232)) ([#248](https://github.com/sdelrio/rpi-hostap/issues/248)) ([d670759](https://github.com/sdelrio/rpi-hostap/commit/d670759b8844855890922d28d72e18ab1f21901e))
+
+
+### 🩹 Fixes
+
+* **channel:** normalize COUNTRY_CODE / HW_MODE case before validation ([#222](https://github.com/sdelrio/rpi-hostap/issues/222)) ([#258](https://github.com/sdelrio/rpi-hostap/issues/258)) ([7095777](https://github.com/sdelrio/rpi-hostap/commit/7095777267e117c677ae17adbd53652ded398a6c))
+* **channel:** validate 5 GHz channels against COUNTRY_CODE ([#221](https://github.com/sdelrio/rpi-hostap/issues/221)) ([#259](https://github.com/sdelrio/rpi-hostap/issues/259)) ([ed2ad8f](https://github.com/sdelrio/rpi-hostap/commit/ed2ad8f7410abac4620a42816c9a542265104410))
+* **dhcp:** add bind-dynamic to avoid host DHCP conflicts ([#223](https://github.com/sdelrio/rpi-hostap/issues/223)) ([#257](https://github.com/sdelrio/rpi-hostap/issues/257)) ([1f557d5](https://github.com/sdelrio/rpi-hostap/commit/1f557d55b5dde52499c1260306d8b909371fce91))
+* healthcheck passes forever when started-time file is missing ([#261](https://github.com/sdelrio/rpi-hostap/issues/261)) ([9fad925](https://github.com/sdelrio/rpi-hostap/commit/9fad925c27b93a38c4bc7d8b2c9ede9ef07fd47a))
+* **ipv6:** handle sysctl failure in enable_ipv6_forwarding gracefully ([#225](https://github.com/sdelrio/rpi-hostap/issues/225)) ([#255](https://github.com/sdelrio/rpi-hostap/issues/255)) ([9202fdf](https://github.com/sdelrio/rpi-hostap/commit/9202fdf24eedf03d4fcd298de6abe4b4feba6c02))
+* use iptables probe for privileged-mode check ([#228](https://github.com/sdelrio/rpi-hostap/issues/228)) ([#252](https://github.com/sdelrio/rpi-hostap/issues/252)) ([6521fbc](https://github.com/sdelrio/rpi-hostap/commit/6521fbc0eae350648167aefc3040cb15ab60267e))
+* **wpa:** emit ieee80211w PMF for WPA3-SAE and mixed mode ([#220](https://github.com/sdelrio/rpi-hostap/issues/220)) ([#260](https://github.com/sdelrio/rpi-hostap/issues/260)) ([f29d1cc](https://github.com/sdelrio/rpi-hostap/commit/f29d1ccf9d361f831a6e488b5103136c130b4058))
+
+
+### ♻️ Code Refactoring
+
+* **channel:** emit informational warnings at most once per run ([#231](https://github.com/sdelrio/rpi-hostap/issues/231)) ([#249](https://github.com/sdelrio/rpi-hostap/issues/249)) ([1d9bd7a](https://github.com/sdelrio/rpi-hostap/commit/1d9bd7ac9648bbb2c27250d5117977ec9434bb9d))
+* **dhcp:** compute DHCP range once per startup ([#224](https://github.com/sdelrio/rpi-hostap/issues/224)) ([#256](https://github.com/sdelrio/rpi-hostap/issues/256)) ([a8c5f11](https://github.com/sdelrio/rpi-hostap/commit/a8c5f116cdd4dd3a869c42c782748f256470ea94))
+* **env:** centralize environment defaults into lib/env.sh ([#237](https://github.com/sdelrio/rpi-hostap/issues/237)) ([#244](https://github.com/sdelrio/rpi-hostap/issues/244)) ([f928f04](https://github.com/sdelrio/rpi-hostap/commit/f928f0486c9f79a43ca406e3f4990e37f844ca06))
+
 ## [0.38.0](https://github.com/sdelrio/rpi-hostap/compare/v0.37.0...v0.38.0) (2026-08-25)
 
 
