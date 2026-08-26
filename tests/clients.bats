@@ -183,6 +183,60 @@ EOF
     [ "$output" = "0" ]
 }
 
+@test "leases prints dnsmasq lease lines" {
+    export INTERFACE=wlan0
+    mkdir -p "${BATS_TEST_TMPDIR}/hostapd"
+    export CTRL_IFACE_DIR="${BATS_TEST_TMPDIR}/hostapd"
+    export DHCP_LEASE_FILE="${BATS_TEST_TMPDIR}/dnsmasq.leases"
+    printf '1756000000 aa:bb:cc:dd:ee:ff 192.168.254.100 laptop 01:aa:bb:cc:dd:ee:ff\n' > "${DHCP_LEASE_FILE}"
+    run "${BATS_TEST_DIRNAME}/../clients.sh" leases
+    [ "$status" -eq 0 ]
+    [ "${lines[0]}" = "1756000000 aa:bb:cc:dd:ee:ff 192.168.254.100 laptop 01:aa:bb:cc:dd:ee:ff" ]
+}
+
+@test "leases --json emits valid JSON array of lease objects" {
+    export INTERFACE=wlan0
+    mkdir -p "${BATS_TEST_TMPDIR}/hostapd"
+    export CTRL_IFACE_DIR="${BATS_TEST_TMPDIR}/hostapd"
+    export DHCP_LEASE_FILE="${BATS_TEST_TMPDIR}/dnsmasq.leases"
+    cat > "${DHCP_LEASE_FILE}" <<'LEASES'
+1756000000 aa:bb:cc:dd:ee:ff 192.168.254.100 laptop 01:aa:bb:cc:dd:ee:ff
+1756000100 11:22:33:44:55:66 192.168.254.101 phone *
+LEASES
+    run "${BATS_TEST_DIRNAME}/../clients.sh" leases --json
+    [ "$status" -eq 0 ]
+    [ "$(printf '%s' "$output" | python3 -c 'import json,sys; d=json.load(sys.stdin); print(len(d), d[0]["mac"], d[0]["ip"], d[1]["hostname"], d[1]["expires"])')" = "2 aa:bb:cc:dd:ee:ff 192.168.254.100 phone 1756000100" ]
+}
+
+@test "leases errors gracefully when lease file is absent" {
+    export INTERFACE=wlan0
+    mkdir -p "${BATS_TEST_TMPDIR}/hostapd"
+    export CTRL_IFACE_DIR="${BATS_TEST_TMPDIR}/hostapd"
+    export DHCP_LEASE_FILE="${BATS_TEST_TMPDIR}/missing.leases"
+    run "${BATS_TEST_DIRNAME}/../clients.sh" leases
+    [ "$status" -ne 0 ]
+    [[ "$output" == *"[Error] Lease file not found at ${DHCP_LEASE_FILE}."* ]]
+}
+
+@test "leases --json also errors gracefully when lease file is absent" {
+    export INTERFACE=wlan0
+    mkdir -p "${BATS_TEST_TMPDIR}/hostapd"
+    export CTRL_IFACE_DIR="${BATS_TEST_TMPDIR}/hostapd"
+    export DHCP_LEASE_FILE="${BATS_TEST_TMPDIR}/missing.leases"
+    run "${BATS_TEST_DIRNAME}/../clients.sh" leases --json
+    [ "$status" -ne 0 ]
+    [[ "$output" == *"[Error] Lease file not found at ${DHCP_LEASE_FILE}."* ]]
+}
+
+@test "leases with unexpected extra argument prints usage and exits non-zero" {
+    export INTERFACE=wlan0
+    mkdir -p "${BATS_TEST_TMPDIR}/hostapd"
+    export CTRL_IFACE_DIR="${BATS_TEST_TMPDIR}/hostapd"
+    run "${BATS_TEST_DIRNAME}/../clients.sh" leases bogus
+    [ "$status" -ne 0 ]
+    [[ "$output" == *"Usage: clients.sh"* ]]
+}
+
 @test "count does not count key=value lines as stations" {
     export INTERFACE=wlan0
     mkdir -p "${BATS_TEST_TMPDIR}/hostapd"
