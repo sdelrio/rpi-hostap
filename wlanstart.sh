@@ -212,7 +212,14 @@ EOF
 # Emit dnsmasq.conf to stdout from the current environment.
 emit_dnsmasq_conf() {
     local dhcp_range ipv6_conf=""
-    dhcp_range=$(compute_dhcp_range) || return 1
+    # Reuse the range computed at startup (DHCP_RANGE_COMPUTED) when
+    # available so compute_dhcp_range (and its warnings) runs only once;
+    # validation mode and tests without it still compute on demand.
+    if [ -n "${DHCP_RANGE_COMPUTED:-}" ] ; then
+        dhcp_range=${DHCP_RANGE_COMPUTED}
+    else
+        dhcp_range=$(compute_dhcp_range) || return 1
+    fi
     if [ "${IPV6:-0}" = "1" ] ; then
         ipv6_conf=$(compute_dnsmasq_ipv6_conf)
     fi
@@ -313,8 +320,11 @@ validate_ipv4_param PRI_DNS "${PRI_DNS}" || exit 1
 validate_ipv4_param SEC_DNS "${SEC_DNS}" || exit 1
 
 # Compute DHCP range early so the netmask-derived prefix (DHCP_PREFIX)
-# is available for setup_interface and apply_nat_rules.
-compute_dhcp_range > /dev/null || exit 1
+# is available for setup_interface and apply_nat_rules, and so the
+# computed range (and its warnings) is produced exactly once per startup;
+# emit_dnsmasq_conf reuses it below (#224).
+DHCP_RANGE_COMPUTED=$(compute_dhcp_range) || exit 1
+export DHCP_RANGE_COMPUTED
 
 # Always regenerate hostapd.conf so env var changes apply between runs.
 # Generated atomically so a failure leaves the old config intact (#157).
