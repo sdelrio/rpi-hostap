@@ -187,3 +187,9 @@ setup() {
     [ "$status" -eq 0 ]
     [[ "${output}" == *"[Warning] Cannot set ip_dynaddr"* ]]
 }
+
+@test "nat_apply_rules returns non-zero when iptables fails (issue #279)" {
+    iptables() { return 1; }
+    run nat_apply_rules
+    [ "$status" -eq 1 ]
+}
