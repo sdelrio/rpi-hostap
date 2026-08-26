@@ -252,6 +252,17 @@ EOF
     [[ "$output" == *"HEALTHCHECK_DEEP requires INTERFACE to be set"* ]]
 }
 
+@test "deep check honors custom CTRL_IFACE_DIR (issue #280)" {
+    export HEALTHCHECK_DEEP=1
+    export CTRL_IFACE_DIR="$BATS_TEST_TMPDIR/custom-hostapd"
+    mkdir -p "${CTRL_IFACE_DIR}"
+    mock_bin pidof 'exit 0'
+    mock_bin ip 'if [ "$1" = "link" ]; then echo "state UP"; fi; exit 0'
+    mock_bin hostapd_cli 'echo "state=ENABLED"; echo "ssid=raspberry"'
+    run ./healthcheck.sh
+    [ "$status" -eq 0 ]
+}
+
 @test "deep check is skipped by default (no HEALTHCHECK_DEEP)" {
     mock_bin pidof 'exit 0'
     mock_bin ip 'if [ "$1" = "link" ]; then echo "state UP"; fi; exit 0'

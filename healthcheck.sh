@@ -79,7 +79,8 @@ if [[ -n "${HEALTHCHECK_DEEP:-}" ]]; then
         echo "HEALTHCHECK_DEEP requires INTERFACE to be set" >&2
         exit 1
     fi
-    HOSTAPD_STATUS="$(hostapd_cli -p /var/run/hostapd -i "${INTERFACE}" status 2>/dev/null || true)"
+    client_env_resolve_ctrl_iface_dir
+    HOSTAPD_STATUS="$(hostapd_cli -p "${CTRL_IFACE_DIR}" -i "${INTERFACE}" status 2>/dev/null || true)"
     if ! echo "${HOSTAPD_STATUS}" | grep -q "^state=ENABLED"; then
         echo "hostapd is not in ENABLED state" >&2
         exit 1
