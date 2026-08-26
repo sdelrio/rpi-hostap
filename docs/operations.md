@@ -46,7 +46,7 @@ To inspect current dnsmasq DHCP leases, use the `leases` subcommand:
 docker exec rpi-hostap clients.sh leases
 ```
 
-It prints the raw lease lines in dnsmasq format (`expires_remaining mac ip hostname clientid`). The lease file path defaults to `/tmp/dnsmasq.leases` (emitted as `dhcp-leasefile` in the generated config) and can be overridden with `DHCP_LEASE_FILE`. If the lease file is absent, an error is reported.
+It prints the raw lease lines in dnsmasq format (`expiry_epoch mac ip hostname clientid`). The lease file path defaults to `/tmp/dnsmasq.leases` (emitted as `dhcp-leasefile` in the generated config) and can be overridden with `DHCP_LEASE_FILE`. If the lease file is absent, an error is reported.
 
 For machine-readable output, pass `--json`:
 
@@ -57,7 +57,7 @@ docker exec rpi-hostap clients.sh leases --json
 Example output:
 
 ```json
-[{"mac":"aa:bb:cc:dd:ee:ff","ip":"192.168.254.100","hostname":"laptop","expires":"3600"}]
+[{"mac":"aa:bb:cc:dd:ee:ff","ip":"192.168.254.100","hostname":"laptop","expires":"1756200000"}]
 ```
 
 To deauthenticate a specific station, pass its MAC address as a `deauth` subcommand:

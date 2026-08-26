@@ -73,20 +73,21 @@ _clients_lease_file_require() {
     fi
 }
 
-# Print raw dnsmasq lease lines: expires_remaining mac ip hostname clientid
+# Print raw dnsmasq lease lines: expiry_epoch mac ip hostname clientid
 clients_leases_show() {
     _clients_lease_file_require
     cat "$(_clients_lease_file)"
 }
 
 # Emit a JSON array of {mac, ip, hostname, expires} objects parsed from the
-# dnsmasq lease file (fields: expires_remaining mac ip hostname clientid).
+# dnsmasq lease file (fields: expiry epoch seconds, mac, ip, hostname, clientid).
 clients_emit_leases_json() {
     local line mac ip hostname expires sep=""
     _clients_lease_file_require
     printf '['
     while IFS= read -r line ; do
         [[ -z "${line}" || "${line}" == \#* ]] && continue
+        [[ "${line}" == duid\ * ]] && continue
         read -r expires mac ip hostname _ <<<"${line}"
         [[ -z "${mac:-}" ]] && continue
         printf '%s{"mac":"%s","ip":"%s","hostname":"%s","expires":"%s"}' \
@@ -99,8 +100,6 @@ clients_emit_leases_json() {
     done < <(cat "$(_clients_lease_file)")
     printf ']\n'
 }
-
-
 
 # (same parsing pattern as clients_emit_json, which treats non-key=value lines as
 # station blocks starting with the MAC).
