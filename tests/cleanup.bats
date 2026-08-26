@@ -44,25 +44,25 @@ cleanup
     rm -f "$mock_log"
 }
 
-@test "parse_outgoings parses comma-separated interfaces" {
+@test "nat_parse_outgoings parses comma-separated interfaces" {
     load_cleanup
-    OUTGOINGS="eth0,wlan0" parse_outgoings
+    OUTGOINGS="eth0,wlan0" nat_parse_outgoings
     [ "${#ints[@]}" -eq 2 ]
     [ "${ints[0]}" = "eth0" ]
     [ "${ints[1]}" = "wlan0" ]
 }
 
-@test "parse_outgoings collapses repeated commas" {
+@test "nat_parse_outgoings collapses repeated commas" {
     load_cleanup
-    OUTGOINGS="eth0,,wlan0," parse_outgoings
+    OUTGOINGS="eth0,,wlan0," nat_parse_outgoings
     [ "${#ints[@]}" -eq 2 ]
     [ "${ints[0]}" = "eth0" ]
     [ "${ints[1]}" = "wlan0" ]
 }
 
-@test "parse_outgoings yields empty array when OUTGOINGS unset" {
+@test "nat_parse_outgoings yields empty array when OUTGOINGS unset" {
     load_cleanup
-    OUTGOINGS="" parse_outgoings
+    OUTGOINGS="" nat_parse_outgoings
     [ "${#ints[@]}" -eq 0 ]
 }
 
@@ -161,7 +161,7 @@ handle_signal
     [[ "$output" != *"ip addr flush"* ]]
 }
 
-@test "teardown_interface removes only AP_ADDR (issue #188)" {
+@test "interface_teardown removes only AP_ADDR (issue #188)" {
     . lib/interface.sh
     INTERFACE="wlan0"
     AP_ADDR="192.168.254.1"
@@ -169,7 +169,7 @@ handle_signal
     local log
     log=$(mktemp)
     ip() { echo "ip $@" >> "$log"; }
-    teardown_interface
+    interface_teardown
     grep -q "ip addr del 192.168.254.1/24 dev wlan0" "$log"
     ! grep -q "addr flush" "$log"
     rm -f "$log"

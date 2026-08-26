@@ -5,13 +5,13 @@
 #   1 = allowlist: only MACs listed in MAC_ACL_FILE may associate
 #   2 = denylist:  MACs listed in MAC_ACL_FILE are rejected
 #
-# compute_mac_filter_conf prints the extra hostapd.conf lines (or nothing
+# mac_filter_compute_conf prints the extra hostapd.conf lines (or nothing
 # when disabled). Messages go to stderr. Returns non-zero on fatal
 # validation errors (filter enabled without a file).
 
-# validate_mac_filter checks the MAC_FILTER/MAC_ACL_FILE combination.
+# mac_filter_validate checks the MAC_FILTER/MAC_ACL_FILE combination.
 # Returns 1 if the filter is enabled but no file is configured.
-validate_mac_filter() {
+mac_filter_validate() {
     case "${MAC_FILTER:-0}" in
         0)
             return 0
@@ -33,8 +33,8 @@ validate_mac_filter() {
     esac
 }
 
-# compute_mac_filter_conf prints hostapd.conf lines for MAC filtering.
-compute_mac_filter_conf() {
+# mac_filter_compute_conf prints hostapd.conf lines for MAC filtering.
+mac_filter_compute_conf() {
     case "${MAC_FILTER:-0}" in
         1)
             echo "macaddr_acl=1"

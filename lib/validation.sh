@@ -1,10 +1,10 @@
 # shellcheck shell=bash
 # Shared IPv4 address validation logic used by wlanstart.sh and tests.
 #
-# validate_ipv4 checks that its argument is a well-formed dotted-quad
+# validation_check_ipv4 checks that its argument is a well-formed dotted-quad
 # IPv4 address (four decimal octets 0-255). Pure bash so it can be
 # tested on macOS without network tools.
-validate_ipv4() {
+validation_check_ipv4() {
     local addr=${1:-}
     local octet
 
@@ -23,11 +23,11 @@ validate_ipv4() {
     done
 }
 
-# validate_ssid checks that its argument is a safe SSID:
+# validation_check_ssid checks that its argument is a safe SSID:
 # - 1-32 bytes (802.11 limit)
 # - no newlines, '#' comments, leading whitespace, or '=' (which could
 #   form a new key when written into the unquoted hostapd.conf heredoc)
-validate_ssid() {
+validation_check_ssid() {
     local ssid=${1:-}
     # Enforce the byte limit in the C locale so multibyte UTF-8
     # characters are counted per byte, matching the 802.11 limit.
@@ -59,13 +59,13 @@ validate_ssid() {
     fi
 }
 
-# netmask_to_prefix converts a dotted-decimal netmask to its CIDR prefix
+# validation_netmask_to_prefix converts a dotted-decimal netmask to its CIDR prefix
 # length (e.g. 255.255.255.240 -> 28). The mask must be contiguous
 # (255s, then optionally one partial octet, then 0s). Pure bash so it can
 # be tested on macOS without network tools. Prints the prefix on stdout.
-netmask_to_prefix() {
+validation_netmask_to_prefix() {
     local mask=${1:-} octet prefix=0 seen_partial=0
-    if ! validate_ipv4 "${mask}" ; then
+    if ! validation_check_ipv4 "${mask}" ; then
         echo "[Error] Invalid netmask: '${mask}' is not a valid IPv4 address." >&2
         return 1
     fi
@@ -98,9 +98,9 @@ netmask_to_prefix() {
     echo "${prefix}"
 }
 
-# is_network_address checks that addr has all host bits zero for the
+# validation_is_network_address checks that addr has all host bits zero for the
 # given dotted-decimal netmask (i.e. addr & mask == addr). Pure bash.
-is_network_address() {
+validation_is_network_address() {
     local addr=${1:-} mask=${2:-}
     local a1 a2 a3 a4 m1 m2 m3 m4
     IFS=. read -r a1 a2 a3 a4 <<<"${addr}"
@@ -111,11 +111,11 @@ is_network_address() {
     [ $(( a4 & m4 )) -eq "${a4}" ] || return 1
 }
 
-# validate_ipv4_param checks that a named parameter holds a valid IPv4
+# validation_check_ipv4_param checks that a named parameter holds a valid IPv4
 # address, printing the standard error message on failure.
-validate_ipv4_param() {
+validation_check_ipv4_param() {
     local name=${1:-} value=${2:-}
-    if ! validate_ipv4 "${value}" ; then
+    if ! validation_check_ipv4 "${value}" ; then
         echo "[Error] Invalid ${name}: '${value}' is not a valid IPv4 address." >&2
         return 1
     fi

@@ -10,7 +10,7 @@ setup() {
     # shellcheck source=../lib/env.sh
     . "${ROOT}/lib/env.sh"
     # Defaults now live centrally in lib/env.sh (issue #237)
-    resolve_config_env
+    env_resolve_config_env
     # shellcheck source=../lib/channel.sh
     . "${ROOT}/lib/channel.sh"
 }
@@ -18,28 +18,28 @@ setup() {
 # --- g/b mode (2.4 GHz) ---
 
 @test "default values pass validation" {
-    run validate_channel
+    run channel_validate
     [ "$status" -eq 0 ]
 }
 
 @test "hw_mode=g with channel 1 passes" {
     HW_MODE="g"
     CHANNEL="1"
-    run validate_channel
+    run channel_validate
     [ "$status" -eq 0 ]
 }
 
 @test "hw_mode=g with channel 13 passes (EU default)" {
     HW_MODE="g"
     CHANNEL="13"
-    run validate_channel
+    run channel_validate
     [ "$status" -eq 0 ]
 }
 
 @test "hw_mode=g with channel 14 fails (EU default)" {
     HW_MODE="g"
     CHANNEL="14"
-    run validate_channel
+    run channel_validate
     [ "$status" -eq 1 ]
     [[ "$output" == *"Error"*"Channel 14 is only allowed in Japan"* ]]
 }
@@ -47,7 +47,7 @@ setup() {
 @test "hw_mode=g with channel 36 fails" {
     HW_MODE="g"
     CHANNEL="36"
-    run validate_channel
+    run channel_validate
     [ "$status" -eq 1 ]
     [[ "$output" == *"Error"*"not allowed"* ]]
 }
@@ -55,21 +55,21 @@ setup() {
 @test "hw_mode=b with channel 1 passes" {
     HW_MODE="b"
     CHANNEL="1"
-    run validate_channel
+    run channel_validate
     [ "$status" -eq 0 ]
 }
 
 @test "hw_mode=b with channel 13 passes (EU default)" {
     HW_MODE="b"
     CHANNEL="13"
-    run validate_channel
+    run channel_validate
     [ "$status" -eq 0 ]
 }
 
 @test "hw_mode=b with channel 14 fails (EU default)" {
     HW_MODE="b"
     CHANNEL="14"
-    run validate_channel
+    run channel_validate
     [ "$status" -eq 1 ]
     [[ "$output" == *"Error"*"Channel 14 is only allowed in Japan"* ]]
 }
@@ -80,7 +80,7 @@ setup() {
     HW_MODE="a"
     for ch in 36 40 44 48; do
         CHANNEL="${ch}"
-        run validate_channel
+        run channel_validate
         [ "$status" -eq 0 ]
     done
 }
@@ -91,7 +91,7 @@ setup() {
         COUNTRY_CODE="${cc}"
         for ch in 149 153 157 161 165; do
             CHANNEL="${ch}"
-            run validate_channel
+            run channel_validate
             [ "$status" -eq 0 ]
         done
     done
@@ -104,7 +104,7 @@ setup() {
         COUNTRY_CODE="$1"
         for ch in 149 153 157 161 165; do
             CHANNEL="${ch}"
-            run validate_channel
+            run channel_validate
             [ "$status" -eq 1 ]
             [[ "$output" == *"Error"*"Channel ${ch} not allowed for country $2"* ]]
         done
@@ -114,7 +114,7 @@ setup() {
 @test "hw_mode=a rejects channel 149 without COUNTRY_CODE (EU fallback)" {
     HW_MODE="a"
     CHANNEL="149"
-    run validate_channel
+    run channel_validate
     [ "$status" -eq 1 ]
     [[ "$output" == *"Error"*"not allowed for country"* ]]
 }
@@ -123,7 +123,7 @@ setup() {
     HW_MODE="a"
     CHANNEL="52"
     COUNTRY_CODE="EU"
-    run validate_channel
+    run channel_validate
     [ "$status" -eq 0 ]
     [[ "$output" == *"Warning"*"DFS"* ]]
 }
@@ -131,7 +131,7 @@ setup() {
 @test "hw_mode=a with DFS channel 100 warns but passes" {
     HW_MODE="a"
     CHANNEL="100"
-    run validate_channel
+    run channel_validate
     [ "$status" -eq 0 ]
     [[ "$output" == *"Warning"*"DFS"* ]]
 }
@@ -139,7 +139,7 @@ setup() {
 @test "hw_mode=a with DFS channel 144 warns but passes" {
     HW_MODE="a"
     CHANNEL="144"
-    run validate_channel
+    run channel_validate
     [ "$status" -eq 0 ]
     [[ "$output" == *"Warning"*"DFS"* ]]
 }
@@ -148,7 +148,7 @@ setup() {
     HW_MODE="a"
     for ch in 15 34 50 145 1650; do
         CHANNEL="${ch}"
-        run validate_channel
+        run channel_validate
         [ "$status" -eq 1 ]
         [[ "$output" == *"Error"*"not allowed for hw_mode=a"* ]]
     done
@@ -157,7 +157,7 @@ setup() {
 @test "hw_mode=a rejects channel 11 (2.4 GHz only)" {
     HW_MODE="a"
     CHANNEL="11"
-    run validate_channel
+    run channel_validate
     [ "$status" -eq 1 ]
     [[ "$output" == *"Error"*"not allowed for hw_mode=a"* ]]
 }
@@ -165,7 +165,7 @@ setup() {
 @test "hw_mode=a rejects channel 1 (2.4 GHz only)" {
     HW_MODE="a"
     CHANNEL="1"
-    run validate_channel
+    run channel_validate
     [ "$status" -eq 1 ]
     [[ "$output" == *"Error"*"not allowed for hw_mode=a"* ]]
 }
@@ -175,7 +175,7 @@ setup() {
 @test "CHANNEL=acs passes with hw_mode=g and warns" {
     HW_MODE="g"
     CHANNEL="acs"
-    run validate_channel
+    run channel_validate
     [ "$status" -eq 0 ]
     [[ "$output" == *"Warning"*"acs"* ]]
 }
@@ -183,7 +183,7 @@ setup() {
 @test "CHANNEL=acs passes with hw_mode=a and warns" {
     HW_MODE="a"
     CHANNEL="acs"
-    run validate_channel
+    run channel_validate
     [ "$status" -eq 0 ]
     [[ "$output" == *"Warning"*"HEALTHCHECK_START_PERIOD"* ]]
 }
@@ -192,7 +192,7 @@ setup() {
     for hw in b g a; do
         HW_MODE="${hw}"
         CHANNEL="ACS"
-        run validate_channel
+        run channel_validate
         [ "$status" -eq 0 ]
     done
 }
@@ -200,7 +200,7 @@ setup() {
 @test "CHANNEL=acs passes strict validation" {
     HW_MODE="g"
     CHANNEL="acs"
-    run validate_channel_strict
+    run channel_validate_strict
     [ "$status" -eq 0 ]
     [[ "$output" == *"Warning"*"acs"* ]]
 }
@@ -209,7 +209,7 @@ setup() {
     for value in Acs aCS AcS; do
         HW_MODE="g"
         CHANNEL="${value}"
-        run validate_channel
+        run channel_validate
         [ "$status" -eq 0 ]
     done
 }
@@ -220,9 +220,9 @@ setup() {
     run bash -c '
         . "'"${ROOT}"'/lib/channel.sh"
         HW_MODE="g"; CHANNEL="acs"; COUNTRY_CODE="EU"
-        validate_channel || exit 1
-        validate_channel || exit 1
-        validate_channel_strict || exit 1
+        channel_validate || exit 1
+        channel_validate || exit 1
+        channel_validate_strict || exit 1
     '
     [ "$status" -eq 0 ]
     [ "$(printf '%s' "$output" | grep -c 'Warning')" -eq 2 ]
@@ -232,9 +232,9 @@ setup() {
     run bash -c '
         . "'"${ROOT}"'/lib/channel.sh"
         HW_MODE="a"; CHANNEL="52"; COUNTRY_CODE="EU"
-        validate_channel || exit 1
+        channel_validate || exit 1
         CHANNEL="100"
-        validate_channel || exit 1
+        channel_validate || exit 1
     '
     [ "$status" -eq 0 ]
     [ "$(printf '%s' "$output" | grep -c 'Warning')" -eq 1 ]
@@ -243,13 +243,13 @@ setup() {
 @test "errors print on every call even after warnings were deduped" {
     HW_MODE="a"
     CHANNEL="acs"
-    run validate_channel
+    run channel_validate
     [ "$status" -eq 0 ]
     CHANNEL="11"
-    run validate_channel
+    run channel_validate
     [ "$status" -eq 1 ]
     [[ "$output" == *"Error"*"not allowed for hw_mode=a"* ]]
-    run validate_channel
+    run channel_validate
     [ "$status" -eq 1 ]
     [[ "$output" == *"Error"*"not allowed for hw_mode=a"* ]]
 }
@@ -277,7 +277,7 @@ setup() {
     COUNTRY_CODE="us"
     HW_MODE="g"
     CHANNEL="12"
-    run validate_channel
+    run channel_validate
     [ "$status" -eq 1 ]
     [[ "$output" == *"country US"* ]]
 }
@@ -286,21 +286,21 @@ setup() {
     COUNTRY_CODE="jp"
     HW_MODE="b"
     CHANNEL="14"
-    run validate_channel
+    run channel_validate
     [ "$status" -eq 0 ]
 }
 
 @test "uppercase hw_mode 'G' validates like 'g'" {
     HW_MODE="G"
     CHANNEL="1"
-    run validate_channel_strict
+    run channel_validate_strict
     [ "$status" -eq 0 ]
 }
 
 @test "uppercase hw_mode 'A' validates like 'a'" {
     HW_MODE="A"
     CHANNEL="36"
-    run validate_channel_strict
+    run channel_validate_strict
     [ "$status" -eq 0 ]
 }
 
@@ -308,22 +308,22 @@ setup() {
     COUNTRY_CODE="JP"
     HW_MODE="B"
     CHANNEL="14"
-    run validate_channel_strict
+    run channel_validate_strict
     [ "$status" -eq 0 ]
 }
 
 @test "VHT_ENABLED set with uppercase HW_MODE=A passes" {
     HW_MODE="A"
     VHT_ENABLED="1"
-    run validate_vht
+    run channel_validate_vht
     [ "$status" -eq 0 ]
 }
 
-@test "validate_channel normalizes env for generated hostapd.conf" {
+@test "channel_validate normalizes env for generated hostapd.conf" {
     COUNTRY_CODE="us"
     HW_MODE="G"
     CHANNEL="6"
-    validate_channel || exit 1
+    channel_validate || exit 1
     [ "${HW_MODE}" = "g" ]
     [ "${COUNTRY_CODE}" = "US" ]
 }
@@ -333,7 +333,7 @@ setup() {
 @test "non-numeric channel with hw_mode=g fails" {
     HW_MODE="g"
     CHANNEL="foo"
-    run validate_channel
+    run channel_validate
     [ "$status" -eq 1 ]
     [[ "$output" == *"Error"*"positive integer"* ]]
 }
@@ -341,7 +341,7 @@ setup() {
 @test "non-numeric channel with hw_mode=a fails" {
     HW_MODE="a"
     CHANNEL="bar"
-    run validate_channel
+    run channel_validate
     [ "$status" -eq 1 ]
     [[ "$output" == *"Error"*"positive integer"* ]]
 }
@@ -349,7 +349,7 @@ setup() {
 @test "non-numeric channel with hw_mode=b fails" {
     HW_MODE="b"
     CHANNEL="baz"
-    run validate_channel
+    run channel_validate
     [ "$status" -eq 1 ]
     [[ "$output" == *"Error"*"positive integer"* ]]
 }
@@ -359,7 +359,7 @@ setup() {
 @test "unknown hw_mode issues warning and passes" {
     HW_MODE="x"
     CHANNEL="1"
-    run validate_channel
+    run channel_validate
     [ "$status" -eq 0 ]
     [[ "$output" == *"Warning"*"Unknown hw_mode"* ]]
 }
@@ -370,10 +370,10 @@ setup() {
     COUNTRY_CODE="US"
     HW_MODE="g"
     CHANNEL="11"
-    run validate_channel
+    run channel_validate
     [ "$status" -eq 0 ]
     CHANNEL="12"
-    run validate_channel
+    run channel_validate
     [ "$status" -eq 1 ]
     [[ "$output" == *"not allowed for country US"* ]]
 }
@@ -382,7 +382,7 @@ setup() {
     COUNTRY_CODE="CA"
     HW_MODE="g"
     CHANNEL="12"
-    run validate_channel
+    run channel_validate
     [ "$status" -eq 1 ]
 }
 
@@ -390,7 +390,7 @@ setup() {
     COUNTRY_CODE="MX"
     HW_MODE="b"
     CHANNEL="13"
-    run validate_channel
+    run channel_validate
     [ "$status" -eq 1 ]
 }
 
@@ -399,11 +399,11 @@ setup() {
     HW_MODE="g"
     for ch in 1 6 11 13; do
         CHANNEL="${ch}"
-        run validate_channel
+        run channel_validate
         [ "$status" -eq 0 ]
     done
     CHANNEL="14"
-    run validate_channel
+    run channel_validate
     [ "$status" -eq 1 ]
     [[ "$output" == *"Channel 14 is only allowed in Japan"* ]]
 }
@@ -413,10 +413,10 @@ setup() {
         COUNTRY_CODE="${cc}"
         HW_MODE="g"
         CHANNEL="13"
-        run validate_channel
+        run channel_validate
         [ "$status" -eq 0 ]
         CHANNEL="14"
-        run validate_channel
+        run channel_validate
         [ "$status" -eq 1 ]
     done
 }
@@ -426,7 +426,7 @@ setup() {
     HW_MODE="b"
     for ch in 1 6 12 13 14; do
         CHANNEL="${ch}"
-        run validate_channel
+        run channel_validate
         [ "$status" -eq 0 ]
     done
 }
@@ -435,9 +435,9 @@ setup() {
     COUNTRY_CODE="JP"
     HW_MODE="b"
     CHANNEL="14"
-    run validate_channel
+    run channel_validate
     [ "$status" -eq 0 ]
-    run validate_channel_strict
+    run channel_validate_strict
     [ "$status" -eq 0 ]
 }
 
@@ -445,17 +445,17 @@ setup() {
     COUNTRY_CODE="ZZ"
     HW_MODE="g"
     CHANNEL="13"
-    run validate_channel
+    run channel_validate
     [ "$status" -eq 0 ]
     CHANNEL="14"
-    run validate_channel
+    run channel_validate
     [ "$status" -eq 1 ]
 }
 
 @test "default region is EU (channel 14 rejected without COUNTRY_CODE)" {
     HW_MODE="g"
     CHANNEL="14"
-    run validate_channel
+    run channel_validate
     [ "$status" -eq 1 ]
 }
 
@@ -463,10 +463,10 @@ setup() {
     COUNTRY_CODE="JP"
     HW_MODE="g"
     CHANNEL="14"
-    run validate_channel
+    run channel_validate
     [ "$status" -eq 1 ]
     [[ "$output" == *"Channel 14 is only allowed in Japan (COUNTRY_CODE=JP) with hw_mode=b (802.11b)"* ]]
-    run validate_channel_strict
+    run channel_validate_strict
     [ "$status" -eq 1 ]
 }
 
@@ -474,7 +474,7 @@ setup() {
     COUNTRY_CODE="JP"
     HW_MODE="n"
     CHANNEL="14"
-    run validate_channel
+    run channel_validate
     [ "$status" -eq 1 ]
 }
 
@@ -482,7 +482,7 @@ setup() {
     COUNTRY_CODE="US"
     HW_MODE="b"
     CHANNEL="14"
-    run validate_channel
+    run channel_validate
     [ "$status" -eq 1 ]
     [[ "$output" == *"Channel 14 is only allowed in Japan"* ]]
 }
@@ -494,10 +494,10 @@ setup() {
         HW_MODE="$2"
         unset CHANNEL
         CHANNEL="acs"
-        run validate_channel
+        run channel_validate
         [ "$status" -eq 0 ]
         CHANNEL="ACS"
-        run validate_channel
+        run channel_validate
         [ "$status" -eq 0 ]
     done
 }
@@ -507,7 +507,7 @@ setup() {
 @test "strict: unknown hw_mode fails with error" {
     HW_MODE="gn"
     CHANNEL="1"
-    run validate_channel_strict
+    run channel_validate_strict
     [ "$status" -eq 1 ]
     [[ "$output" == *"Error"*"Unknown hw_mode='gn'"* ]]
 }
@@ -517,23 +517,23 @@ setup() {
         set -- ${pair}
         HW_MODE="$1"
         CHANNEL="$2"
-        run validate_channel_strict
+        run channel_validate_strict
         [ "$status" -eq 0 ]
     done
 }
 
 @test "strict: default hw_mode (g) passes" {
     unset HW_MODE
-    resolve_config_env
+    env_resolve_config_env
     CHANNEL="1"
-    run validate_channel_strict
+    run channel_validate_strict
     [ "$status" -eq 0 ]
 }
 
 @test "strict: channel errors still fail" {
     HW_MODE="g"
     CHANNEL="14"
-    run validate_channel_strict
+    run channel_validate_strict
     [ "$status" -eq 1 ]
 }
 
@@ -541,9 +541,9 @@ setup() {
 
 @test "VHT_ENABLED set with default HW_MODE fails" {
     unset HW_MODE
-    resolve_config_env
+    env_resolve_config_env
     VHT_ENABLED="1"
-    run validate_vht
+    run channel_validate_vht
     [ "$status" -eq 1 ]
     [[ "$output" == *"[Error] VHT_ENABLED requires HW_MODE=a (5 GHz)."* ]]
 }
@@ -551,7 +551,7 @@ setup() {
 @test "VHT_ENABLED set with HW_MODE=g fails" {
     HW_MODE="g"
     VHT_ENABLED="1"
-    run validate_vht
+    run channel_validate_vht
     [ "$status" -eq 1 ]
     [[ "$output" == *"Error"* ]]
 }
@@ -559,20 +559,20 @@ setup() {
 @test "VHT_ENABLED set with HW_MODE=b fails" {
     HW_MODE="b"
     VHT_ENABLED="1"
-    run validate_vht
+    run channel_validate_vht
     [ "$status" -eq 1 ]
 }
 
 @test "VHT_ENABLED set with HW_MODE=a passes" {
     HW_MODE="a"
     VHT_ENABLED="1"
-    run validate_vht
+    run channel_validate_vht
     [ "$status" -eq 0 ]
 }
 
 @test "VHT_ENABLED unset with HW_MODE=g passes" {
     HW_MODE="g"
     unset VHT_ENABLED
-    run validate_vht
+    run channel_validate_vht
     [ "$status" -eq 0 ]
 }

@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-# Tests exercise load_from_file() from lib/secret_file.sh - the exact
+# Tests exercise secret_file_load() from lib/secret_file.sh - the exact
 # code used by wlanstart.sh (no duplicated logic).
 
 setup() {
@@ -16,7 +16,7 @@ load_lib() {
     load_lib
     printf 'myssid\notherline\n' > "${SECRET_FILE}"
     SSID_FILE="${SECRET_FILE}"
-    load_from_file SSID SSID_FILE
+    secret_file_load SSID SSID_FILE
     [ "${SSID}" = "myssid" ]
 }
 
@@ -24,7 +24,7 @@ load_lib() {
     load_lib
     printf 'sup3rs3cret\n' > "${SECRET_FILE}"
     WPA_PASSPHRASE_FILE="${SECRET_FILE}"
-    load_from_file WPA_PASSPHRASE WPA_PASSPHRASE_FILE
+    secret_file_load WPA_PASSPHRASE WPA_PASSPHRASE_FILE
     [ "${WPA_PASSPHRASE}" = "sup3rs3cret" ]
 }
 
@@ -33,7 +33,7 @@ load_lib() {
     printf 'fromfile\n' > "${SECRET_FILE}"
     SSID=direct
     SSID_FILE="${SECRET_FILE}"
-    load_from_file SSID SSID_FILE 2> "${BATS_TEST_TMPDIR}/stderr"
+    secret_file_load SSID SSID_FILE 2> "${BATS_TEST_TMPDIR}/stderr"
     [ "${SSID}" = "fromfile" ]
     grep -q "using value from SSID_FILE" "${BATS_TEST_TMPDIR}/stderr"
 }
@@ -43,7 +43,7 @@ load_lib() {
     printf 'fromfile\n' > "${SECRET_FILE}"
     WPA_PASSPHRASE=direct
     WPA_PASSPHRASE_FILE="${SECRET_FILE}"
-    run load_from_file WPA_PASSPHRASE WPA_PASSPHRASE_FILE
+    run secret_file_load WPA_PASSPHRASE WPA_PASSPHRASE_FILE
     [ "$status" -eq 0 ]
     [[ "$output" == *"[Warning] Both WPA_PASSPHRASE and WPA_PASSPHRASE_FILE are set"* ]]
 }
@@ -52,7 +52,7 @@ load_lib() {
     load_lib
     SSID=direct
     unset SSID_FILE
-    run load_from_file SSID SSID_FILE
+    run secret_file_load SSID SSID_FILE
     [ "$status" -eq 0 ]
     [ "${SSID}" = "direct" ]
 }
@@ -60,7 +60,7 @@ load_lib() {
 @test "missing file fails with clear error" {
     load_lib
     SSID_FILE="${BATS_TEST_TMPDIR}/does-not-exist"
-    run load_from_file SSID SSID_FILE
+    run secret_file_load SSID SSID_FILE
     [ "$status" -ne 0 ]
     [[ "$output" == *"[Error] SSID_FILE '${BATS_TEST_TMPDIR}/does-not-exist' is not readable"* ]]
 }
@@ -73,7 +73,7 @@ load_lib() {
         skip "cannot make file unreadable (running as root)"
     fi
     WPA_PASSPHRASE_FILE="${SECRET_FILE}"
-    run load_from_file WPA_PASSPHRASE WPA_PASSPHRASE_FILE
+    run secret_file_load WPA_PASSPHRASE WPA_PASSPHRASE_FILE
     [ "$status" -ne 0 ]
     [[ "$output" == *"is not readable"* ]]
 }
@@ -83,8 +83,8 @@ load_lib() {
     . "${BATS_TEST_DIRNAME}/../lib/passphrase.sh"
     printf 'passw0rd-from-file\n' > "${SECRET_FILE}"
     WPA_PASSPHRASE_FILE="${SECRET_FILE}"
-    load_from_file WPA_PASSPHRASE WPA_PASSPHRASE_FILE
+    secret_file_load WPA_PASSPHRASE WPA_PASSPHRASE_FILE
     [ "${WPA_PASSPHRASE}" = "passw0rd-from-file" ]
-    run validate_passphrase
+    run passphrase_validate
     [ "$status" -eq 0 ]
 }

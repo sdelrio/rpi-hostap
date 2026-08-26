@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-# Tests exercise compute_wpa_conf() from lib/wpa.sh — the exact code
+# Tests exercise wpa_compute_conf() from lib/wpa.sh — the exact code
 # used by wlanstart.sh (no duplicated logic).
 
 setup() {
@@ -13,7 +13,7 @@ setup() {
     # shellcheck source=../lib/env.sh
     . "${BATS_TEST_DIRNAME}/../lib/env.sh"
     # Defaults now live centrally in lib/env.sh (issue #237)
-    resolve_config_env
+    env_resolve_config_env
 }
 
 load_lib() {
@@ -22,7 +22,7 @@ load_lib() {
 
 @test "default WPA_VERSION produces wpa=2 with WPA-PSK" {
     load_lib
-    run compute_wpa_conf
+    run wpa_compute_conf
     [ "$status" -eq 0 ]
     [[ "$output" == *"wpa=2"* ]]
     [[ "$output" == *"wpa_key_mgmt=WPA-PSK"* ]]
@@ -32,7 +32,7 @@ load_lib() {
 @test "WPA_VERSION=3 produces wpa=3 with SAE" {
     load_lib
     WPA_VERSION=3
-    run compute_wpa_conf
+    run wpa_compute_conf
     [ "$status" -eq 0 ]
     [[ "$output" == *"wpa=3"* ]]
     [[ "$output" == *"wpa_key_mgmt=SAE"* ]]
@@ -43,7 +43,7 @@ load_lib() {
 @test "WPA_VERSION=3 does not include WPA-PSK" {
     load_lib
     WPA_VERSION=3
-    run compute_wpa_conf
+    run wpa_compute_conf
     [ "$status" -eq 0 ]
     [[ "$output" != *"WPA-PSK"* ]]
 }
@@ -51,7 +51,7 @@ load_lib() {
 @test "WPA_VERSION=mixed produces wpa=3 with WPA-PSK SAE" {
     load_lib
     WPA_VERSION=mixed
-    run compute_wpa_conf
+    run wpa_compute_conf
     [ "$status" -eq 0 ]
     [[ "$output" == *"wpa=3"* ]]
     [[ "$output" == *"wpa_key_mgmt=WPA-PSK SAE"* ]]
@@ -64,7 +64,7 @@ load_lib() {
     load_lib
     WPA_VERSION=3
     HW_MODE=b
-    run compute_wpa_conf
+    run wpa_compute_conf
     [ "$status" -eq 0 ]
     [[ "$output" == *"hw_mode=b"* ]]
 }
@@ -73,7 +73,7 @@ load_lib() {
     load_lib
     WPA_VERSION=mixed
     HW_MODE=g
-    run compute_wpa_conf
+    run wpa_compute_conf
     [ "$status" -eq 0 ]
     [[ "$output" != *"hw_mode=b"* ]]
 }
@@ -81,7 +81,7 @@ load_lib() {
 @test "WPA_VERSION=2 does not include ieee80211w" {
     load_lib
     WPA_VERSION=2
-    run compute_wpa_conf
+    run wpa_compute_conf
     [ "$status" -eq 0 ]
     [[ "$output" != *"ieee80211w"* ]]
 }
@@ -89,7 +89,7 @@ load_lib() {
 @test "invalid WPA_VERSION fails with error" {
     load_lib
     WPA_VERSION=1
-    run compute_wpa_conf
+    run wpa_compute_conf
     [ "$status" -ne 0 ]
     [[ "$output" == *"Invalid WPA_VERSION"* ]]
 }

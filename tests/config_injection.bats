@@ -16,7 +16,7 @@ load_passphrase_lib() {
 @test "passphrase with embedded newline is rejected (startup validator)" {
     load_passphrase_lib
     WPA_PASSPHRASE=$(printf 'goodpass\nwpa_pairwise=NONE')
-    run validate_passphrase
+    run passphrase_validate
     [ "$status" -ne 0 ]
     [[ "$output" == *"Invalid WPA_PASSPHRASE"* ]]
     [[ "$output" == *"must not contain newlines"* ]]
@@ -25,7 +25,7 @@ load_passphrase_lib() {
 @test "passphrase with carriage return is rejected (startup validator)" {
     load_passphrase_lib
     WPA_PASSPHRASE=$(printf 'goodpass\raaa')
-    run validate_passphrase
+    run passphrase_validate
     [ "$status" -ne 0 ]
     [[ "$output" == *"Invalid WPA_PASSPHRASE"* ]]
 }
@@ -33,7 +33,7 @@ load_passphrase_lib() {
 @test "passphrase with control character is rejected (startup validator)" {
     load_passphrase_lib
     WPA_PASSPHRASE=$(printf 'goodpass\tabc')
-    run validate_passphrase
+    run passphrase_validate
     [ "$status" -ne 0 ]
     [[ "$output" == *"Invalid WPA_PASSPHRASE"* ]]
 }

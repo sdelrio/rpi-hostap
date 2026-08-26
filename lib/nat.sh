@@ -1,9 +1,9 @@
 # shellcheck shell=bash
 # Shared IPv4 NAT logic used by wlanstart.sh and tests.
 #
-# parse_outgoings fills ints with the comma-separated OUTGOINGS interfaces.
+# nat_parse_outgoings fills ints with the comma-separated OUTGOINGS interfaces.
 
-parse_outgoings() {
+nat_parse_outgoings() {
     ints=()
     local -a raw
     local i
@@ -17,29 +17,29 @@ parse_outgoings() {
 # (e.g. when validating OUTGOINGS interfaces without real network tools).
 IP_BASE="${IP_BASE:-ip}"
 
-# interface_exists returns 0 when the given network interface exists.
-interface_exists() {
+# nat_interface_exists returns 0 when the given network interface exists.
+nat_interface_exists() {
     "${IP_BASE}" link show "$1" > /dev/null 2>&1
 }
 
-# validate_outgoings checks every parsed OUTGOINGS interface exists,
+# nat_validate_outgoings checks every parsed OUTGOINGS interface exists,
 # failing fast with an error naming the offending interface.
-validate_outgoings() {
+nat_validate_outgoings() {
     local int
-    parse_outgoings
+    nat_parse_outgoings
     for int in "${ints[@]}" ; do
-        if ! interface_exists "${int}" ; then
+        if ! nat_interface_exists "${int}" ; then
             echo "[Error] OUTGOINGS interface '${int}' does not exist" >&2
             return 1
         fi
     done
 }
 
-# apply_nat_rules adds iptables MASQUERADE/FORWARD rules for outgoing traffic.
-apply_nat_rules() {
+# nat_apply_rules adds iptables MASQUERADE/FORWARD rules for outgoing traffic.
+nat_apply_rules() {
     if [ "${OUTGOINGS}" ] ; then
         local int
-        validate_outgoings || return 1
+        nat_validate_outgoings || return 1
         for int in "${ints[@]}"
         do
             echo "Setting iptables for outgoing traffics on ${int}..."
@@ -67,12 +67,12 @@ apply_nat_rules() {
     fi
 }
 
-# set_sysctls enables the given ipv4 sysctls, tolerating missing entries
+# nat_set_sysctls enables the given ipv4 sysctls, tolerating missing entries
 # (e.g. kernels built without ip_dynaddr). SYSCTL_BASE can be overridden
 # in tests to point at a stubbed procfs tree.
 SYSCTL_BASE="${SYSCTL_BASE:-/proc/sys/net/ipv4}"
 
-set_sysctls() {
+nat_set_sysctls() {
     local i val
     for i in "$@" ; do
         val="$(cat "${SYSCTL_BASE}/${i}" 2>/dev/null || echo 0)"
@@ -84,8 +84,8 @@ set_sysctls() {
     done
 }
 
-# show_sysctls prints labeled values for the given ipv4 sysctls (#194).
-show_sysctls() {
+# nat_show_sysctls prints labeled values for the given ipv4 sysctls (#194).
+nat_show_sysctls() {
     local i val
     for i in "$@" ; do
         val="$(cat "${SYSCTL_BASE}/${i}" 2>/dev/null || echo '?')"
@@ -93,13 +93,13 @@ show_sysctls() {
     done
 }
 
-# remove_nat_rules deletes the rules added by apply_nat_rules.
-remove_nat_rules() {
+# nat_remove_rules deletes the rules added by nat_apply_rules.
+nat_remove_rules() {
     echo "Removing iptables rules..."
 
     if [ "${OUTGOINGS}" ] ; then
         local int
-        parse_outgoings
+        nat_parse_outgoings
         for int in "${ints[@]}" ; do
             echo "Removing iptables for outgoing traffics on ${int}..."
             iptables -t nat -D POSTROUTING -s "${SUBNET}/${DHCP_PREFIX:-24}" -o "${int}" -j MASQUERADE > /dev/null 2>&1 || true

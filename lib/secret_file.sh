@@ -9,7 +9,7 @@
 # Precedence: when both VAR and VAR_FILE are set, the file wins and a
 # warning is emitted so misconfigurations are not silently ignored.
 
-load_from_file() {
+secret_file_load() {
     local var=$1 file_var=$2
     local f="${!file_var:-}"
     [ -z "${f}" ] && return 0

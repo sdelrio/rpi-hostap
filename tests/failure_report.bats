@@ -9,51 +9,51 @@ load_logging() {
     . "$(dirname "$BATS_TEST_FILENAME")/../lib/logging.sh"
 }
 
-@test "report_failure is defined after loading lib/logging.sh" {
+@test "logging_report_failure is defined after loading lib/logging.sh" {
     load_logging
-    [ "$(type -t report_failure)" = "function" ]
+    [ "$(type -t logging_report_failure)" = "function" ]
 }
 
-@test "report_failure points at last tagged daemon line" {
+@test "logging_report_failure points at last tagged daemon line" {
     load_logging
     local log
     log=$(mktemp)
     printf '[dnsmasq] started\n[hostapd] line 1\n[hostapd] IEEE 802.11 driver not found\n' > "${log}"
-    run report_failure 1 "${log}"
+    run logging_report_failure 1 "${log}"
     rm -f "${log}"
     [ "$status" -eq 0 ]
     [[ "$output" == *"[Error] Container exiting (status 1): check [hostapd] lines above for startup failure."* ]]
 }
 
-@test "report_failure falls back to generic tag when log empty" {
+@test "logging_report_failure falls back to generic tag when log empty" {
     load_logging
-    run report_failure 3 ""
+    run logging_report_failure 3 ""
     [[ "$output" == *"[daemon] lines above for startup failure."* ]]
 }
 
-@test "report_failure falls back to generic tag when no tags present" {
+@test "logging_report_failure falls back to generic tag when no tags present" {
     load_logging
     local log
     log=$(mktemp)
     printf 'some untagged output\n' > "${log}"
-    run report_failure 2 "${log}"
+    run logging_report_failure 2 "${log}"
     rm -f "${log}"
     [[ "$output" == *"check [daemon] lines"* ]]
 }
 
-@test "report_failure writes to stderr" {
+@test "logging_report_failure writes to stderr" {
     load_logging
-    run bash -c ". '${BATS_TEST_DIRNAME}/../lib/logging.sh'; report_failure 1"
+    run bash -c ". '${BATS_TEST_DIRNAME}/../lib/logging.sh'; logging_report_failure 1"
     [[ "$output" == *"[Error]"* ]]
 }
 
-@test "report_failure preserves full log at FAILURE_LOG_PATH and mentions it" {
+@test "logging_report_failure preserves full log at FAILURE_LOG_PATH and mentions it" {
     load_logging
     local log dest
     log=$(mktemp)
     dest=$(mktemp)
     printf '[dnsmasq] started\n[hostapd] IEEE 802.11 driver not found\n' > "${log}"
-    FAILURE_LOG_PATH="${dest}" run report_failure 1 "${log}"
+    FAILURE_LOG_PATH="${dest}" run logging_report_failure 1 "${log}"
     rm -f "${log}"
     [ "$status" -eq 0 ]
     [[ "$output" == *"Full daemon log saved to ${dest}."* ]]
@@ -61,18 +61,18 @@ load_logging() {
     rm -f "${dest}"
 }
 
-@test "report_failure does not mention saved log when none given" {
+@test "logging_report_failure does not mention saved log when none given" {
     load_logging
-    run report_failure 2 ""
+    run logging_report_failure 2 ""
     [[ "$output" != *"saved to"* ]]
 }
 
-@test "report_failure warns and continues when FAILURE_LOG_PATH is unwritable" {
+@test "logging_report_failure warns and continues when FAILURE_LOG_PATH is unwritable" {
     load_logging
     local log
     log=$(mktemp)
     printf '[hostapd] driver missing\n' > "${log}"
-    FAILURE_LOG_PATH="/nonexistent-dir-162/failure.log" run report_failure 1 "${log}"
+    FAILURE_LOG_PATH="/nonexistent-dir-162/failure.log" run logging_report_failure 1 "${log}"
     rm -f "${log}"
     [ "$status" -eq 0 ]
     [[ "$output" == *"Warning: could not save daemon log to /nonexistent-dir-162/failure.log."* ]]
@@ -85,10 +85,10 @@ load_logging() {
     dir=$(mktemp -d)
     log=$(mktemp)
     printf '[hostapd] driver missing\n' > "${log}"
-    FAILURE_LOG_PATH="" FAILURE_LOG_DIR="${dir}" run report_failure 1 "${log}"
+    FAILURE_LOG_PATH="" FAILURE_LOG_DIR="${dir}" run logging_report_failure 1 "${log}"
     [ "$status" -eq 0 ]
     sleep 1
-    FAILURE_LOG_PATH="" FAILURE_LOG_DIR="${dir}" run report_failure 2 "${log}"
+    FAILURE_LOG_PATH="" FAILURE_LOG_DIR="${dir}" run logging_report_failure 2 "${log}"
     rm -f "${log}"
     local count
     count=$(find "${dir}" -name 'hostap-failure-*.log' | wc -l | tr -d ' ')
@@ -109,7 +109,7 @@ load_logging() {
     log=$(mktemp)
     printf '[hostapd] fresh\n' > "${log}"
     FAILURE_LOG_PATH="" FAILURE_LOG_DIR="${dir}" FAILURE_LOG_KEEP=3 \
-        run report_failure 1 "${log}"
+        run logging_report_failure 1 "${log}"
     rm -f "${log}"
     [ "$status" -eq 0 ]
     local count
@@ -127,7 +127,7 @@ load_logging() {
     log=$(mktemp)
     dest="$(mktemp -d)/fixed-name.log"
     printf '[hostapd] driver missing\n' > "${log}"
-    FAILURE_LOG_PATH="${dest}" FAILURE_LOG_KEEP=5 run report_failure 1 "${log}"
+    FAILURE_LOG_PATH="${dest}" FAILURE_LOG_KEEP=5 run logging_report_failure 1 "${log}"
     rm -f "${log}"
     [ -f "${dest}" ]
     grep -q '\[hostapd\] driver missing' "${dest}"
@@ -135,12 +135,12 @@ load_logging() {
 }
 
 @test "wlanstart reports failing daemon on non-signal exit" {
-    grep -q 'report_failure "${STATUS}"' "${SCRIPT}"
+    grep -q 'logging_report_failure "${STATUS}"' "${SCRIPT}"
 }
 
 @test "wlanstart removes temp daemon log only on clean shutdown (#162)" {
     run grep -A4 'if \[ "\${STATUS}" -ne 0 \] ; then' "${SCRIPT}"
-    [[ "$output" == *"report_failure"* ]]
+    [[ "$output" == *"logging_report_failure"* ]]
     # failure branch must NOT delete the temp log; the rm lives in else/clean path
     run bash -c "grep -c 'rm -f \"\${_DAEMON_LOG}\"' '${SCRIPT}'"
     [ "$output" -ge 1 ]
@@ -163,7 +163,7 @@ _MULTIRUN_PID=\$!
 wait \"\${_MULTIRUN_PID}\"
 STATUS=\$?
 if [ \"\${STATUS}\" -ne 0 ] ; then
-    report_failure \"\${STATUS}\" \"\${_DAEMON_LOG}\"
+    logging_report_failure \"\${STATUS}\" \"\${_DAEMON_LOG}\"
 else
     rm -f \"\${_DAEMON_LOG}\"
 fi
@@ -188,7 +188,7 @@ exit \"\${STATUS}\"
     run bash -c "
 $(sed -n '/^_MULTIRUN_PID=\"\"$/p; /^_SIGNALED=0$/p' "${SCRIPT}")
 cleanup() { : ; }
-report_failure() { echo \"MOCK_REPORT \$@\"; }
+logging_report_failure() { echo \"MOCK_REPORT \$@\"; }
 _DAEMON_LOG=\$(mktemp)
 # stub multirun: emit tagged lines like real daemons, then die like hostapd
 multirun() {
@@ -204,7 +204,7 @@ _MULTIRUN_PID=\$!
 wait \"\${_MULTIRUN_PID}\"
 STATUS=\$?
 if [ \"\${STATUS}\" -ne 0 ] ; then
-    report_failure \"\${STATUS}\" \"\${_DAEMON_LOG}\"
+    logging_report_failure \"\${STATUS}\" \"\${_DAEMON_LOG}\"
 fi
 rm -f \"\${_DAEMON_LOG}\"
 exit \"\${STATUS}\"

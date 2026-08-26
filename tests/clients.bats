@@ -72,7 +72,7 @@ EOF
     [[ "$output" != *"stub hostapd_cli"* ]]
 }
 
-@test "deauth without MAC argument prints usage and exits non-zero" {
+@test "deauth without MAC argument prints clients_show_usage and exits non-zero" {
     export INTERFACE=wlan0
     mkdir -p "${BATS_TEST_TMPDIR}/hostapd"
     export CTRL_IFACE_DIR="${BATS_TEST_TMPDIR}/hostapd"
@@ -81,7 +81,7 @@ EOF
     [[ "$output" == *"Usage: clients.sh"* ]]
 }
 
-@test "unknown subcommand prints usage and exits non-zero" {
+@test "unknown subcommand prints clients_show_usage and exits non-zero" {
     export INTERFACE=wlan0
     mkdir -p "${BATS_TEST_TMPDIR}/hostapd"
     export CTRL_IFACE_DIR="${BATS_TEST_TMPDIR}/hostapd"

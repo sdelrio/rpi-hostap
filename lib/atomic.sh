@@ -1,7 +1,7 @@
 # shellcheck shell=bash
 # Shared atomic config file writing used by wlanstart.sh and tests.
 #
-# write_atomic_config generates a file to a temporary location first and
+# atomic_write_config generates a file to a temporary location first and
 # only moves it into place if generation succeeded. A plain redirection
 # (emit_conf > /etc/hostapd.conf) truncates the target before the emit
 # function runs, so a validation failure would leave an empty/partial
@@ -11,11 +11,11 @@
 # mv(1) is a same-filesystem rename (atomic) rather than a cross-device
 # copy, and so the final file inherits the directory's ownership.
 #
-# Usage: write_atomic_config <emit_function> <target_path>
+# Usage: atomic_write_config <emit_function> <target_path>
 # Returns non-zero if temp file creation, generation or the move fails;
 # the target is left untouched on any failure.
 
-write_atomic_config() {
+atomic_write_config() {
     local emit_fn=$1
     local target=$2
     local tmp dir mode=644

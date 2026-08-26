@@ -1,12 +1,12 @@
 # shellcheck shell=bash
 # Shared WPA passphrase validation logic used by wlanstart.sh and tests.
 #
-# validate_passphrase reads WPA_PASSPHRASE from the environment and returns
+# passphrase_validate reads WPA_PASSPHRASE from the environment and returns
 # non-zero if its length is outside the 8-63 character range required by
 # WPA-PSK/SAE or if it contains newlines/carriage returns/control
 # characters (which could inject hostapd.conf directives). Messages go to
 # stderr.
-validate_passphrase() {
+passphrase_validate() {
     local len=${#WPA_PASSPHRASE}
     # Pin the locale so the [[:cntrl:]] class behaves consistently.
     local LC_ALL=C

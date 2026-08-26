@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-# Tests exercise write_atomic_config() from lib/atomic.sh - the exact code
+# Tests exercise atomic_write_config() from lib/atomic.sh - the exact code
 # used by wlanstart.sh (no duplicated logic) - together with the real
 # emit_hostapd_conf/emit_dnsmasq_conf validators, covering the failure
 # paths from issue #157: failed config generation must leave any
@@ -27,8 +27,8 @@ load_emit_fns() {
 
 @test "invalid WPA_VERSION leaves pre-existing hostapd.conf untouched" {
     load_emit_fns
-    WPA_VERSION=1   # rejected by compute_wpa_conf
-    run write_atomic_config emit_hostapd_conf "${target}"
+    WPA_VERSION=1   # rejected by wpa_compute_conf
+    run atomic_write_config emit_hostapd_conf "${target}"
     [ "$status" -ne 0 ]
     [ "$(cat "${target}")" = "OLD-CONFIG" ]
 }
@@ -36,7 +36,7 @@ load_emit_fns() {
 @test "invalid DHCP_RANGE leaves pre-existing dnsmasq.conf untouched" {
     load_emit_fns
     DHCP_RANGE=not-an-ip,192.168.254.200,255.255.255.0,12h
-    run write_atomic_config emit_dnsmasq_conf "${target}"
+    run atomic_write_config emit_dnsmasq_conf "${target}"
     [ "$status" -ne 0 ]
     [ "$(cat "${target}")" = "OLD-CONFIG" ]
 }
@@ -46,7 +46,7 @@ load_emit_fns() {
     # emit_hostapd_conf/emit_dnsmasq_conf live in wlanstart.sh itself;
     # use a representative emitter to verify the atomic replace path.
     good_emit() { printf 'interface=wlan0\n'; }
-    run write_atomic_config good_emit "${target}"
+    run atomic_write_config good_emit "${target}"
     [ "$status" -eq 0 ]
     grep -q 'interface=wlan0' "${target}"
     ! grep -q 'OLD-CONFIG' "${target}"
@@ -56,7 +56,7 @@ load_emit_fns() {
     . "${LIB_DIR}/atomic.sh"
     chmod 640 "${target}"
     good_emit() { printf 'interface=wlan0\n'; }
-    run write_atomic_config good_emit "${target}"
+    run atomic_write_config good_emit "${target}"
     [ "$status" -eq 0 ]
     [ "$(stat -c '%a' "${target}" 2>/dev/null || stat -f '%Lp' "${target}")" = "640" ]
 }
@@ -67,7 +67,7 @@ load_emit_fns() {
     local_target="${local_dir}/hostapd.conf"
     printf 'OLD-CONFIG\n' > "${local_target}"
     good_emit() { printf 'interface=wlan0\n'; }
-    run write_atomic_config good_emit "${local_target}"
+    run atomic_write_config good_emit "${local_target}"
     [ "$status" -eq 0 ]
     grep -q 'interface=wlan0' "${local_target}"
     # no leftover temp files in the target directory
