@@ -6,6 +6,11 @@
 # #237) and returns non-zero when the channel is not allowed.
 # Messages go to stderr.
 validate_channel() {
+    # Normalize case so lowercase country codes and uppercase hw_mode
+    # values are validated correctly instead of falling through (issue #222).
+    COUNTRY_CODE="$(printf '%s' "${COUNTRY_CODE:-}" | tr '[:lower:]' '[:upper:]')"
+    HW_MODE="$(printf '%s' "${HW_MODE:-}" | tr '[:upper:]' '[:lower:]')"
+
     # Automatic channel selection: skip numeric checks, driver decides.
     case "${HW_MODE}:${CHANNEL}" in
         *:[aA][cC][sS])
@@ -74,6 +79,7 @@ validate_channel() {
 # VHT (802.11ac) requires 5 GHz operation.
 # Reads VHT_ENABLED and HW_MODE from the environment.
 validate_vht() {
+    HW_MODE="$(printf '%s' "${HW_MODE:-}" | tr '[:upper:]' '[:lower:]')"
     if [ -n "${VHT_ENABLED:-}" ] && [ "${HW_MODE}" != "a" ] ; then
         echo "[Error] VHT_ENABLED requires HW_MODE=a (5 GHz)." >&2
         return 1
