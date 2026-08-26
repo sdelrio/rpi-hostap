@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-# Tests exercise wpa_compute_conf() from lib/wpa.sh — the exact code
+# Tests exercise wpa_compute_conf() from lib/core/wpa.sh — the exact code
 # used by wlanstart.sh (no duplicated logic).
 
 setup() {
@@ -10,14 +10,14 @@ setup() {
     unset _WPA_LEVEL
     unset _WPA_KEY_MGMT
     unset _WPA_PAIRWISE
-    # shellcheck source=../lib/env.sh
-    . "${BATS_TEST_DIRNAME}/../lib/env.sh"
-    # Defaults now live centrally in lib/env.sh (issue #237)
+    # shellcheck source=../lib/core/env.sh
+    . "${BATS_TEST_DIRNAME}/../lib/core/env.sh"
+    # Defaults now live centrally in lib/core/env.sh (issue #237)
     env_resolve_config_env
 }
 
 load_lib() {
-    . "${BATS_TEST_DIRNAME}/../lib/wpa.sh"
+    . "${BATS_TEST_DIRNAME}/../lib/core/wpa.sh"
 }
 
 @test "default WPA_VERSION produces wpa=2 with WPA-PSK" {

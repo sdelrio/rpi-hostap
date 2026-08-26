@@ -16,8 +16,8 @@
 # DHCP_RANGE, any mask is accepted as long as SUBNET is its network
 # address; anything else - including wrong octet counts - is rejected
 # explicitly instead of being silently mangled into a bogus range.
-# The derived prefix is exported as DHCP_PREFIX for lib/interface.sh
-# and lib/nat.sh.
+# The derived prefix is exported as DHCP_PREFIX for lib/sys/interface.sh
+# and lib/sys/nat.sh.
 #
 # Semantic validation (explicit DHCP_RANGE only): start must not exceed
 # end (numeric 32-bit compare), both endpoints must lie inside
@@ -31,7 +31,7 @@
 # Prints the resulting range to stdout. Messages go to stderr.
 # Returns non-zero for invalid input.
 
-# shellcheck source=lib/validation.sh
+# shellcheck source=lib/core/validation.sh
 . "$(dirname "${BASH_SOURCE[0]}")/validation.sh"
 
 # dhcp_ip_to_int converts a dotted-quad IPv4 address (already validated)
@@ -65,14 +65,14 @@ dhcp_check_ap_addr_in_subnet() {
     fi
 }
 
-# A dnsmasq lease time is a positive integer optionally followed by
+# A DHCP server lease time is a positive integer optionally followed by
 # h (hours), m (minutes) or s (seconds), e.g. 12h, 30m, 3600.
 dhcp_validate_lease_time() {
     [[ "${1:-}" =~ ^[0-9]+[hms]?$ ]]
 }
 
 dhcp_compute_range() {
-    # DHCP_LEASE default is applied centrally by lib/env.sh (#237)
+    # DHCP_LEASE default is applied centrally by lib/core/env.sh (#237)
     if [ ! "${DHCP_LEASE}" ] || ! dhcp_validate_lease_time "${DHCP_LEASE}" ; then
         echo "[Error] Invalid DHCP_LEASE: '${DHCP_LEASE}' is not a valid lease time." >&2
         echo "  Expected: integer optionally followed by h/m/s (e.g. 12h, 3600)"
@@ -143,7 +143,7 @@ dhcp_compute_range() {
         # 1. start must not come after end (numeric compare on the
         #    full 32-bit address, so multi-octet ranges work too).
         # 2. Both endpoints must lie inside ${SUBNET}/${prefix}
-        #    (mask arithmetic), otherwise dnsmasq would hand out
+        #    (mask arithmetic), otherwise the DHCP server would hand out
         #    addresses outside the AP network.
         # 3. The pool must not contain AP_ADDR itself: the access
         #    point has a static address and a lease collision would

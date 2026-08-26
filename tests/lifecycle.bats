@@ -3,7 +3,7 @@
 # Tests for the phase-based lifecycle (issue #241)
 
 setup() {
-    . "$(dirname "$BATS_TEST_FILENAME")/../lib/lifecycle.sh"
+    . "$(dirname "$BATS_TEST_FILENAME")/../lib/core/lifecycle.sh"
 }
 
 teardown() {
@@ -26,9 +26,9 @@ teardown() {
 }
 
 @test "modules register teardown hooks at source time" {
-    . "$(dirname "$BATS_TEST_FILENAME")/../lib/nat.sh"
-    . "$(dirname "$BATS_TEST_FILENAME")/../lib/ipv6.sh"
-    . "$(dirname "$BATS_TEST_FILENAME")/../lib/interface.sh"
+    . "$(dirname "$BATS_TEST_FILENAME")/../lib/sys/nat.sh"
+    . "$(dirname "$BATS_TEST_FILENAME")/../lib/sys/ipv6.sh"
+    . "$(dirname "$BATS_TEST_FILENAME")/../lib/sys/interface.sh"
     [ "${#PHASE_TEARDOWN[@]}" -eq 3 ]
     # Reverse-dependency order: nat -> ipv6 -> interface
     [ "${PHASE_TEARDOWN[0]}" = "nat_remove_rules" ]
@@ -107,7 +107,7 @@ teardown() {
     log=$(mktemp)
     script=$(mktemp)
     cat > "${script}" <<EOF
-. "$(dirname "$BATS_TEST_FILENAME")/../lib/lifecycle.sh"
+. "$(dirname "$BATS_TEST_FILENAME")/../lib/core/lifecycle.sh"
 sig_teardown() { echo "teardown" >> "${log}"; }
 lifecycle_register teardown sig_teardown
 eval "\$(sed -n '/^cleanup()/,/^}/p' "$(dirname "$BATS_TEST_FILENAME")/../wlanstart.sh")"
@@ -151,10 +151,10 @@ EOF
     log=$(mktemp)
     script=$(mktemp)
     cat > "${script}" <<INNER
-. "$(dirname "$BATS_TEST_FILENAME")/../lib/lifecycle.sh"
-. "$(dirname "$BATS_TEST_FILENAME")/../lib/nat.sh"
-. "$(dirname "$BATS_TEST_FILENAME")/../lib/interface.sh"
-. "$(dirname "$BATS_TEST_FILENAME")/../lib/ipv6.sh"
+. "$(dirname "$BATS_TEST_FILENAME")/../lib/core/lifecycle.sh"
+. "$(dirname "$BATS_TEST_FILENAME")/../lib/sys/nat.sh"
+. "$(dirname "$BATS_TEST_FILENAME")/../lib/sys/interface.sh"
+. "$(dirname "$BATS_TEST_FILENAME")/../lib/sys/ipv6.sh"
 eval "\$(sed -n '/^cleanup()/,/^}/p' "$(dirname "$BATS_TEST_FILENAME")/../wlanstart.sh")"
 export INTERFACE=wlan0 SUBNET=192.168.254.0 OUTGOINGS=
 iptables() { echo "iptables \$*" >> "${log}"; }

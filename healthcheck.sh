@@ -2,8 +2,8 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck source=lib/client_env.sh
-source "${SCRIPT_DIR}/lib/client_env.sh"
+# shellcheck source=lib/core/client_env.sh
+source "${SCRIPT_DIR}/lib/core/client_env.sh"
 
 # Health check script for rpi-hostap container
 # Checks if hostapd, dnsmasq are running and the interface is up

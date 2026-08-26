@@ -1,11 +1,11 @@
 #!/usr/bin/env bats
 
-# Tests exercise interface_setup() from lib/interface.sh with a stubbed
+# Tests exercise interface_setup() from lib/sys/interface.sh with a stubbed
 # ip command, verifying the netmask-derived prefix (DHCP_PREFIX).
 
 REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/.." && pwd)"
-# shellcheck source=../lib/interface.sh
-. "${REPO_ROOT}/lib/interface.sh"
+# shellcheck source=../lib/sys/interface.sh
+. "${REPO_ROOT}/lib/sys/interface.sh"
 
 LOG=""
 

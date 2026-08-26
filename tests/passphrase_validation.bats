@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-# Tests exercise passphrase_validate() from lib/passphrase.sh — the exact
+# Tests exercise passphrase_validate() from lib/core/passphrase.sh — the exact
 # code used by wlanstart.sh (no duplicated logic).
 
 setup() {
@@ -8,7 +8,7 @@ setup() {
 }
 
 load_lib() {
-    . "${BATS_TEST_DIRNAME}/../lib/passphrase.sh"
+    . "${BATS_TEST_DIRNAME}/../lib/core/passphrase.sh"
 }
 
 @test "8-character passphrase is accepted" {

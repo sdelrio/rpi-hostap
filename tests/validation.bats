@@ -1,17 +1,17 @@
 #!/usr/bin/env bats
 
-# Tests exercise validation_check_ipv4() from lib/validation.sh — the exact
+# Tests exercise validation_check_ipv4() from lib/core/validation.sh — the exact
 # code used by wlanstart.sh (no duplicated logic).
 
 load_lib() {
-    . "${BATS_TEST_DIRNAME}/../lib/validation.sh"
+    . "${BATS_TEST_DIRNAME}/../lib/core/validation.sh"
 }
 
 # wlanstart-level check: exercise validation_check_ipv4_param, the exact helper
 # used by wlanstart.sh for SUBNET/AP_ADDR.
 run_wlanstart_validation() {
     bash -c "
-. '${BATS_TEST_DIRNAME}/../lib/validation.sh'
+. '${BATS_TEST_DIRNAME}/../lib/core/validation.sh'
 validation_check_ipv4_param SUBNET \"\${SUBNET}\" || exit 1
 validation_check_ipv4_param AP_ADDR \"\${AP_ADDR}\" || exit 1
 " 2>&1

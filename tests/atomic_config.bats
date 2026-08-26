@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-# Tests exercise atomic_write_config() from lib/atomic.sh - the exact code
+# Tests exercise atomic_write_config() from lib/sys/atomic.sh - the exact code
 # used by wlanstart.sh (no duplicated logic) - together with the real
 # emit_hostapd_conf/emit_dnsmasq_conf validators, covering the failure
 # paths from issue #157: failed config generation must leave any
@@ -19,10 +19,10 @@ teardown() {
 
 load_emit_fns() {
     export INTERFACE=wlan0
-    . "${LIB_DIR}/validation.sh"
-    . "${LIB_DIR}/wpa.sh"
-    . "${LIB_DIR}/dhcp.sh"
-    . "${LIB_DIR}/atomic.sh"
+    . "${LIB_DIR}/core/validation.sh"
+    . "${LIB_DIR}/core/wpa.sh"
+    . "${LIB_DIR}/core/dhcp.sh"
+    . "${LIB_DIR}/sys/atomic.sh"
 }
 
 @test "invalid WPA_VERSION leaves pre-existing hostapd.conf untouched" {
@@ -42,7 +42,7 @@ load_emit_fns() {
 }
 
 @test "successful generation replaces the target content atomically" {
-    . "${LIB_DIR}/atomic.sh"
+    . "$LIB_DIR/sys/atomic.sh"
     # emit_hostapd_conf/emit_dnsmasq_conf live in wlanstart.sh itself;
     # use a representative emitter to verify the atomic replace path.
     good_emit() { printf 'interface=wlan0\n'; }
@@ -53,7 +53,7 @@ load_emit_fns() {
 }
 
 @test "successful generation preserves the target permissions" {
-    . "${LIB_DIR}/atomic.sh"
+    . "$LIB_DIR/sys/atomic.sh"
     chmod 640 "${target}"
     good_emit() { printf 'interface=wlan0\n'; }
     run atomic_write_config good_emit "${target}"
@@ -62,7 +62,7 @@ load_emit_fns() {
 }
 
 @test "temp file is created next to the target (same filesystem)" {
-    . "${LIB_DIR}/atomic.sh"
+    . "$LIB_DIR/sys/atomic.sh"
     local_dir=$(mktemp -d)
     local_target="${local_dir}/hostapd.conf"
     printf 'OLD-CONFIG\n' > "${local_target}"

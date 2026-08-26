@@ -2,8 +2,8 @@
 
 # Logic shared with wlanstart.sh
 REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/.." && pwd)"
-# shellcheck source=../lib/ipv6.sh
-. "${REPO_ROOT}/lib/ipv6.sh"
+# shellcheck source=../lib/sys/ipv6.sh
+. "${REPO_ROOT}/lib/sys/ipv6.sh"
 
 setup() {
     export INTERFACE="wlan0"
@@ -78,7 +78,7 @@ setup() {
     REPO_ROOT="$REPO_ROOT" LOG="${log}" \
     run bash -c '
         ip6tables() { case "$*" in *"-D "*) echo "$*" >> "${LOG}" ;; esac ; }
-        . "'"${REPO_ROOT}"'/lib/ipv6.sh"
+        . "'"${REPO_ROOT}"'/lib/sys/ipv6.sh"
         INTERFACE="wlan0" OUTGOINGS="eth0,eth1" ipv6_remove_rules
     '
     [ "$status" -eq 0 ]
@@ -90,7 +90,7 @@ setup() {
     run bash -c '
         ip6tables() { echo "ip6tables $*" >&2; }
         ip() { return 0; }
-        . "'"${REPO_ROOT}"'/lib/ipv6.sh"
+        . "'"${REPO_ROOT}"'/lib/sys/ipv6.sh"
         INTERFACE="wlan0" OUTGOINGS="eth0,eth1" ipv6_apply_rules
     '
     [ "$status" -eq 0 ]

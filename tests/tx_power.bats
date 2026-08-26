@@ -1,16 +1,16 @@
 #!/usr/bin/env bats
 
-# Shared TX_POWER logic from lib/radio.sh
+# Shared TX_POWER logic from lib/sys/radio.sh
 
 setup() {
     unset TX_POWER
     INTERFACE=wlan0
     COUNTRY_CODE=EU
-    # shellcheck source=../lib/env.sh
-    . "$(dirname "$BATS_TEST_FILENAME")/../lib/env.sh"
+    # shellcheck source=../lib/core/env.sh
+    . "$(dirname "$BATS_TEST_FILENAME")/../lib/core/env.sh"
     env_resolve_config_env
-    # shellcheck source=../lib/radio.sh
-    . "$(dirname "$BATS_TEST_FILENAME")/../lib/radio.sh"
+    # shellcheck source=../lib/sys/radio.sh
+    . "$(dirname "$BATS_TEST_FILENAME")/../lib/sys/radio.sh"
 }
 
 @test "unset TX_POWER validates OK" {

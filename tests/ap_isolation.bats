@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-# Tests exercise ap_isolation_compute_line() from lib/ap_isolation.sh —
+# Tests exercise ap_isolation_compute_line() from lib/core/ap_isolation.sh —
 # the exact code used by wlanstart.sh (no duplicated logic).
 
 setup() {
@@ -8,7 +8,7 @@ setup() {
 }
 
 load_lib() {
-    . "${BATS_TEST_DIRNAME}/../lib/ap_isolation.sh"
+    . "${BATS_TEST_DIRNAME}/../lib/core/ap_isolation.sh"
 }
 
 @test "AP_ISOLATION not set produces no config line" {

@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-# Tests for env_resolve_config_env() in lib/env.sh - the single place where
+# Tests for env_resolve_config_env() in lib/core/env.sh - the single place where
 # environment defaults are applied (issue #237).
 
 setup() {
@@ -9,13 +9,13 @@ setup() {
                DHCP_LEASE SSID WPA_PASSPHRASE WPA_VERSION MAX_STATIONS ; do
         unset "${var}"
     done
-    # shellcheck source=../lib/env.sh
-    . "${BATS_TEST_DIRNAME}/../lib/env.sh"
+    # shellcheck source=../lib/core/env.sh
+    . "${BATS_TEST_DIRNAME}/../lib/core/env.sh"
 }
 
 @test "env_resolve_config_env applies all defaults when env is empty" {
     run bash -c '
-        . "'"${BATS_TEST_DIRNAME}"'/../lib/env.sh"
+        . "'"${BATS_TEST_DIRNAME}"'/../lib/core/env.sh"
         env_resolve_config_env 2>/dev/null
         printf "%s\n" "${HW_MODE}" "${CHANNEL}" "${COUNTRY_CODE}" \
             "${SUBNET}" "${AP_ADDR}" "${PRI_DNS}" "${SEC_DNS}" \
@@ -39,7 +39,7 @@ setup() {
 
 @test "env_resolve_config_env never overrides explicitly set variables" {
     run bash -c '
-        . "'"${BATS_TEST_DIRNAME}"'/../lib/env.sh"
+        . "'"${BATS_TEST_DIRNAME}"'/../lib/core/env.sh"
         export HW_MODE=a CHANNEL=36 COUNTRY_CODE=US SUBNET=10.0.0.0 AP_ADDR=10.0.0.1
         export PRI_DNS=1.1.1.1 SEC_DNS=1.0.0.1 DHCP_LEASE=24h SSID=myssid
         export WPA_PASSPHRASE=supersecret WPA_VERSION=3 MAX_STATIONS=16
@@ -81,21 +81,21 @@ setup() {
 # the module and calling it with an empty environment must fail loudly
 # rather than silently resolving defaults.
 @test "wpa_compute_conf without resolved env does not apply defaults" {
-    . "${BATS_TEST_DIRNAME}/../lib/wpa.sh"
+    . "${BATS_TEST_DIRNAME}/../lib/core/wpa.sh"
     unset WPA_VERSION
     run wpa_compute_conf
     [ "$status" -ne 0 ]
 }
 
 @test "stations_compute_max_sta_conf without MAX_STATIONS errors instead of defaulting" {
-    . "${BATS_TEST_DIRNAME}/../lib/stations.sh"
+    . "${BATS_TEST_DIRNAME}/../lib/core/stations.sh"
     unset MAX_STATIONS
     run stations_compute_max_sta_conf
     [ "$status" -ne 0 ]
 }
 
 @test "channel_validate with unresolved empty env fails loudly" {
-    . "${BATS_TEST_DIRNAME}/../lib/channel.sh"
+    . "${BATS_TEST_DIRNAME}/../lib/core/channel.sh"
     unset HW_MODE CHANNEL COUNTRY_CODE
     run channel_validate_strict
     [ "$status" -ne 0 ]

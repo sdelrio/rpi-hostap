@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 
 setup() {
-    . "${BATS_TEST_DIRNAME}/../lib/extra_opts.sh"
+    . "${BATS_TEST_DIRNAME}/../lib/core/extra_opts.sh"
     unset HOSTAPD_EXTRA_OPTS
 }
 
@@ -47,13 +47,13 @@ setup() {
     export MAX_STATIONS=0
     export HOSTAPD_EXTRA_OPTS=$'auth_algs=3\nbeacon_int=100'
     eval "$(sed -n '/^emit_hostapd_conf()/,/^}/p' "${BATS_TEST_DIRNAME}/../wlanstart.sh")"
-    . "${BATS_TEST_DIRNAME}/../lib/stations.sh"
-    . "${BATS_TEST_DIRNAME}/../lib/ctrl_interface.sh"
-    . "${BATS_TEST_DIRNAME}/../lib/wpa.sh"
-    . "${BATS_TEST_DIRNAME}/../lib/ssid_hidden.sh"
-    . "${BATS_TEST_DIRNAME}/../lib/mac_filter.sh"
-    . "${BATS_TEST_DIRNAME}/../lib/ap_isolation.sh"
-    . "${BATS_TEST_DIRNAME}/../lib/extra_opts.sh"
+    . "${BATS_TEST_DIRNAME}/../lib/core/stations.sh"
+    . "${BATS_TEST_DIRNAME}/../lib/core/ctrl_interface.sh"
+    . "${BATS_TEST_DIRNAME}/../lib/core/wpa.sh"
+    . "${BATS_TEST_DIRNAME}/../lib/core/ssid_hidden.sh"
+    . "${BATS_TEST_DIRNAME}/../lib/core/mac_filter.sh"
+    . "${BATS_TEST_DIRNAME}/../lib/core/ap_isolation.sh"
+    . "${BATS_TEST_DIRNAME}/../lib/core/extra_opts.sh"
     run emit_hostapd_conf
     [ "$status" -eq 0 ]
     [ "${#lines[@]}" -ge 2 ]
@@ -66,13 +66,13 @@ setup() {
     export HW_MODE=g CHANNEL=6 WPA_VERSION=2
     export MAX_STATIONS=0
     eval "$(sed -n '/^emit_hostapd_conf()/,/^}/p' "${BATS_TEST_DIRNAME}/../wlanstart.sh")"
-    . "${BATS_TEST_DIRNAME}/../lib/stations.sh"
-    . "${BATS_TEST_DIRNAME}/../lib/ctrl_interface.sh"
-    . "${BATS_TEST_DIRNAME}/../lib/wpa.sh"
-    . "${BATS_TEST_DIRNAME}/../lib/ssid_hidden.sh"
-    . "${BATS_TEST_DIRNAME}/../lib/mac_filter.sh"
-    . "${BATS_TEST_DIRNAME}/../lib/ap_isolation.sh"
-    . "${BATS_TEST_DIRNAME}/../lib/extra_opts.sh"
+    . "${BATS_TEST_DIRNAME}/../lib/core/stations.sh"
+    . "${BATS_TEST_DIRNAME}/../lib/core/ctrl_interface.sh"
+    . "${BATS_TEST_DIRNAME}/../lib/core/wpa.sh"
+    . "${BATS_TEST_DIRNAME}/../lib/core/ssid_hidden.sh"
+    . "${BATS_TEST_DIRNAME}/../lib/core/mac_filter.sh"
+    . "${BATS_TEST_DIRNAME}/../lib/core/ap_isolation.sh"
+    . "${BATS_TEST_DIRNAME}/../lib/core/extra_opts.sh"
     run emit_hostapd_conf
     [ "$status" -eq 0 ]
     ! grep -q 'auth_algs=' <<< "$output"

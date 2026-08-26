@@ -2,13 +2,13 @@
 
 # General-purpose leveled logging library (issue #177).
 #
-# Distinct from lib/logging.sh, which handles failure reporting for the
+# Distinct from lib/sys/logging.sh, which handles failure reporting for the
 # container entrypoint. This library provides a simple log() function with
 # severity levels, ANSI colors when attached to a terminal, a structured
 # output format and optional routing to a log file.
 #
 # Usage:
-#   source ./lib/log.sh
+#   source ./lib/sys/log.sh
 #   log info "service started"
 #   log fatal "unrecoverable error"   # exits non-zero
 #

@@ -1,16 +1,16 @@
 #!/usr/bin/env bats
 
-# Shared MAX_STATIONS logic from lib/stations.sh
+# Shared MAX_STATIONS logic from lib/core/stations.sh
 
 setup() {
     unset MAX_STATIONS
     unset _MAX_STA_CONF
-    # shellcheck source=../lib/env.sh
-    . "$(dirname "$BATS_TEST_FILENAME")/../lib/env.sh"
-    # Default MAX_STATIONS now applied centrally in lib/env.sh (issue #237)
+    # shellcheck source=../lib/core/env.sh
+    . "$(dirname "$BATS_TEST_FILENAME")/../lib/core/env.sh"
+    # Default MAX_STATIONS now applied centrally in lib/core/env.sh (issue #237)
     env_resolve_config_env
-    # shellcheck source=../lib/stations.sh
-    . "$(dirname "$BATS_TEST_FILENAME")/../lib/stations.sh"
+    # shellcheck source=../lib/core/stations.sh
+    . "$(dirname "$BATS_TEST_FILENAME")/../lib/core/stations.sh"
 }
 
 @test "default MAX_STATIONS=0 produces no config line" {

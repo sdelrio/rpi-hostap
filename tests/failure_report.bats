@@ -5,11 +5,11 @@
 SCRIPT="${BATS_TEST_DIRNAME}/../wlanstart.sh"
 
 load_logging() {
-    # shellcheck source=../lib/logging.sh
-    . "$(dirname "$BATS_TEST_FILENAME")/../lib/logging.sh"
+    # shellcheck source=../lib/sys/logging.sh
+    . "$(dirname "$BATS_TEST_FILENAME")/../lib/sys/logging.sh"
 }
 
-@test "logging_report_failure is defined after loading lib/logging.sh" {
+@test "logging_report_failure is defined after loading lib/sys/logging.sh" {
     load_logging
     [ "$(type -t logging_report_failure)" = "function" ]
 }
@@ -43,7 +43,7 @@ load_logging() {
 
 @test "logging_report_failure writes to stderr" {
     load_logging
-    run bash -c ". '${BATS_TEST_DIRNAME}/../lib/logging.sh'; logging_report_failure 1"
+    run bash -c ". '${BATS_TEST_DIRNAME}/../lib/sys/logging.sh'; logging_report_failure 1"
     [[ "$output" == *"[Error]"* ]]
 }
 
@@ -152,7 +152,7 @@ load_logging() {
     run env FAILURE_LOG_PATH="${dest}" bash -c "
 $(sed -n '/^_MULTIRUN_PID=\"\"$/p; /^_SIGNALED=0$/p' "${SCRIPT}")
 cleanup() { : ; }
-. '${BATS_TEST_DIRNAME}/../lib/logging.sh'
+. '${BATS_TEST_DIRNAME}/../lib/sys/logging.sh'
 _DAEMON_LOG=\$(mktemp)
 multirun() {
     echo '[hostapd] Could not configure driver mode'

@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-# Tests exercise ctrl_interface_compute_conf() from lib/ctrl_interface.sh —
+# Tests exercise ctrl_interface_compute_conf() from lib/core/ctrl_interface.sh —
 # the exact code used by wlanstart.sh (no duplicated logic).
 
 setup() {
@@ -9,7 +9,7 @@ setup() {
 }
 
 load_lib() {
-    . "${BATS_TEST_DIRNAME}/../lib/ctrl_interface.sh"
+    . "${BATS_TEST_DIRNAME}/../lib/core/ctrl_interface.sh"
 }
 
 @test "CTRL_INTERFACE not set produces no config line" {

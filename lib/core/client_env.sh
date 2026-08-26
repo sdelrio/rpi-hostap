@@ -1,5 +1,5 @@
 # shellcheck shell=bash
-# Shared env plumbing for scripts driving hostapd_cli (clients.sh,
+# Shared env plumbing for scripts driving hostapd control client (clients.sh,
 # healthcheck.sh). Issue #243: single implementation of INTERFACE /
 # CTRL_IFACE_DIR handling so behavior and error messages stay identical.
 

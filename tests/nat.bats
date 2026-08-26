@@ -2,8 +2,8 @@
 
 # Logic shared with wlanstart.sh
 REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/.." && pwd)"
-# shellcheck source=../lib/nat.sh
-. "${REPO_ROOT}/lib/nat.sh"
+# shellcheck source=../lib/sys/nat.sh
+. "${REPO_ROOT}/lib/sys/nat.sh"
 
 setup() {
     export INTERFACE="wlan0"
@@ -92,7 +92,7 @@ setup() {
     REPO_ROOT="$REPO_ROOT" LOG="$log" \
     run bash -c '
         iptables() { case "$*" in *"-D "*) echo "$*" >> "${LOG}" ;; esac ; }
-        . "${REPO_ROOT}/lib/nat.sh"
+        . "${REPO_ROOT}/lib/sys/nat.sh"
         nat_remove_rules
     '
     [ "$status" -eq 0 ]
@@ -116,7 +116,7 @@ setup() {
     REPO_ROOT="$REPO_ROOT" LOG="$log" \
     run bash -c '
         iptables() { case "$*" in *"-D "*) echo "$*" >> "${LOG}" ;; esac ; }
-        . "${REPO_ROOT}/lib/nat.sh"
+        . "${REPO_ROOT}/lib/sys/nat.sh"
         nat_remove_rules
     '
     [ "$status" -eq 0 ]
@@ -153,7 +153,7 @@ setup() {
     # fail regardless of privileges (CI may run as root).
     local missing="${BATS_TEST_TMPDIR}/no-such-proc"
     # shellcheck disable=SC2016
-    run bash -c ". '${REPO_ROOT}/lib/nat.sh'; SYSCTL_BASE='${missing}' nat_set_sysctls ip_dynaddr && SYSCTL_BASE='${dir}' nat_set_sysctls ip_forward 2>&1"
+    run bash -c ". '${REPO_ROOT}/lib/sys/nat.sh'; SYSCTL_BASE='${missing}' nat_set_sysctls ip_dynaddr && SYSCTL_BASE='${dir}' nat_set_sysctls ip_forward 2>&1"
     [ "$status" -eq 0 ]
     [[ "${output}" == *"[Warning] Cannot set ip_dynaddr"* ]]
     [ "$(cat "${dir}/ip_forward")" = "1" ]
@@ -183,7 +183,7 @@ setup() {
     echo "garbage" > "${dir}/ip_dynaddr"
     chmod 444 "${dir}/ip_dynaddr"
     # shellcheck disable=SC2016
-    run bash -c ". '${REPO_ROOT}/lib/nat.sh'; SYSCTL_BASE='${dir}' nat_set_sysctls ip_dynaddr 2>&1"
+    run bash -c ". '${REPO_ROOT}/lib/sys/nat.sh'; SYSCTL_BASE='${dir}' nat_set_sysctls ip_dynaddr 2>&1"
     [ "$status" -eq 0 ]
     [[ "${output}" == *"[Warning] Cannot set ip_dynaddr"* ]]
 }

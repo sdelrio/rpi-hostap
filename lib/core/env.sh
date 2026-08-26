@@ -12,7 +12,7 @@
 # their own defaults - they can assume env_resolve_config_env() has run.
 
 env_resolve_config_env() {
-    # Wireless hardware mode: b | g | a (see lib/channel.sh)
+    # Wireless hardware mode: b | g | a (see lib/core/channel.sh)
     : "${HW_MODE:=g}"
     # Channel; "acs" enables automatic channel selection
     : "${CHANNEL:=11}"
@@ -33,7 +33,7 @@ env_resolve_config_env() {
     # Access point credentials
     : "${SSID:=raspberry}"
     : "${WPA_PASSPHRASE:=passw0rd}"
-    # WPA version: 2 | 3 | mixed (see lib/wpa.sh)
+    # WPA version: 2 | 3 | mixed (see lib/core/wpa.sh)
     : "${WPA_VERSION:=2}"
     # Maximum associated stations; 0 means hostapd default (unlimited)
     : "${MAX_STATIONS:=0}"

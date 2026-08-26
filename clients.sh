@@ -9,8 +9,8 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck source=lib/client_env.sh
-source "${SCRIPT_DIR}/lib/client_env.sh"
+# shellcheck source=lib/core/client_env.sh
+source "${SCRIPT_DIR}/lib/core/client_env.sh"
 
 clients_show_usage() {
     echo "Usage: clients.sh [--json] [count] [deauth <mac>]" >&2

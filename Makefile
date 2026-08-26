@@ -35,9 +35,20 @@ else
   BUILDER = $(error Neither docker buildx nor podman found)
 endif
 
-.PHONY: all build test system-test taglatest prepare
+.PHONY: all build test system-test taglatest prepare layer-check
 
 all: build test
+
+# Enforce the lib/ layering rule (issue #240): lib/core/ modules are pure
+# and must not invoke system commands (iptables/ip/iw/sysctl/...) or touch
+# /proc; all system interaction belongs in lib/sys/.
+layer-check:
+	@if grep -rEn '(^|[^[:alnum:]_/-])(iptables|ip6tables|iw|sysctl|hostapd_cli|dnsmasq|ifconfig|tc|nft)([^[:alnum:]_-]|$$)|/proc/' lib/core/ ; then \
+		echo "FAIL: forbidden system command or /proc path in lib/core/" >&2 ; \
+		exit 1 ; \
+	else \
+		echo "OK: no forbidden commands in lib/core/" ; \
+	fi
 
 prepare:
 ifeq ($(OS),Darwin)
