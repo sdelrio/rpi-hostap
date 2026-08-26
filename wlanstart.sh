@@ -226,6 +226,8 @@ emit_dnsmasq_conf() {
 
     cat <<EOF
 interface=${INTERFACE}
+bind-dynamic
+dhcp-authoritative
 dhcp-range=${dhcp_range}
 dhcp-option=option:router,${AP_ADDR}
 dhcp-option=option:dns-server,${PRI_DNS},${SEC_DNS}
