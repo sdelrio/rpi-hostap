@@ -23,9 +23,14 @@ compute_dnsmasq_ipv6_conf() {
     echo "dhcp-range=::,constructor:${INTERFACE},ra-names,stateless"
 }
 
-# enable_ipv6_forwarding sets the forwarding sysctl via /proc.
+# enable_ipv6_forwarding sets the forwarding sysctl via /proc, tolerating
+# missing entries. IPV6_SYSCTL_BASE can be overridden in tests to point at
+# a stubbed procfs tree.
+IPV6_SYSCTL_BASE="${IPV6_SYSCTL_BASE:-/proc/sys/net/ipv6}"
+
 enable_ipv6_forwarding() {
-    echo 1 > /proc/sys/net/ipv6/conf/all/forwarding
+    echo 1 > "${IPV6_SYSCTL_BASE}/conf/all/forwarding" 2>/dev/null \
+        || echo "[Warning] Cannot set net.ipv6.conf.all.forwarding" >&2
 }
 
 # apply_ipv6_rules adds ip6tables FORWARD rules mirroring the IPv4 ones.
