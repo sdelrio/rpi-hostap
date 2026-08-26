@@ -19,6 +19,16 @@ clients_show_usage() {
     echo "Usage: clients.sh [--json] [count] [deauth <mac>] [leases [--json]]" >&2
 }
 
+# Fetch all_sta output from hostapd_cli; exit non-zero on failure.
+clients_fetch_all_sta() {
+    local out
+    out="$(hostapd_cli -p "${CTRL_IFACE_DIR}" -i "${INTERFACE}" all_sta)" || {
+        echo "[Error] hostapd_cli failed; is CTRL_INTERFACE enabled?" >&2
+        return 1
+    }
+    printf '%s' "${out}"
+}
+
 # Emit a JSON array of station objects parsed from hostapd_cli all_sta output.
 # Blocks start with the station MAC line, followed by key=value lines. Only a
 # fixed set of well-known fields (aid, signal, connected_time) are exposed as
@@ -31,7 +41,8 @@ clients_json_escape() {
 }
 
 clients_emit_json() {
-    local line key value in_obj=0 sep=""
+    local line key value in_obj=0 sep="" all_sta
+    all_sta="$(clients_fetch_all_sta)" || return 1
     printf '['
     while IFS= read -r line ; do
         if [[ -z "${line}" ]] ; then
@@ -53,7 +64,7 @@ clients_emit_json() {
                     ;;
             esac
         fi
-    done < <(hostapd_cli -p "${CTRL_IFACE_DIR}" -i "${INTERFACE}" all_sta)
+    done <<< "${all_sta}"
     [[ ${in_obj} -eq 1 ]] && printf '}'
     printf ']\n'
 }
@@ -104,8 +115,9 @@ clients_emit_leases_json() {
 # (same parsing pattern as clients_emit_json, which treats non-key=value lines as
 # station blocks starting with the MAC).
 clients_count_stations() {
-    hostapd_cli -p "${CTRL_IFACE_DIR}" -i "${INTERFACE}" all_sta \
-        | grep -cE '^([0-9a-fA-F]{2}:){5}' || true
+    local out
+    out="$(clients_fetch_all_sta)" || return 1
+    echo "${out}" | grep -cE '^([0-9a-fA-F]{2}:){5}' || true
 }
 
 client_env_require_interface

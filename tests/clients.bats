@@ -38,6 +38,34 @@ EOF
     [[ "$output" == *"stub hostapd_cli: -p ${CTRL_IFACE_DIR} -i wlan0 all_sta"* ]]
 }
 
+@test "--json exits non-zero when hostapd_cli fails (issue #281)" {
+    export INTERFACE=wlan0
+    mkdir -p "${BATS_TEST_TMPDIR}/hostapd"
+    export CTRL_IFACE_DIR="${BATS_TEST_TMPDIR}/hostapd"
+    cat > "${BATS_TEST_TMPDIR}/hostapd_cli" <<'EOF'
+#!/bin/bash
+exit 1
+EOF
+    chmod +x "${BATS_TEST_TMPDIR}/hostapd_cli"
+    run "${BATS_TEST_DIRNAME}/../clients.sh" --json
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"hostapd_cli failed"* ]]
+}
+
+@test "count exits non-zero when hostapd_cli fails (issue #281)" {
+    export INTERFACE=wlan0
+    mkdir -p "${BATS_TEST_TMPDIR}/hostapd"
+    export CTRL_IFACE_DIR="${BATS_TEST_TMPDIR}/hostapd"
+    cat > "${BATS_TEST_TMPDIR}/hostapd_cli" <<'EOF'
+#!/bin/bash
+exit 1
+EOF
+    chmod +x "${BATS_TEST_TMPDIR}/hostapd_cli"
+    run "${BATS_TEST_DIRNAME}/../clients.sh" count
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"hostapd_cli failed"* ]]
+}
+
 @test "INTERFACE unset fails before control interface check" {
     run "${BATS_TEST_DIRNAME}/../clients.sh"
     [ "$status" -eq 1 ]
