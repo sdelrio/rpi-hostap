@@ -67,8 +67,9 @@ sudo systemctl disable wpa_supplicant
 
 ```bash
 sudo ip link set wlan0 up
-sudo ip addr add 192.168.254.1/24 dev wlan0
 ```
+
+The container assigns `AP_ADDR` (default `192.168.254.1/24`) to the interface itself on startup; it is configurable via the `AP_ADDR` and `DHCP_RANGE` environment variables.
 
 2. Run the container:
 
