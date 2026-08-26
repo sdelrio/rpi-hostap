@@ -25,8 +25,9 @@ NOW="$(date +%s)"
 # When the start-time file is missing (or unreadable), skip the grace
 # period and proceed to the real daemon checks instead of treating the
 # container as freshly started forever (see issue #219).
-if [[ -r "${STARTED_FILE}" ]] && [[ "$(cat "${STARTED_FILE}" 2>/dev/null)" =~ ^-?[0-9]+$ ]]; then
-    STARTED="$(cat "${STARTED_FILE}")"
+STARTED_RAW="$(cat "${STARTED_FILE}" 2>/dev/null || true)"
+if [[ "${STARTED_RAW}" =~ ^-?[0-9]+$ ]]; then
+    STARTED="${STARTED_RAW}"
     # During start period, return success to give daemons time to initialize
     if (( NOW - STARTED < START_PERIOD )); then
         exit 0
