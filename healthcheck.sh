@@ -19,14 +19,14 @@ NOW="$(date +%s)"
 # When the start-time file is missing (or unreadable), skip the grace
 # period and proceed to the real daemon checks instead of treating the
 # container as freshly started forever (see issue #219).
-if [[ -r "${STARTED_FILE}" ]]; then
+if [[ -r "${STARTED_FILE}" ]] && [[ "$(cat "${STARTED_FILE}" 2>/dev/null)" =~ ^-?[0-9]+$ ]]; then
     STARTED="$(cat "${STARTED_FILE}")"
     # During start period, return success to give daemons time to initialize
     if (( NOW - STARTED < START_PERIOD )); then
         exit 0
     fi
 else
-    echo "[Warning] ${STARTED_FILE} missing; skipping grace period" >&2
+    echo "[Warning] ${STARTED_FILE} missing or invalid; skipping grace period" >&2
 fi
 
 # Check if hostapd is running

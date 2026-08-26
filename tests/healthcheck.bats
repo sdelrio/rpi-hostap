@@ -45,7 +45,16 @@ EOF
     run ./healthcheck.sh
     [ "$status" -eq 1 ]
     [[ "$output" == *"hostapd is not running"* ]]
-    [[ "$output" == *"[Warning] ${HEALTHCHECK_STARTED_FILE} missing; skipping grace period"* ]]
+    [[ "$output" == *"[Warning] ${HEALTHCHECK_STARTED_FILE} missing or invalid; skipping grace period"* ]]
+}
+
+@test "healthcheck proceeds to daemon checks when started-time file is corrupt (#219)" {
+    printf 'garbage' > "$HEALTHCHECK_STARTED_FILE"
+    mock_bin pidof 'exit 1'
+    run ./healthcheck.sh
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"hostapd is not running"* ]]
+    [[ "$output" == *"[Warning] ${HEALTHCHECK_STARTED_FILE} missing or invalid; skipping grace period"* ]]
 }
 
 @test "healthcheck succeeds when daemons run despite missing started-time file (#219)" {
@@ -55,7 +64,7 @@ EOF
     mock_bin ip 'if [ "$1" = "link" ]; then echo "state UP"; fi; exit 0'
     run ./healthcheck.sh
     [ "$status" -eq 0 ]
-    [[ "$output" == *"missing; skipping grace period"* ]]
+    [[ "$output" == *"missing or invalid; skipping grace period"* ]]
 }
 
 @test "healthcheck still honors grace period when started file is fresh" {
