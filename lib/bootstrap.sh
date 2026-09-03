@@ -23,6 +23,8 @@ if ! declare -F require_module > /dev/null 2>&1 ; then
     # space-separated list of modules that must be loaded first.
     # shellcheck disable=SC2034  # read dynamically via ${!deps_var}
     MODULE_DEPENDENCIES_ipv6="nat"
+    MODULE_DEPENDENCIES_channel="case"
+    MODULE_DEPENDENCIES_lifecycle="case"
 
     # Config emission modules (issue #238) pull their compute helpers
     # transitively via the loader.

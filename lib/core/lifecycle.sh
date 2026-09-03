@@ -33,9 +33,12 @@ PHASE_TEARDOWN=()
 
 _TEARDOWN_DONE=0
 
+# shellcheck source=lib/core/case.sh
+. "$(dirname "${BASH_SOURCE[0]}")/case.sh"
+
 # _lifecycle_upper_phase prints the given phase name uppercased.
 _lifecycle_upper_phase() {
-    printf '%s' "$1" | tr '[:lower:]' '[:upper:]'
+    case_to_upper "$1"
 }
 
 # lifecycle_register adds a hook function to the named phase

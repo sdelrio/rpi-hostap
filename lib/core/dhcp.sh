@@ -103,7 +103,8 @@ dhcp_compute_range() {
         echo "[Warning] DHCP_RANGE not set, using default: $DHCP_RANGE" >&2
     else
         local COMMA_COUNT
-        COMMA_COUNT=$(echo "${DHCP_RANGE}" | tr -cd ',' | wc -c)
+        local _stripped="${DHCP_RANGE//[^,]/}"
+        COMMA_COUNT=${#_stripped}
         if [ "${COMMA_COUNT}" -ne 3 ] ; then
             echo "[Error] Invalid DHCP_RANGE format: '${DHCP_RANGE}'" >&2
             echo "  Expected: start_ip,end_ip,netmask,lease_time" >&2

@@ -1,6 +1,9 @@
 # shellcheck shell=bash
 # Shared channel/hw_mode/country validation logic used by wlanstart.sh and tests.
-#
+
+# shellcheck source=lib/core/case.sh
+. "$(dirname "${BASH_SOURCE[0]}")/case.sh"
+
 # channel_validate reads HW_MODE, CHANNEL and COUNTRY_CODE from the
 # environment (defaults applied centrally by lib/core/env.sh, see issue
 # #237) and returns non-zero when the channel is not allowed.
@@ -8,8 +11,8 @@
 channel_validate() {
     # Normalize case so lowercase country codes and uppercase hw_mode
     # values are validated correctly instead of falling through (issue #222).
-    COUNTRY_CODE="$(printf '%s' "${COUNTRY_CODE:-}" | tr '[:lower:]' '[:upper:]')"
-    HW_MODE="$(printf '%s' "${HW_MODE:-}" | tr '[:upper:]' '[:lower:]')"
+    COUNTRY_CODE="$(case_to_upper "${COUNTRY_CODE:-}")"
+    HW_MODE="$(case_to_lower "${HW_MODE:-}")"
 
     # Automatic channel selection: skip numeric checks, driver decides.
     case "${HW_MODE}:${CHANNEL}" in
@@ -90,7 +93,7 @@ channel_validate() {
 # VHT (802.11ac) requires 5 GHz operation.
 # Reads VHT_ENABLED and HW_MODE from the environment.
 channel_validate_vht() {
-    HW_MODE="$(printf '%s' "${HW_MODE:-}" | tr '[:upper:]' '[:lower:]')"
+    HW_MODE="$(case_to_lower "${HW_MODE:-}")"
     if [ -n "${VHT_ENABLED:-}" ] && [ "${HW_MODE}" != "a" ] ; then
         echo "[Error] VHT_ENABLED requires HW_MODE=a (5 GHz)." >&2
         return 1
@@ -101,7 +104,7 @@ channel_validate_vht() {
 # HE (802.11ax) requires 5 GHz operation, same band rules as VHT.
 # Reads HE_ENABLED and HW_MODE from the environment.
 channel_validate_he() {
-    HW_MODE="$(printf '%s' "${HW_MODE:-}" | tr '[:upper:]' '[:lower:]')"
+    HW_MODE="$(case_to_lower "${HW_MODE:-}")"
     if [ -n "${HE_ENABLED:-}" ] && [ "${HW_MODE}" != "a" ] ; then
         echo "[Error] HE_ENABLED requires HW_MODE=a (5 GHz)." >&2
         return 1
