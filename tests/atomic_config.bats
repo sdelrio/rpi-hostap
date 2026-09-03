@@ -39,6 +39,19 @@ load_emit_fns() {
     [ "$(cat "${target}")" = "OLD-CONFIG" ]
 }
 
+@test "failed emit leaves no orphaned temp files in target directory" {
+    . "$LIB_DIR/sys/atomic.sh"
+    local_dir=$(mktemp -d)
+    local_target="${local_dir}/hostapd.conf"
+    printf 'OLD-CONFIG\n' > "${local_target}"
+    bad_emit() { return 1; }
+    run atomic_write_config bad_emit "${local_target}"
+    [ "$status" -ne 0 ]
+    [ "$(cat "${local_target}")" = "OLD-CONFIG" ]
+    [ "$(ls -A "${local_dir}" | sort | tr '\n' ' ')" = "hostapd.conf " ]
+    rm -rf "${local_dir}"
+}
+
 @test "successful generation replaces the target content atomically" {
     . "$LIB_DIR/sys/atomic.sh"
     # use a representative emitter to verify the atomic replace path.

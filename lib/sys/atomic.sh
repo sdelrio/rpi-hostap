@@ -18,7 +18,7 @@
 atomic_write_config() {
     local emit_fn=$1
     local target=$2
-    local tmp dir mode=644
+    local tmp dir mode=644 _cleanup_done=0
     dir=$(dirname -- "${target}")
     # Match the permissions of the existing config if there is one,
     # otherwise fall back to a sane world-readable default (mktemp
@@ -27,13 +27,13 @@ atomic_write_config() {
         mode=$(stat -c '%a' "${target}" 2>/dev/null || stat -f '%Lp' "${target}")
     fi
     tmp=$(mktemp "${dir}/.$(basename -- "${target}").XXXXXX") || return 1
+    trap 'if [ "${_cleanup_done}" -eq 0 ] && [ -f "${tmp}" ]; then rm -f "${tmp}"; fi' RETURN
     if ! "${emit_fn}" > "${tmp}" ; then
-        rm -f "${tmp}"
         return 1
     fi
     chmod "${mode}" "${tmp}"
     if ! mv -f "${tmp}" "${target}" ; then
-        rm -f "${tmp}"
         return 1
     fi
+    _cleanup_done=1
 }
