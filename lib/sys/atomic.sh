@@ -27,11 +27,11 @@ atomic_write_config() {
         mode=$(stat -c '%a' "${target}" 2>/dev/null || stat -f '%Lp' "${target}")
     fi
     tmp=$(mktemp "${dir}/.$(basename -- "${target}").XXXXXX") || return 1
-    trap 'if [ "${_cleanup_done}" -eq 0 ] && [ -f "${tmp}" ]; then rm -f "${tmp}"; fi' RETURN
+    trap 'if [ "${_cleanup_done}" -eq 0 ] ; then rm -f "${tmp}" ; fi' RETURN
     if ! "${emit_fn}" > "${tmp}" ; then
         return 1
     fi
-    chmod "${mode}" "${tmp}"
+    chmod "${mode}" "${tmp}" || return 1
     if ! mv -f "${tmp}" "${target}" ; then
         return 1
     fi
