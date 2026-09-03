@@ -7,9 +7,10 @@
 # characters (which could inject hostapd.conf directives). Messages go to
 # stderr.
 passphrase_validate() {
-    local len=${#WPA_PASSPHRASE}
-    # Pin the locale so the [[:cntrl:]] class behaves consistently.
+    # Pin the locale so the length count and [[:cntrl:]] class behave
+    # consistently (WPA counts bytes, not characters).
     local LC_ALL=C
+    local len=${#WPA_PASSPHRASE}
     if [ "${len}" -lt 8 ] || [ "${len}" -gt 63 ] ; then
         echo "[Error] Invalid WPA_PASSPHRASE: must be 8-63 characters (got ${len})." >&2
         return 1
