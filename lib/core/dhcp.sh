@@ -155,7 +155,7 @@ dhcp_compute_range() {
             return 1
         fi
         if [ -n "${SUBNET:-}" ] && validation_check_ipv4 "${SUBNET}" ; then
-            local subnet_int addr masked mask_int
+            local subnet_int addr masked mask_int m1 m2 m3 m4
             subnet_int=$(dhcp_ip_to_int "${SUBNET}")
             IFS=. read -r m1 m2 m3 m4 <<<"${netmask}"
             mask_int=$(( (m1 << 24) | (m2 << 16) | (m3 << 8) | m4 ))
