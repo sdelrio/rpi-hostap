@@ -35,7 +35,20 @@ _TEARDOWN_DONE=0
 
 # _lifecycle_upper_phase prints the given phase name uppercased.
 _lifecycle_upper_phase() {
-    printf '%s' "$1" | tr '[:lower:]' '[:upper:]'
+    local _result='' _i _ch
+    for (( _i=0; _i<${#1}; _i++ )); do
+        _ch="${1:_i:1}"
+        case "${_ch}" in
+            a) _ch=A ;; b) _ch=B ;; c) _ch=C ;; d) _ch=D ;; e) _ch=E ;;
+            f) _ch=F ;; g) _ch=G ;; h) _ch=H ;; i) _ch=I ;; j) _ch=J ;;
+            k) _ch=K ;; l) _ch=L ;; m) _ch=M ;; n) _ch=N ;; o) _ch=O ;;
+            p) _ch=P ;; q) _ch=Q ;; r) _ch=R ;; s) _ch=S ;; t) _ch=T ;;
+            u) _ch=U ;; v) _ch=V ;; w) _ch=W ;; x) _ch=X ;; y) _ch=Y ;;
+            z) _ch=Z ;;
+        esac
+        _result+="${_ch}"
+    done
+    printf '%s' "${_result}"
 }
 
 # lifecycle_register adds a hook function to the named phase

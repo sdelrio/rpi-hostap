@@ -17,14 +17,13 @@ dnsmasq_conf_emit() {
         ipv6_conf=$(ipv6_compute_dnsmasq_conf)
     fi
 
-    cat <<EOF
-interface=${INTERFACE}
-bind-dynamic
-dhcp-authoritative
-dhcp-leasefile=${DHCP_LEASE_FILE:-/tmp/dnsmasq.leases}
-dhcp-range=${dhcp_range}
-dhcp-option=option:router,${AP_ADDR}
-dhcp-option=option:dns-server,${PRI_DNS},${SEC_DNS}
-${ipv6_conf}
-EOF
+    printf '%s\n' \
+        "interface=${INTERFACE}" \
+        "bind-dynamic" \
+        "dhcp-authoritative" \
+        "dhcp-leasefile=${DHCP_LEASE_FILE:-/tmp/dnsmasq.leases}" \
+        "dhcp-range=${dhcp_range}" \
+        "dhcp-option=option:router,${AP_ADDR}" \
+        "dhcp-option=option:dns-server,${PRI_DNS},${SEC_DNS}" \
+        "${ipv6_conf}"
 }

@@ -23,5 +23,7 @@ secret_file_load() {
         return 1
     fi
 
-    printf -v "${var}" '%s' "$(head -n1 "${f}")"
+    local _secret_line
+    IFS= read -r _secret_line < "${f}"
+    printf -v "${var}" '%s' "${_secret_line}"
 }
