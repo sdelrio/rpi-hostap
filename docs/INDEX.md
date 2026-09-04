@@ -31,6 +31,7 @@ Lightweight Docker container that turns a Raspberry Pi into a wireless Access Po
 | Fix a container that exits immediately | - | [Troubleshooting](troubleshooting.md#container-exits-immediately) |
 | Diagnose missing IPv6 connectivity on clients | `IPV6` | [IPv6 troubleshooting](troubleshooting.md#ipv6-no-connectivity-or-only-link-local-addresses) |
 | Understand why the container is `unhealthy` | `HEALTHCHECK_START_PERIOD`, `HEALTHCHECK_DEEP` | [Health Check](healthcheck.md) |
+| Preserve crash logs for debugging | `FAILURE_LOG_DIR`, `FAILURE_LOG_KEEP`, `FAILURE_LOG_PATH` | [Preserved failure logs](troubleshooting.md#preserved-failure-logs) |
 
 ## Contents
 
