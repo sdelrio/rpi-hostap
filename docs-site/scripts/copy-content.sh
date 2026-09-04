@@ -8,14 +8,28 @@ CONTENT_DIR="$(cd "$(dirname "$0")/.." && pwd)/src/content/docs"
 rm -rf "$CONTENT_DIR"
 mkdir -p "$CONTENT_DIR"
 
-# Copy docs/ files (rename CI.md -> ci.md for lowercase URLs)
+# Extract title from first heading in markdown file
+extract_title() {
+  local file="$1"
+  # Get first line starting with # and strip the heading markers and leading/trailing spaces
+  grep -m1 '^# ' "$file" | sed 's/^# //' | sed 's/^[[:space:]]*//' | sed 's/[[:space:]]*$//'
+}
+
+# Copy docs/ files with frontmatter (rename CI.md -> ci.md for lowercase URLs)
 shopt -s nullglob
 for f in "$REPO_ROOT"/docs/*.md; do
   name="$(basename "$f")"
   if [ "$name" = "CI.md" ]; then
     name="ci.md"
   fi
-  cp "$f" "$CONTENT_DIR/$name"
+  title="$(extract_title "$f")"
+  {
+    echo "---"
+    echo "title: \"$title\""
+    echo "---"
+    echo ""
+    cat "$f"
+  } > "$CONTENT_DIR/$name"
 done
 shopt -u nullglob
 
@@ -27,7 +41,14 @@ for src_name in "${ROOT_FILES[@]}"; do
     continue
   fi
   name="${src_name%.md}"
-  cp "$REPO_ROOT/$src_name" "$CONTENT_DIR/${name}.mdx"
+  title="$(extract_title "$REPO_ROOT/$src_name")"
+  {
+    echo "---"
+    echo "title: \"$title\""
+    echo "---"
+    echo ""
+    cat "$REPO_ROOT/$src_name"
+  } > "$CONTENT_DIR/${name}.mdx"
 done
 
 echo "Copied content files to $CONTENT_DIR"

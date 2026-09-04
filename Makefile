@@ -35,7 +35,7 @@ else
   BUILDER = $(error Neither docker buildx nor podman found)
 endif
 
-.PHONY: all build test system-test taglatest prepare layer-check
+.PHONY: all build test system-test taglatest prepare layer-check docs-build docs-dev
 
 all: build test
 
@@ -87,6 +87,12 @@ build-multiarch-push-latest:
 		--tag $(IMGNAME):latest \
 		--push \
 		.
+
+docs-build:
+	cd docs-site && npm ci && npm run build
+
+docs-dev:
+	cd docs-site && npm run dev
 
 test:
 	@sudo $(IF_DOWN)
