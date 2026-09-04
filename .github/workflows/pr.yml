@@ -67,6 +67,16 @@ jobs:
       - name: Build and validate docs
         run: make docs-check
 
+  docs-links:
+    runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.docs == 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Check markdown links
+        run: make docs-links
+
   test:
     runs-on: ubuntu-latest
     needs: changes
