@@ -35,7 +35,7 @@ else
   BUILDER = $(error Neither docker buildx nor podman found)
 endif
 
-.PHONY: all build test system-test taglatest prepare layer-check docs-build docs-dev
+.PHONY: all build test system-test taglatest prepare layer-check docs-build docs-dev docs-clean
 
 all: build test
 
@@ -93,6 +93,9 @@ docs-build:
 
 docs-dev:
 	cd docs-site && npm run dev
+
+docs-clean:
+	rm -rf docs-site/dist docs-site/.astro docs-site/src/content/docs
 
 test:
 	@sudo $(IF_DOWN)
