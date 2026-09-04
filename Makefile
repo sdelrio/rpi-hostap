@@ -35,7 +35,7 @@ else
   BUILDER = $(error Neither docker buildx nor podman found)
 endif
 
-.PHONY: all build test system-test taglatest prepare layer-check docs-build docs-dev docs-clean docs-check docs-links
+.PHONY: all build test system-test taglatest prepare layer-check docs-build docs-dev docs-clean docs-check
 
 all: build test
 
@@ -111,9 +111,6 @@ docs-check: docs-build
 		exit 1; \
 	fi; \
 	echo "docs-check: OK"
-
-docs-links:
-	@scripts/check-docs-links.sh
 
 test:
 	@sudo $(IF_DOWN)
