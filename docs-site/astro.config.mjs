@@ -1,5 +1,6 @@
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
+import starlightLinksValidator from 'starlight-links-validator';
 
 const SITE_URL = 'https://sdelrio.github.io';
 const BASE_PATH = '/rpi-hostap';
@@ -16,6 +17,9 @@ export default defineConfig({
       },
       social: [
         { icon: 'github', label: 'GitHub', href: 'https://github.com/sdelrio/rpi-hostap' },
+      ],
+      plugins: [
+        starlightLinksValidator(),
       ],
       sidebar: [
         { label: 'Home', link: '/readme' },
