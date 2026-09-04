@@ -15,6 +15,13 @@ extract_title() {
   grep -m1 '^# ' "$file" | sed 's/^# //' | sed 's/^[[:space:]]*//' | sed 's/[[:space:]]*$//'
 }
 
+# Strip the first heading line (and trailing blank line) from a file.
+# Starlight renders the frontmatter title as <h1>, so keeping the
+# markdown heading causes a duplicated title on every page.
+strip_title_heading() {
+  sed '1{/^# /d;}' | sed '1{/^$/d;}'
+}
+
 # Copy docs/ files with frontmatter (rename CI.md -> ci.md for lowercase URLs)
 shopt -s nullglob
 for f in "$REPO_ROOT"/docs/*.md; do
@@ -28,7 +35,7 @@ for f in "$REPO_ROOT"/docs/*.md; do
     echo "title: \"$title\""
     echo "---"
     echo ""
-    cat "$f"
+    cat "$f" | strip_title_heading
   } > "$CONTENT_DIR/$name"
 done
 shopt -u nullglob
@@ -48,7 +55,7 @@ for src_name in "${ROOT_FILES[@]}"; do
     echo "title: \"$title\""
     echo "---"
     echo ""
-    cat "$REPO_ROOT/$src_name"
+    cat "$REPO_ROOT/$src_name" | strip_title_heading
   } > "$CONTENT_DIR/${name}.mdx"
 done
 
@@ -60,7 +67,7 @@ if [[ -f "$REPO_ROOT/CHANGELOG.md" ]]; then
     echo "title: \"$title\""
     echo "---"
     echo ""
-    cat "$REPO_ROOT/CHANGELOG.md"
+    cat "$REPO_ROOT/CHANGELOG.md" | strip_title_heading
   } > "$CONTENT_DIR/changelog.md"
 fi
 
