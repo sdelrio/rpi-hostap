@@ -1,2 +1,8 @@
 /tmp/
 node_modules/
+
+# docs-site build artifacts
+docs-site/.astro/
+docs-site/dist/
+docs-site/.env
+docs-site/.env.*
