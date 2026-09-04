@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.41.1](https://github.com/sdelrio/rpi-hostap/compare/v0.41.0...v0.41.1) (2026-09-04)
+
+
+### 🩹 Fixes
+
+* **atomic:** clean up temp files on failure via trap ([#323](https://github.com/sdelrio/rpi-hostap/issues/323)) ([da2507d](https://github.com/sdelrio/rpi-hostap/commit/da2507de1065a86d4004be8dcccc7ee712132155))
+* **core:** replace external commands with pure bash ([#325](https://github.com/sdelrio/rpi-hostap/issues/325)) ([f6562ab](https://github.com/sdelrio/rpi-hostap/commit/f6562ab928c8d9ae36b496bedd3ab8c04f0bc752))
+* **dhcp:** declare local variables in explicit DHCP_RANGE path ([#326](https://github.com/sdelrio/rpi-hostap/issues/326)) ([cc9123e](https://github.com/sdelrio/rpi-hostap/commit/cc9123e2a692dcb3f47271d0455fc2cdb9e23505))
+* **passphrase:** compute length after locale pin ([#327](https://github.com/sdelrio/rpi-hostap/issues/327)) ([4c0fa2e](https://github.com/sdelrio/rpi-hostap/commit/4c0fa2ef88fb00fc5df19693540a84720c28b5df))
+
+
+### ♻️ Code Refactoring
+
+* **radio:** remove unreachable empty-string case branch ([#335](https://github.com/sdelrio/rpi-hostap/issues/335)) ([91c7227](https://github.com/sdelrio/rpi-hostap/commit/91c72273fc83bdc778dd6b6f821fa4e94e78d329)), closes [#313](https://github.com/sdelrio/rpi-hostap/issues/313)
+
 ## [0.41.0](https://github.com/sdelrio/rpi-hostap/compare/v0.40.0...v0.41.0) (2026-08-26)
 
 
