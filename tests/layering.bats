@@ -11,7 +11,8 @@ setup() {
 # Forbidden patterns in lib/core/: system/network commands and /proc access.
 # Note the word-boundary on "ip" so it does not match variables like
 # DHCP_PREFIX or comments mentioning "ipv4".
-FORBIDDEN='(^|[^[:alnum:]_/-])(iptables|ip6tables|iw|sysctl|hostapd_cli|dnsmasq|ifconfig|tc|nft|head|tail|cat|tr|wc|grep|sed|awk|sort|uniq|cut|find|xargs)([^[:alnum:]_-]|$)|/proc/'
+FORBIDDEN='(^|[^[:alnum:]_/-])(iptables|ip6tables|iw|sysctl|hostapd_cli|dnsmasq|ifconfig|tc|nft|head|tail|cat|tr|wc|grep|sed|awk|sort|uniq|cut|find|xargs|cp|mv|rm|chmod|chown|mkdir|stat|touch|date|basename)([^[:alnum:]_-]|$)|/proc/'
+# Safe bash builtins (not blocked): echo, printf, read, true, false, return, test/[, command -v
 
 @test "lib/core exists with at least one module" {
     [ -d "$ROOT/lib/core" ]
