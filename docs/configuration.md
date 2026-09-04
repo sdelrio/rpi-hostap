@@ -278,6 +278,39 @@ For 5 GHz (`hw_mode=a`), channels are validated against the allowed 5 GHz set:
 
 See also: [DFS CAC wait times](healthcheck.md#deep-healthcheck-optional) affect the healthcheck grace period on radar channels, and [dry-run validation](validation.md#dry-run-validation---validate) checks your chosen channel against these limits without touching the system.
 
+## Driver Override
+
+By default, hostapd uses the `nl80211` driver interface, which works with most modern WiFi adapters. Some adapters (particularly older Realtek chipsets) require a different driver.
+
+### When to use `DRIVER`
+
+Use the `DRIVER` environment variable when:
+
+- Your adapter requires a non-standard hostapd driver (e.g., `rtl871xdrv` for some Realtek adapters)
+- You see errors like "Could not connect to kernel driver" or "nl80211 driver initialization failed"
+
+### Checking your adapter's driver
+
+Run `iw list` on the host to see supported interfaces. Look for the `Supported interface modes` section. If your adapter supports `AP` mode under `nl80211`, you don't need a driver override.
+
+If you're unsure, check your adapter's documentation or search for your specific chipset model with "hostapd driver" to see what others have used.
+
+### Example
+
+```bash
+docker run ... \
+  -e DRIVER=rtl871xdrv \
+  ...
+```
+
+### Default behavior
+
+When `DRIVER` is unset, hostapd uses the default `nl80211` driver. This is the recommended configuration for most users.
+
+### Error handling
+
+If you set an invalid driver name, hostapd will fail with a clear error message in `docker logs`. The container will exit immediately rather than running in a broken state.
+
 ---
 
 _Last updated: 2026-08-24_
