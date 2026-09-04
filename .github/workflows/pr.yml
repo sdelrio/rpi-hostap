@@ -19,6 +19,7 @@ jobs:
       dockerfile: ${{ steps.filter.outputs.dockerfile }}
       tests: ${{ steps.filter.outputs.tests }}
       workflow: ${{ steps.filter.outputs.workflow }}
+      docs: ${{ steps.filter.outputs.docs }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
@@ -36,6 +37,9 @@ jobs:
               - 'tests/**'
             workflow:
               - '.github/workflows/pr.yml'
+            docs:
+              - 'docs/**'
+              - 'docs-site/**'
 
   pr-title:
     runs-on: ubuntu-latest
@@ -46,6 +50,22 @@ jobs:
         uses: amannn/action-semantic-pull-request@48f256284bd46cdaab1048c3721360e808335d50 # v6.1.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  docs-check:
+    runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.docs == 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: docs-site/package-lock.json
+      - name: Build and validate docs
+        run: make docs-check
 
   test:
     runs-on: ubuntu-latest
