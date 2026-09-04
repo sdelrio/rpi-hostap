@@ -1,3 +1,12 @@
+# GitHub Pages automatically detects any workflow in .github/workflows/ that:
+# 1. Uses the actions/deploy-pages action
+# 2. Has pages: write permission
+# 3. Has id-token: write permission
+#
+# When build_type=workflow is set (via gh api -X PUT repos/{owner}/{repo}/pages -f build_type=workflow),
+# GitHub scans for workflows matching these criteria and triggers them on push events.
+# The workflow name doesn't matter - only the presence of deploy-pages with correct permissions.
+
 name: Deploy GitHub Pages
 
 on:
