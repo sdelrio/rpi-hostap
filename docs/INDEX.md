@@ -23,7 +23,7 @@ Lightweight Docker container that turns a Raspberry Pi into a wireless Access Po
 | List connected clients | `CTRL_INTERFACE=1` + `clients.sh` | [Client inspection](operations.md#client-inspection-optional) |
 | Count connected clients | `CTRL_INTERFACE=1` + `clients.sh count` | [Client inspection](operations.md#client-inspection-optional) |
 | Show DHCP leases | `CTRL_INTERFACE=1` + `clients.sh leases` | [DHCP leases](operations.md#dhcp-leases) |
-| Disconnect a client | `CTRL_INTERFACE=1` + `clients.sh deauth <mac>` | [Client inspection](operations.md#client-inspection-optional) |
+| Disconnect a client | `CTRL_INTERFACE=1` + `clients.sh deauth <mac-address>` | [Client inspection](operations.md#client-inspection-optional) |
 | Verify the AP is actually beaconing | `HEALTHCHECK_DEEP=1` | [Deep healthcheck](healthcheck.md#deep-healthcheck-optional) |
 | Give a DFS channel time to start (CAC wait) | `HEALTHCHECK_START_PERIOD` | [Deep healthcheck: DFS channels](healthcheck.md#deep-healthcheck-optional) |
 | Test my configuration without touching the system | `--validate` flag | [Dry-run validation](validation.md#dry-run-validation---validate) |
