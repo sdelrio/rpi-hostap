@@ -35,7 +35,7 @@ else
   BUILDER = $(error Neither docker buildx nor podman found)
 endif
 
-.PHONY: all build test system-test taglatest prepare layer-check docs-build docs-dev docs-clean
+.PHONY: all build test system-test taglatest prepare layer-check docs-build docs-dev docs-clean docs-check
 
 all: build test
 
@@ -96,6 +96,21 @@ docs-dev:
 
 docs-clean:
 	rm -rf docs-site/dist docs-site/.astro docs-site/src/content/docs
+
+docs-check: docs-build
+	@fail=0; \
+	for f in $$(find docs-site/dist -name '*.html'); do \
+		count=$$(grep -c '<h1' "$$f" || true); \
+		if [ "$$count" -ne 1 ]; then \
+			echo "FAIL: $$f has $$count <h1> tags (expected 1)" >&2; \
+			fail=1; \
+		fi; \
+	done; \
+	if [ "$$fail" -ne 0 ]; then \
+		echo "docs-check: FAILED" >&2; \
+		exit 1; \
+	fi; \
+	echo "docs-check: OK"
 
 test:
 	@sudo $(IF_DOWN)
