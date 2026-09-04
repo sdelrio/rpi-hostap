@@ -45,11 +45,22 @@ if ! declare -F require_module > /dev/null 2>&1 ; then
         local m=$1
         local loaded_var="_LOADED_${m}"
         [ -n "${!loaded_var:-}" ] && return 0
+
+        local resolving_var="_RESOLVING_${m}"
+        if [ -n "${!resolving_var:-}" ] ; then
+            echo "[Error] Circular dependency detected: ${m}" >&2
+            return 1
+        fi
+        eval "${resolving_var}=1"
+
         local deps_var="MODULE_DEPENDENCIES_${m}"
         local dep
         for dep in ${!deps_var:-} ; do
             require_module "$dep"
         done
+
+        eval "${resolving_var}="
+
         local layer=core
         [ -f "${LIB_BOOTSTRAP_DIR}/sys/${m}.sh" ] && layer=sys
         # shellcheck disable=SC1090

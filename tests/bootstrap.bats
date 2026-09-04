@@ -66,3 +66,33 @@ setup() {
     '
     [ "$status" -eq 0 ]
 }
+
+@test "circular dependency detection produces error and non-zero exit" {
+    run bash -c '
+        set -euo pipefail
+        . "'"${LIB}"'/bootstrap.sh"
+        MODULE_DEPENDENCIES_circ_a="circ_b"
+        MODULE_DEPENDENCIES_circ_b="circ_a"
+        # Create stub module files so the loader does not fail on missing files
+        mkdir -p "'"${LIB}"'/core"
+        echo "# stub" > "'"${LIB}"'/core/circ_a.sh"
+        echo "# stub" > "'"${LIB}"'/core/circ_b.sh"
+        require_module circ_a
+    '
+    [ "$status" -ne 0 ]
+    [[ "$output" == *"Circular dependency detected"* ]]
+    # Cleanup stubs
+    rm -f "${LIB}/core/circ_a.sh" "${LIB}/core/circ_b.sh"
+}
+
+@test "existing module loading still works (no false positives from resolving guard)" {
+    run bash -c '
+        set -euo pipefail
+        . "'"${LIB}"'/bootstrap.sh"
+        require_module validation nat ipv6
+        declare -F validation_check_ipv4_param > /dev/null
+        declare -F nat_apply_rules > /dev/null
+        declare -F ipv6_compute_dnsmasq_conf > /dev/null
+    '
+    [ "$status" -eq 0 ]
+}
