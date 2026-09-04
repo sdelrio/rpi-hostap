@@ -13,7 +13,7 @@ radio_validate_tx_power() {
     [ -z "${TX_POWER:-}" ] && return 0
     case "${TX_POWER}" in
         auto) return 0 ;;
-        ""|*[!0-9]*)
+        *[!0-9]*)
             echo "[Error] Invalid TX_POWER '${TX_POWER}'. Must be 'auto' or an integer power in dBm." >&2
             return 1
             ;;
