@@ -1,24 +1,25 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
-DOCS_DIR="${REPO_ROOT}/docs"
-CONTENT_DIR="${SCRIPT_DIR}/../src/content/docs"
+REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+CONTENT_DIR="$(cd "$(dirname "$0")/.." && pwd)/src/content/docs"
 
-mkdir -p "${CONTENT_DIR}"
+# Clean and recreate content directory
+rm -rf "$CONTENT_DIR"
+mkdir -p "$CONTENT_DIR"
 
-if [ ! -d "${DOCS_DIR}" ]; then
-  echo "Warning: ${DOCS_DIR} does not exist, skipping content copy" >&2
-  exit 0
-fi
-
-find "${DOCS_DIR}" -name '*.md' -type f | while read -r file; do
-  rel_path="${file#"${DOCS_DIR}/"}"
-  dest="${CONTENT_DIR}/${rel_path}"
-  mkdir -p "$(dirname "${dest}")"
-  cp "${file}" "${dest}"
-  echo "Copied: ${rel_path}"
+# Copy docs/ files (rename CI.md -> ci.md for lowercase URLs)
+for f in "$REPO_ROOT"/docs/*.md; do
+  name="$(basename "$f")"
+  if [ "$name" = "CI.md" ]; then
+    name="ci.md"
+  fi
+  cp "$f" "$CONTENT_DIR/$name"
 done
 
-echo "Content copy complete"
+# Copy root-level markdown files
+cp "$REPO_ROOT/README.md"    "$CONTENT_DIR/readme.mdx"
+cp "$REPO_ROOT/SPEC.md"      "$CONTENT_DIR/spec.mdx"
+cp "$REPO_ROOT/CHANGELOG.md" "$CONTENT_DIR/changelog.mdx"
+
+echo "Copied content files to $CONTENT_DIR"
