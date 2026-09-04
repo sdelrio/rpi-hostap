@@ -2,6 +2,8 @@
 
 Lightweight Docker container that turns a Raspberry Pi into a wireless Access Point with DHCP server. See the main [README](../README.md) for overview, prerequisites, quick start and the environment variable reference.
 
+> **View the full documentation site:** [https://sdelrio.github.io/rpi-hostap/](https://sdelrio.github.io/rpi-hostap/)
+
 ## How do I...
 
 | Goal | Variable(s) | Docs |
