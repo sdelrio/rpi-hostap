@@ -33,8 +33,9 @@ for f in "$REPO_ROOT"/docs/*.md; do
 done
 shopt -u nullglob
 
-# Copy root-level markdown files (as .mdx for Starlight)
-ROOT_FILES=(README.md SPEC.md CHANGELOG.md)
+# Copy root-level markdown files
+# CHANGELOG.md uses .md extension to avoid MDX parsing issues with shell syntax
+ROOT_FILES=(README.md SPEC.md)
 for src_name in "${ROOT_FILES[@]}"; do
   if [[ ! -f "$REPO_ROOT/$src_name" ]]; then
     echo "Warning: $src_name not found, skipping" >&2
@@ -50,5 +51,17 @@ for src_name in "${ROOT_FILES[@]}"; do
     cat "$REPO_ROOT/$src_name"
   } > "$CONTENT_DIR/${name}.mdx"
 done
+
+# Copy CHANGELOG as .md (not .mdx) to avoid MDX parsing issues with shell syntax
+if [[ -f "$REPO_ROOT/CHANGELOG.md" ]]; then
+  title="$(extract_title "$REPO_ROOT/CHANGELOG.md")"
+  {
+    echo "---"
+    echo "title: \"$title\""
+    echo "---"
+    echo ""
+    cat "$REPO_ROOT/CHANGELOG.md"
+  } > "$CONTENT_DIR/changelog.md"
+fi
 
 echo "Copied content files to $CONTENT_DIR"
