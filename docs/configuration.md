@@ -217,6 +217,45 @@ docker run -d --name hostap \
 
 When `COUNTRY_CODE` is set, channels are validated against regional limits.
 
+### Automatic Channel Selection (ACS)
+
+Setting `CHANNEL=acs` enables automatic channel selection. The WiFi driver scans available channels and selects the best one based on current interference and signal conditions.
+
+```bash
+docker run ... \
+  -e CHANNEL=acs \
+  ...
+```
+
+#### How it works
+
+When `CHANNEL=acs` is set, the driver performs a channel scan at startup and selects the channel with the least interference. This is useful in dynamic environments where the optimal channel may change over time.
+
+#### Driver support
+
+Not all WiFi drivers support ACS. Check your driver's documentation or run `iw list` to see if ACS is supported. If ACS is not supported, the container will fail with an error.
+
+#### DFS/CAC caveat
+
+ACS may select a DFS (Dynamic Frequency Selection) radar channel. When this happens:
+
+- The AP must perform Channel Availability Check (CAC) before transmitting, which can take 60+ seconds
+- Clients cannot connect until CAC completes
+- The container may report as `unhealthy` during this period
+
+To accommodate DFS channels, set `HEALTHCHECK_START_PERIOD` to at least 90 seconds:
+
+```bash
+docker run ... \
+  -e CHANNEL=acs \
+  -e HEALTHCHECK_START_PERIOD=90 \
+  ...
+```
+
+#### Startup delay
+
+Startup may be delayed while the driver scans channels. The delay depends on the number of channels scanned and driver implementation. Plan for 10-30 seconds of additional startup time when using ACS.
+
 ### 2.4 GHz Channels
 
 For 2.4 GHz (`hw_mode=g` or `b`):
