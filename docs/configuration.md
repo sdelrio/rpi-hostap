@@ -311,6 +311,37 @@ When `DRIVER` is unset, hostapd uses the default `nl80211` driver. This is the r
 
 If you set an invalid driver name, hostapd will fail with a clear error message in `docker logs`. The container will exit immediately rather than running in a broken state.
 
+## Extra hostapd Options
+
+`HOSTAPD_EXTRA_OPTS` allows you to inject custom hostapd.conf lines that are appended verbatim after all generated configuration. This is useful for power users who need to set options not exposed by environment variables.
+
+### Syntax
+
+The value is a newline-separated list of `key=value` pairs in raw hostapd.conf format:
+
+```bash
+docker run ... \
+  -e HOSTAPD_EXTRA_OPTS="auth_algs=3\nbeacon_int=100" \
+  ...
+```
+
+### Common use cases
+
+| Option | Description | Example |
+|--------|-------------|---------|
+| `beacon_int` | Beacon interval in TU (1 TU = 1024 µs) | `beacon_int=100` |
+| `auth_algs` | Authentication algorithms (1=Open, 2=Shared, 3=Both) | `auth_algs=3` |
+| `wmm_uapsd` | Enable WMM U-APSD (unscheduled power save) | `wmm_uapsd=1` |
+| `dtim_period` | DTIM period (beacons between DTIMs) | `dtim_period=2` |
+| `rts_threshold` | RTS/CTS threshold in bytes | `rts_threshold=2347` |
+
+### Important notes
+
+- Values are **unvalidated** - they are passed directly to hostapd without checking
+- Invalid values will cause hostapd to fail at startup with errors in `docker logs`
+- Lines are appended after all generated config, so they can override earlier directives
+- Use this only when you understand the hostapd.conf format and the specific option
+
 ---
 
 _Last updated: 2026-08-24_
