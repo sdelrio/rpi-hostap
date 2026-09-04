@@ -35,6 +35,7 @@ Lightweight Docker container that turns a Raspberry Pi into a wireless Access Po
 | Audit a running system against its config | `--check` flag | [Runtime state audit](validation.md#runtime-state-audit---check) |
 | Require minimum connected clients | `HEALTHCHECK_MIN_STATIONS` | [Minimum station count](healthcheck.md#minimum-stations-check-optional) |
 | Auto-select WiFi channel | `CHANNEL=acs` | [ACS](configuration.md#automatic-channel-selection-acs) |
+| Use a non-standard WiFi driver | `DRIVER` | [Driver override](configuration.md#driver-override) |
 
 ## Contents
 
