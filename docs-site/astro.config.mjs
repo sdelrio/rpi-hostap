@@ -18,6 +18,9 @@ export default defineConfig({
       social: [
         { icon: 'github', label: 'GitHub', href: 'https://github.com/sdelrio/rpi-hostap' },
       ],
+      customCss: [
+        './src/styles/custom.css',
+      ],
       plugins: [
         starlightLinksValidator(),
       ],
