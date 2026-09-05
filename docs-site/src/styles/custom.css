@@ -2,6 +2,13 @@
   --sl-font: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --sl-content-width: 50rem;
   --sl-content-pad-x: 2rem;
+  --sl-nav-height: 4rem;
+}
+
+@media (min-width: 72rem) {
+  :root {
+    --sl-nav-height: 5rem;
+  }
 }
 
 @media (min-width: 1200px) {
