@@ -23,6 +23,7 @@ export default defineConfig({
       ],
       components: {
         ThemeProvider: './src/components/ThemeProvider.astro',
+        Header: './src/components/Header.astro',
       },
       head: [
         {
