@@ -20,6 +20,8 @@ const navLinks = [
 
 const pathname = Astro.url.pathname;
 const isActive = (href: string) => href === '/rpi-hostap/' ? pathname === href : pathname.startsWith(href);
+
+const navLinksJson = JSON.stringify(navLinks);
 ---
 
 <div class="header">
@@ -57,6 +59,8 @@ const isActive = (href: string) => href === '/rpi-hostap/' ? pathname === href :
 			aria-label={Astro.locals.t('menuButton.accessibleLabel')}
 			aria-controls="mobile-menu"
 			class="sl-flex lg:sl-hidden"
+			data-nav-links={navLinksJson}
+			data-current-path={pathname}
 		>
 			<svg class="open-menu" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 				<line x1="3" y1="6" x2="21" y2="6"></line>
@@ -71,35 +75,13 @@ const isActive = (href: string) => href === '/rpi-hostap/' ? pathname === href :
 	</starlight-menu-button>
 </div>
 
-<div class="mobile-menu sl-hidden print:hidden" id="mobile-menu">
-	<nav class="mobile-nav">
-		{navLinks.map(({ label, href }) => (
-			<a
-				href={href}
-				aria-current={isActive(href) ? 'page' : undefined}
-				class:list={{ active: isActive(href) }}
-			>
-				{label}
-			</a>
-		))}
-	</nav>
-	<div class="mobile-controls">
-		<ThemeSelect />
-		<LanguageSelect />
-	</div>
-</div>
-
 <script>
 	class StarlightMenuButton extends HTMLElement {
 		btn = this.querySelector('button')!;
-		menu = document.getElementById('mobile-menu')!;
+		menu: HTMLElement | null = null;
 
 		constructor() {
 			super();
-			// Move mobile menu out of the fixed header to document.body
-			// so it doesn't affect header layout
-			document.body.appendChild(this.menu);
-
 			this.btn.addEventListener('click', () => this.toggleExpanded());
 
 			document.addEventListener('keyup', (e) => {
@@ -112,9 +94,50 @@ const isActive = (href: string) => href === '/rpi-hostap/' ? pathname === href :
 			matchMedia('(min-width: 72rem)').addEventListener('change', () => this.setExpanded(false));
 		}
 
+		createMobileMenu() {
+			if (this.menu) return this.menu;
+
+			const navLinks = JSON.parse(this.btn.dataset.navLinks || '[]');
+			const currentPath = this.btn.dataset.currentPath || '/';
+
+			const isActive = (href: string) => href === '/rpi-hostap/' ? currentPath === href : currentPath.startsWith(href);
+
+			const menu = document.createElement('div');
+			menu.id = 'mobile-menu';
+			menu.className = 'mobile-menu print:hidden';
+			menu.innerHTML = `
+				<nav class="mobile-nav">
+					${navLinks.map(({ label, href }: { label: string; href: string }) => `
+						<a href="${href}" ${isActive(href) ? 'aria-current="page" class="active"' : ''}>${label}</a>
+					`).join('')}
+				</nav>
+				<div class="mobile-controls">
+					<starlight-theme-select>
+						<select aria-label="Select theme">
+							<option value="dark">Dark</option>
+							<option value="light">Light</option>
+							<option value="auto" selected>Auto</option>
+						</select>
+					</starlight-theme-select>
+					<div class="mobile-lang-placeholder"></div>
+				</div>
+			`;
+
+			document.body.appendChild(menu);
+			this.menu = menu;
+			return menu;
+		}
+
 		setExpanded(expanded: boolean) {
 			this.setAttribute('aria-expanded', String(expanded));
-			this.menu.classList.toggle('sl-hidden', !expanded);
+
+			if (expanded) {
+				const menu = this.createMobileMenu();
+				menu.style.display = '';
+			} else if (this.menu) {
+				this.menu.style.display = 'none';
+			}
+
 			document.body.toggleAttribute('data-mobile-menu-expanded', expanded);
 			document.querySelectorAll<HTMLElement>('.main-frame, .sl-skip-link').forEach((el) => {
 				el.toggleAttribute('inert', expanded);
