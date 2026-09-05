@@ -1,0 +1,298 @@
+---
+import config from 'virtual:starlight/user-config';
+
+import LanguageSelect from 'virtual:starlight/components/LanguageSelect';
+import Search from 'virtual:starlight/components/Search';
+import SiteTitle from 'virtual:starlight/components/SiteTitle';
+import SocialIcons from 'virtual:starlight/components/SocialIcons';
+import ThemeSelect from 'virtual:starlight/components/ThemeSelect';
+
+const shouldRenderSearch =
+	config.pagefind || config.components.Search !== '@astrojs/starlight/components/Search.astro';
+
+const navLinks = [
+	{ label: 'Home', href: '/rpi-hostap/' },
+	{ label: 'Configuration', href: '/rpi-hostap/configuration/' },
+	{ label: 'Networking', href: '/rpi-hostap/networking/' },
+	{ label: 'Operations', href: '/rpi-hostap/operations/' },
+	{ label: 'Troubleshooting', href: '/rpi-hostap/troubleshooting/' },
+];
+---
+
+<div class="header">
+	<div class="title-wrapper sl-flex">
+		<SiteTitle />
+	</div>
+
+	<nav class="nav-links sl-hidden lg:sl-flex">
+		{navLinks.map(({ label, href }) => (
+			<a href={href}>{label}</a>
+		))}
+	</nav>
+
+	<div class="sl-flex print:hidden">
+		{shouldRenderSearch && <Search />}
+	</div>
+
+	<div class="sl-hidden md:sl-flex print:hidden right-group">
+		<div class="sl-flex social-icons">
+			<SocialIcons />
+		</div>
+		<ThemeSelect />
+		<LanguageSelect />
+	</div>
+
+	<starlight-menu-button class="print:hidden">
+		<button
+			aria-expanded="false"
+			aria-label="Toggle menu"
+			aria-controls="starlight__sidebar"
+			class="sl-flex lg:sl-hidden"
+		>
+			<svg class="open-menu" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+				<line x1="3" y1="6" x2="21" y2="6"></line>
+				<line x1="3" y1="12" x2="21" y2="12"></line>
+				<line x1="3" y1="18" x2="21" y2="18"></line>
+			</svg>
+			<svg class="close-menu" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+				<line x1="18" y1="6" x2="6" y2="18"></line>
+				<line x1="6" y1="6" x2="18" y2="18"></line>
+			</svg>
+		</button>
+	</starlight-menu-button>
+</div>
+
+<div class="mobile-menu sl-hidden" id="mobile-menu">
+	<nav class="mobile-nav">
+		{navLinks.map(({ label, href }) => (
+			<a href={href}>{label}</a>
+		))}
+	</nav>
+	<div class="mobile-controls">
+		<ThemeSelect />
+		<LanguageSelect />
+	</div>
+</div>
+
+<script>
+	class StarlightMenuButton extends HTMLElement {
+		btn = this.querySelector('button')!;
+		menu = document.getElementById('mobile-menu')!;
+
+		constructor() {
+			super();
+			this.btn.addEventListener('click', () => this.toggleExpanded());
+
+			matchMedia('(min-width: 72rem)').addEventListener('change', () => this.setExpanded(false));
+		}
+
+		setExpanded(expanded: boolean) {
+			this.setAttribute('aria-expanded', String(expanded));
+			this.menu.classList.toggle('sl-hidden', !expanded);
+			document.body.toggleAttribute('data-mobile-menu-expanded', expanded);
+			document.querySelectorAll<HTMLElement>('.main-frame, .sl-skip-link').forEach((el) => {
+				el.toggleAttribute('inert', expanded);
+			});
+		}
+
+		toggleExpanded() {
+			this.setExpanded(this.getAttribute('aria-expanded') !== 'true');
+		}
+	}
+
+	customElements.define('starlight-menu-button', StarlightMenuButton);
+</script>
+
+<style>
+	@layer starlight.core {
+		.header {
+			display: flex;
+			gap: var(--sl-nav-gap);
+			justify-content: space-between;
+			align-items: center;
+			height: 100%;
+			padding: 0 var(--sl-nav-pad-x);
+			background-color: var(--sl-color-bg-nav, #ffffff);
+			border-bottom: 1px solid #dedede;
+		}
+
+		.title-wrapper {
+			overflow: clip;
+			padding: 0.25rem;
+			margin: -0.25rem;
+			min-width: 0;
+		}
+
+		.nav-links {
+			display: flex;
+			gap: 1.5rem;
+			align-items: center;
+		}
+
+		.nav-links a {
+			color: var(--sl-color-text);
+			text-decoration: none;
+			font-size: var(--sl-text-sm);
+			font-weight: 500;
+			transition: color 0.15s ease;
+		}
+
+		.nav-links a:hover {
+			color: var(--sl-color-text-accent);
+		}
+
+		.right-group,
+		.social-icons {
+			gap: 1rem;
+			align-items: center;
+		}
+
+		.social-icons::after {
+			content: '';
+			height: 2rem;
+			border-inline-end: 1px solid var(--sl-color-gray-5);
+		}
+
+		.starlight-menu-button {
+			display: none;
+		}
+
+		@media (min-width: 50rem) and (max-width: 71.999rem) {
+			.starlight-menu-button {
+				display: contents;
+			}
+
+			.starlight-menu-button > button {
+				position: static;
+				z-index: auto;
+				border: 0;
+				border-radius: 50%;
+				width: var(--sl-menu-button-size);
+				height: var(--sl-menu-button-size);
+				padding: 0.5rem;
+				background-color: var(--sl-color-white);
+				color: var(--sl-color-black);
+				box-shadow: var(--sl-shadow-md);
+				cursor: pointer;
+			}
+
+			[aria-expanded='true'] button {
+				background-color: var(--sl-color-gray-2);
+				box-shadow: none;
+			}
+
+			[aria-expanded='true'] button .open-menu {
+				display: none;
+			}
+
+			:not([aria-expanded='true']) button .close-menu {
+				display: none;
+			}
+		}
+
+		.mobile-menu {
+			position: fixed;
+			top: var(--sl-nav-height);
+			left: 0;
+			right: 0;
+			background-color: var(--sl-color-bg-nav, #ffffff);
+			border-bottom: 1px solid #dedede;
+			box-shadow: var(--sl-shadow-lg);
+			z-index: calc(var(--sl-z-index-navbar) - 1);
+			padding: 1rem;
+			animation: slideDown 0.2s ease-out;
+		}
+
+		@keyframes slideDown {
+			from {
+				opacity: 0;
+				transform: translateY(-10px);
+			}
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		.mobile-nav {
+			display: flex;
+			flex-direction: column;
+			gap: 0.75rem;
+		}
+
+		.mobile-nav a {
+			color: var(--sl-color-text);
+			text-decoration: none;
+			font-size: var(--sl-text-base);
+			padding: 0.5rem 0;
+			border-bottom: 1px solid var(--sl-color-gray-5);
+		}
+
+		.mobile-nav a:last-child {
+			border-bottom: none;
+		}
+
+		.mobile-nav a:hover {
+			color: var(--sl-color-text-accent);
+		}
+
+		.mobile-controls {
+			display: flex;
+			gap: 1rem;
+			margin-top: 1rem;
+			padding-top: 1rem;
+			border-top: 1px solid var(--sl-color-gray-5);
+		}
+
+		:global([data-theme='light']) .starlight-menu-button > button {
+			background-color: var(--sl-color-black);
+			color: var(--sl-color-white);
+		}
+
+		:global([data-theme='light']) [aria-expanded='true'] .starlight-menu-button > button {
+			background-color: var(--sl-color-gray-5);
+		}
+	}
+
+	@media (min-width: 50rem) {
+		:global(:root[data-has-sidebar]) {
+			--__sidebar-pad: calc(2 * var(--sl-nav-pad-x));
+		}
+		:global(:root:not([data-has-toc])) {
+			--__toc-width: 0rem;
+		}
+		.header {
+			--__sidebar-width: max(0rem, var(--sl-content-inline-start, 0rem) - var(--sl-nav-pad-x));
+			--__main-column-fr: calc(
+				(
+						100% + var(--__sidebar-pad, 0rem) - var(--__toc-width, var(--sl-sidebar-width)) -
+							(2 * var(--__toc-width, var(--sl-nav-pad-x))) - var(--sl-content-inline-start, 0rem) -
+							var(--sl-content-width)
+					) / 2
+			);
+			display: grid;
+			grid-template-columns:
+				minmax(
+					calc(var(--__sidebar-width) + max(0rem, var(--__main-column-fr) - var(--sl-nav-gap))),
+					auto
+				)
+				1fr
+				auto;
+			align-content: center;
+		}
+	}
+</style>
+
+<style is:global>
+	@layer starlight.core {
+		[data-mobile-menu-expanded] {
+			overflow: hidden;
+		}
+
+		@media (min-width: 72rem) {
+			[data-mobile-menu-expanded] {
+				overflow: auto;
+			}
+		}
+	}
+</style>
