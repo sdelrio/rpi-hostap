@@ -1,25 +1,27 @@
 ---
-import config from 'virtual:starlight/user-config';
+import config from "virtual:starlight/user-config";
 
-import LanguageSelect from 'virtual:starlight/components/LanguageSelect';
-import Search from 'virtual:starlight/components/Search';
-import SiteTitle from 'virtual:starlight/components/SiteTitle';
-import SocialIcons from 'virtual:starlight/components/SocialIcons';
-import ThemeSelect from 'virtual:starlight/components/ThemeSelect';
+import LanguageSelect from "virtual:starlight/components/LanguageSelect";
+import Search from "virtual:starlight/components/Search";
+import SiteTitle from "virtual:starlight/components/SiteTitle";
+import SocialIcons from "virtual:starlight/components/SocialIcons";
+import ThemeSelect from "virtual:starlight/components/ThemeSelect";
 
 const shouldRenderSearch =
-	config.pagefind || config.components.Search !== '@astrojs/starlight/components/Search.astro';
+	config.pagefind ||
+	config.components.Search !== "@astrojs/starlight/components/Search.astro";
 
 const navLinks = [
-	{ label: 'Home', href: '/rpi-hostap/' },
-	{ label: 'Configuration', href: '/rpi-hostap/configuration/' },
-	{ label: 'Networking', href: '/rpi-hostap/networking/' },
-	{ label: 'Operations', href: '/rpi-hostap/operations/' },
-	{ label: 'Troubleshooting', href: '/rpi-hostap/troubleshooting/' },
+	{ label: "Home", href: "/rpi-hostap/" },
+	{ label: "Configuration", href: "/rpi-hostap/configuration/" },
+	{ label: "Networking", href: "/rpi-hostap/networking/" },
+	{ label: "Operations", href: "/rpi-hostap/operations/" },
+	{ label: "Troubleshooting", href: "/rpi-hostap/troubleshooting/" },
 ];
 
 const pathname = Astro.url.pathname;
-const isActive = (href: string) => href === '/rpi-hostap/' ? pathname === href : pathname.startsWith(href);
+const isActive = (href: string) =>
+	href === "/rpi-hostap/" ? pathname === href : pathname.startsWith(href);
 
 const navLinksJson = JSON.stringify(navLinks);
 ---
@@ -30,15 +32,17 @@ const navLinksJson = JSON.stringify(navLinks);
 	</div>
 
 	<nav class="nav-links sl-hidden lg:sl-flex">
-		{navLinks.map(({ label, href }) => (
-			<a
-				href={href}
-				aria-current={isActive(href) ? 'page' : undefined}
-				class:list={{ active: isActive(href) }}
-			>
-				{label}
-			</a>
-		))}
+		{
+			navLinks.map(({ label, href }) => (
+				<a
+					href={href}
+					aria-current={isActive(href) ? "page" : undefined}
+					class:list={{ active: isActive(href) }}
+				>
+					{label}
+				</a>
+			))
+		}
 	</nav>
 
 	<div class="sl-flex print:hidden">
@@ -56,18 +60,40 @@ const navLinksJson = JSON.stringify(navLinks);
 	<starlight-menu-button class="print:hidden">
 		<button
 			aria-expanded="false"
-			aria-label={Astro.locals.t('menuButton.accessibleLabel')}
+			aria-label={Astro.locals.t("menuButton.accessibleLabel")}
 			aria-controls="mobile-menu"
 			class="sl-flex lg:sl-hidden"
 			data-nav-links={navLinksJson}
 			data-current-path={pathname}
 		>
-			<svg class="open-menu" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+			<svg
+				class="open-menu"
+				xmlns="http://www.w3.org/2000/svg"
+				width="24"
+				height="24"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2"
+				stroke-linecap="round"
+				stroke-linejoin="round"
+			>
 				<line x1="3" y1="6" x2="21" y2="6"></line>
 				<line x1="3" y1="12" x2="21" y2="12"></line>
 				<line x1="3" y1="18" x2="21" y2="18"></line>
 			</svg>
-			<svg class="close-menu" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+			<svg
+				class="close-menu"
+				xmlns="http://www.w3.org/2000/svg"
+				width="24"
+				height="24"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2"
+				stroke-linecap="round"
+				stroke-linejoin="round"
+			>
 				<line x1="18" y1="6" x2="6" y2="18"></line>
 				<line x1="6" y1="6" x2="18" y2="18"></line>
 			</svg>
@@ -77,39 +103,51 @@ const navLinksJson = JSON.stringify(navLinks);
 
 <script>
 	class StarlightMenuButton extends HTMLElement {
-		btn = this.querySelector('button')!;
+		btn = this.querySelector("button")!;
 		menu: HTMLElement | null = null;
 
 		constructor() {
 			super();
-			this.btn.addEventListener('click', () => this.toggleExpanded());
+			this.btn.addEventListener("click", () => this.toggleExpanded());
 
-			document.addEventListener('keyup', (e) => {
-				if (e.code === 'Escape' && this.getAttribute('aria-expanded') === 'true') {
+			document.addEventListener("keyup", (e) => {
+				if (
+					e.code === "Escape" &&
+					this.getAttribute("aria-expanded") === "true"
+				) {
 					this.setExpanded(false);
 					this.btn.focus();
 				}
 			});
 
-			matchMedia('(min-width: 72rem)').addEventListener('change', () => this.setExpanded(false));
+			matchMedia("(min-width: 72rem)").addEventListener("change", () =>
+				this.setExpanded(false),
+			);
 		}
 
 		createMobileMenu() {
 			if (this.menu) return this.menu;
 
-			const navLinks = JSON.parse(this.btn.dataset.navLinks || '[]');
-			const currentPath = this.btn.dataset.currentPath || '/';
+			const navLinks = JSON.parse(this.btn.dataset.navLinks || "[]");
+			const currentPath = this.btn.dataset.currentPath || "/";
 
-			const isActive = (href: string) => href === '/rpi-hostap/' ? currentPath === href : currentPath.startsWith(href);
+			const isActive = (href: string) =>
+				href === "/rpi-hostap/"
+					? currentPath === href
+					: currentPath.startsWith(href);
 
-			const menu = document.createElement('div');
-			menu.id = 'mobile-menu';
-			menu.className = 'mobile-menu print:hidden';
+			const menu = document.createElement("div");
+			menu.id = "mobile-menu";
+			menu.className = "mobile-menu print:hidden";
 			menu.innerHTML = `
 				<nav class="mobile-nav">
-					${navLinks.map(({ label, href }: { label: string; href: string }) => `
-						<a href="${href}" ${isActive(href) ? 'aria-current="page" class="active"' : ''}>${label}</a>
-					`).join('')}
+					${navLinks
+						.map(
+							({ label, href }: { label: string; href: string }) => `
+						<a href="${href}" ${isActive(href) ? 'aria-current="page" class="active"' : ""}>${label}</a>
+					`,
+						)
+						.join("")}
 				</nav>
 				<div class="mobile-controls">
 					<starlight-theme-select>
@@ -129,27 +167,29 @@ const navLinksJson = JSON.stringify(navLinks);
 		}
 
 		setExpanded(expanded: boolean) {
-			this.setAttribute('aria-expanded', String(expanded));
+			this.setAttribute("aria-expanded", String(expanded));
 
 			if (expanded) {
 				const menu = this.createMobileMenu();
-				menu.style.display = '';
+				menu.style.display = "";
 			} else if (this.menu) {
-				this.menu.style.display = 'none';
+				this.menu.style.display = "none";
 			}
 
-			document.body.toggleAttribute('data-mobile-menu-expanded', expanded);
-			document.querySelectorAll<HTMLElement>('.main-frame, .sl-skip-link').forEach((el) => {
-				el.toggleAttribute('inert', expanded);
-			});
+			document.body.toggleAttribute("data-mobile-menu-expanded", expanded);
+			document
+				.querySelectorAll<HTMLElement>(".main-frame, .sl-skip-link")
+				.forEach((el) => {
+					el.toggleAttribute("inert", expanded);
+				});
 		}
 
 		toggleExpanded() {
-			this.setExpanded(this.getAttribute('aria-expanded') !== 'true');
+			this.setExpanded(this.getAttribute("aria-expanded") !== "true");
 		}
 	}
 
-	customElements.define('starlight-menu-button', StarlightMenuButton);
+	customElements.define("starlight-menu-button", StarlightMenuButton);
 </script>
 
 <style>
@@ -171,7 +211,7 @@ const navLinksJson = JSON.stringify(navLinks);
 
 		.nav-links {
 			display: flex;
-			gap: 1.5rem;
+			gap: 0.05rem;
 			align-items: center;
 		}
 
@@ -182,12 +222,18 @@ const navLinksJson = JSON.stringify(navLinks);
 			font-weight: 400;
 			padding: 0.5rem 0.75rem;
 			border-radius: 4px;
-			transition: background-color 0.2s, color 0.2s;
+			transition:
+				background-color 0.2s,
+				color 0.2s;
 		}
 
 		.nav-links a:hover {
-			background-color: var(--sl-color-black);
-			color: var(--sl-color-white);
+			background-color: rgba(0, 0, 0, 0.12);
+			color: var(--sl-color-text);
+		}
+
+		:global([data-theme="dark"]) .nav-links a:hover {
+			background-color: rgba(255, 255, 255, 0.12);
 		}
 
 		.nav-links a:focus-visible {
@@ -206,7 +252,7 @@ const navLinksJson = JSON.stringify(navLinks);
 		}
 
 		.social-icons::after {
-			content: '';
+			content: "";
 			height: 2rem;
 			border-inline-end: 1px solid var(--sl-color-gray-5);
 		}
@@ -238,25 +284,27 @@ const navLinksJson = JSON.stringify(navLinks);
 			outline-offset: 2px;
 		}
 
-		[aria-expanded='true'] button {
+		[aria-expanded="true"] button {
 			background-color: var(--sl-color-gray-2);
 			box-shadow: none;
 		}
 
-		[aria-expanded='true'] button .open-menu {
+		[aria-expanded="true"] button .open-menu {
 			display: none;
 		}
 
-		:not([aria-expanded='true']) button .close-menu {
+		:not([aria-expanded="true"]) button .close-menu {
 			display: none;
 		}
 
-		:global([data-theme='light']) .starlight-menu-button > button {
+		:global([data-theme="light"]) .starlight-menu-button > button {
 			background-color: var(--sl-color-black);
 			color: var(--sl-color-white);
 		}
 
-		:global([data-theme='light']) .starlight-menu-button[aria-expanded='true'] > button {
+		:global([data-theme="light"])
+			.starlight-menu-button[aria-expanded="true"]
+			> button {
 			background-color: var(--sl-color-gray-5);
 		}
 	}
@@ -311,12 +359,18 @@ const navLinksJson = JSON.stringify(navLinks);
 			font-weight: 400;
 			padding: 0.75rem 1rem;
 			border-radius: 4px;
-			transition: background-color 0.2s, color 0.2s;
+			transition:
+				background-color 0.2s,
+				color 0.2s;
 		}
 
 		.mobile-nav a:hover {
-			background-color: var(--sl-color-black);
-			color: var(--sl-color-white);
+			background-color: rgba(0, 0, 0, 0.12);
+			color: var(--sl-color-text);
+		}
+
+		:global([data-theme="dark"]) .mobile-nav a:hover {
+			background-color: rgba(255, 255, 255, 0.12);
 		}
 
 		.mobile-nav a:focus-visible {
