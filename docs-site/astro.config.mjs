@@ -12,6 +12,10 @@ export default defineConfig({
     starlight({
       title: 'rpi-hostap',
       description: 'Lightweight Docker container that turns a Raspberry Pi into a wireless Access Point with DHCP server.',
+      logo: {
+        src: './src/assets/logo.svg',
+        alt: 'rpi-hostap',
+      },
       editLink: {
         baseUrl: 'https://github.com/sdelrio/rpi-hostap/edit/master/',
       },

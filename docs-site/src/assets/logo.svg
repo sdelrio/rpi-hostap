@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 40" fill="none">
+  <rect width="120" height="40" rx="6" fill="#1a1a1a"/>
+  <text x="12" y="28" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="700" fill="#fff" letter-spacing="-0.5">RPi</text>
+  <text x="68" y="28" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="400" fill="#d62839" letter-spacing="-0.5">hostap</text>
+  <circle cx="108" cy="12" r="3" fill="#d62839"/>
+  <path d="M103 16 Q108 11 113 16" stroke="#d62839" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <path d="M100 19 Q108 8 116 19" stroke="#d62839" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <path d="M97 22 Q108 5 119 22" stroke="#d62839" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+</svg>
