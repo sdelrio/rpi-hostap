@@ -39,6 +39,9 @@
 [data-theme='light'] {
   --sl-color-text: hsl(30, 15%, 20%);
   --sl-color-text-accent: hsl(354, 90%, 45%);
+  --sl-color-bg-sidebar: hsl(0, 0%, 100%);
+  --sl-color-bg-nav: hsl(220, 20%, 96%);
+  --sl-color-border: hsl(220, 10%, 87%);
 }
 [data-theme='dark'] {
   --sl-hue-blue: 354;
