@@ -163,8 +163,8 @@ const isActive = (href: string) => href === '/rpi-hostap/' ? pathname === href :
 		}
 
 		.nav-links a:hover {
-			background-color: var(--sl-color-text);
-			color: var(--sl-color-bg);
+			background-color: var(--sl-color-black);
+			color: var(--sl-color-white);
 		}
 
 		.nav-links a:focus-visible {
@@ -269,8 +269,8 @@ const isActive = (href: string) => href === '/rpi-hostap/' ? pathname === href :
 		}
 
 		.mobile-nav a:hover {
-			background-color: var(--sl-color-text);
-			color: var(--sl-color-bg);
+			background-color: var(--sl-color-black);
+			color: var(--sl-color-white);
 		}
 
 		.mobile-nav a:focus-visible {
@@ -299,7 +299,7 @@ const isActive = (href: string) => href === '/rpi-hostap/' ? pathname === href :
 			color: var(--sl-color-white);
 		}
 
-		:global([data-theme='light']) [aria-expanded='true'] .starlight-menu-button > button {
+		:global([data-theme='light']) .starlight-menu-button[aria-expanded='true'] > button {
 			background-color: var(--sl-color-gray-5);
 		}
 
