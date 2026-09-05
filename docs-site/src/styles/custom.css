@@ -1,0 +1,12 @@
+:root,
+[data-theme='light'] {
+  --sl-hue-blue: 354;
+  --sl-color-accent-low: hsl(354, 80%, 90%);
+  --sl-color-accent: hsl(354, 90%, 40%);
+  --sl-color-accent-high: hsl(354, 80%, 30%);
+}
+[data-theme='dark'] {
+  --sl-color-accent-low: hsl(354, 50%, 20%);
+  --sl-color-accent: hsl(354, 100%, 60%);
+  --sl-color-accent-high: hsl(354, 100%, 80%);
+}
