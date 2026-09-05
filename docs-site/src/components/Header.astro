@@ -17,6 +17,8 @@ const navLinks = [
 	{ label: 'Operations', href: '/rpi-hostap/operations/' },
 	{ label: 'Troubleshooting', href: '/rpi-hostap/troubleshooting/' },
 ];
+
+const pathname = Astro.url.pathname;
 ---
 
 <div class="header">
@@ -26,7 +28,13 @@ const navLinks = [
 
 	<nav class="nav-links sl-hidden lg:sl-flex">
 		{navLinks.map(({ label, href }) => (
-			<a href={href}>{label}</a>
+			<a
+				href={href}
+				aria-current={pathname.startsWith(href) ? 'page' : undefined}
+				class:list={{ active: pathname.startsWith(href) }}
+			>
+				{label}
+			</a>
 		))}
 	</nav>
 
@@ -45,8 +53,8 @@ const navLinks = [
 	<starlight-menu-button class="print:hidden">
 		<button
 			aria-expanded="false"
-			aria-label="Toggle menu"
-			aria-controls="starlight__sidebar"
+			aria-label={Astro.locals.t('menuButton.accessibleLabel')}
+			aria-controls="mobile-menu"
 			class="sl-flex lg:sl-hidden"
 		>
 			<svg class="open-menu" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -62,10 +70,16 @@ const navLinks = [
 	</starlight-menu-button>
 </div>
 
-<div class="mobile-menu sl-hidden" id="mobile-menu">
+<div class="mobile-menu sl-hidden print:hidden" id="mobile-menu">
 	<nav class="mobile-nav">
 		{navLinks.map(({ label, href }) => (
-			<a href={href}>{label}</a>
+			<a
+				href={href}
+				aria-current={pathname.startsWith(href) ? 'page' : undefined}
+				class:list={{ active: pathname.startsWith(href) }}
+			>
+				{label}
+			</a>
 		))}
 	</nav>
 	<div class="mobile-controls">
@@ -82,6 +96,13 @@ const navLinks = [
 		constructor() {
 			super();
 			this.btn.addEventListener('click', () => this.toggleExpanded());
+
+			document.addEventListener('keyup', (e) => {
+				if (e.code === 'Escape' && this.getAttribute('aria-expanded') === 'true') {
+					this.setExpanded(false);
+					this.btn.focus();
+				}
+			});
 
 			matchMedia('(min-width: 72rem)').addEventListener('change', () => this.setExpanded(false));
 		}
@@ -113,7 +134,7 @@ const navLinks = [
 			height: 100%;
 			padding: 0 var(--sl-nav-pad-x);
 			background-color: var(--sl-color-bg-nav, #ffffff);
-			border-bottom: 1px solid #dedede;
+			border-bottom: 1px solid var(--sl-color-gray-5);
 		}
 
 		.title-wrapper {
@@ -141,6 +162,11 @@ const navLinks = [
 			color: var(--sl-color-text-accent);
 		}
 
+		.nav-links a.active {
+			color: var(--sl-color-text-accent);
+			font-weight: 600;
+		}
+
 		.right-group,
 		.social-icons {
 			gap: 1rem;
@@ -154,40 +180,38 @@ const navLinks = [
 		}
 
 		.starlight-menu-button {
+			display: flex;
+		}
+
+		@media (min-width: 72rem) {
+			.starlight-menu-button {
+				display: none;
+			}
+		}
+
+		.starlight-menu-button > button {
+			border: 0;
+			border-radius: 50%;
+			width: var(--sl-menu-button-size);
+			height: var(--sl-menu-button-size);
+			padding: 0.5rem;
+			background-color: var(--sl-color-white);
+			color: var(--sl-color-black);
+			box-shadow: var(--sl-shadow-md);
+			cursor: pointer;
+		}
+
+		[aria-expanded='true'] button {
+			background-color: var(--sl-color-gray-2);
+			box-shadow: none;
+		}
+
+		[aria-expanded='true'] button .open-menu {
 			display: none;
 		}
 
-		@media (min-width: 50rem) and (max-width: 71.999rem) {
-			.starlight-menu-button {
-				display: contents;
-			}
-
-			.starlight-menu-button > button {
-				position: static;
-				z-index: auto;
-				border: 0;
-				border-radius: 50%;
-				width: var(--sl-menu-button-size);
-				height: var(--sl-menu-button-size);
-				padding: 0.5rem;
-				background-color: var(--sl-color-white);
-				color: var(--sl-color-black);
-				box-shadow: var(--sl-shadow-md);
-				cursor: pointer;
-			}
-
-			[aria-expanded='true'] button {
-				background-color: var(--sl-color-gray-2);
-				box-shadow: none;
-			}
-
-			[aria-expanded='true'] button .open-menu {
-				display: none;
-			}
-
-			:not([aria-expanded='true']) button .close-menu {
-				display: none;
-			}
+		:not([aria-expanded='true']) button .close-menu {
+			display: none;
 		}
 
 		.mobile-menu {
@@ -196,7 +220,7 @@ const navLinks = [
 			left: 0;
 			right: 0;
 			background-color: var(--sl-color-bg-nav, #ffffff);
-			border-bottom: 1px solid #dedede;
+			border-bottom: 1px solid var(--sl-color-gray-5);
 			box-shadow: var(--sl-shadow-lg);
 			z-index: calc(var(--sl-z-index-navbar) - 1);
 			padding: 1rem;
@@ -236,6 +260,11 @@ const navLinks = [
 			color: var(--sl-color-text-accent);
 		}
 
+		.mobile-nav a.active {
+			color: var(--sl-color-text-accent);
+			font-weight: 600;
+		}
+
 		.mobile-controls {
 			display: flex;
 			gap: 1rem;
@@ -252,32 +281,40 @@ const navLinks = [
 		:global([data-theme='light']) [aria-expanded='true'] .starlight-menu-button > button {
 			background-color: var(--sl-color-gray-5);
 		}
+
+		@media (min-width: 50rem) {
+			:global(:root[data-has-sidebar]) {
+				--__sidebar-pad: calc(2 * var(--sl-nav-pad-x));
+			}
+			:global(:root:not([data-has-toc])) {
+				--__toc-width: 0rem;
+			}
+			.header {
+				--__sidebar-width: max(0rem, var(--sl-content-inline-start, 0rem) - var(--sl-nav-pad-x));
+				--__main-column-fr: calc(
+					(
+							100% + var(--__sidebar-pad, 0rem) - var(--__toc-width, var(--sl-sidebar-width)) -
+								(2 * var(--__toc-width, var(--sl-nav-pad-x))) - var(--sl-content-inline-start, 0rem) -
+								var(--sl-content-width)
+						) / 2
+				);
+				display: grid;
+				grid-template-columns:
+					minmax(
+						calc(var(--__sidebar-width) + max(0rem, var(--__main-column-fr) - var(--sl-nav-gap))),
+						auto
+					)
+					1fr
+					auto;
+				align-content: center;
+			}
+		}
 	}
 
-	@media (min-width: 50rem) {
-		:global(:root[data-has-sidebar]) {
-			--__sidebar-pad: calc(2 * var(--sl-nav-pad-x));
-		}
-		:global(:root:not([data-has-toc])) {
-			--__toc-width: 0rem;
-		}
+	@media (min-width: 50rem) and (max-width: 71.999rem) {
 		.header {
-			--__sidebar-width: max(0rem, var(--sl-content-inline-start, 0rem) - var(--sl-nav-pad-x));
-			--__main-column-fr: calc(
-				(
-						100% + var(--__sidebar-pad, 0rem) - var(--__toc-width, var(--sl-sidebar-width)) -
-							(2 * var(--__toc-width, var(--sl-nav-pad-x))) - var(--sl-content-inline-start, 0rem) -
-							var(--sl-content-width)
-					) / 2
-			);
 			display: grid;
-			grid-template-columns:
-				minmax(
-					calc(var(--__sidebar-width) + max(0rem, var(--__main-column-fr) - var(--sl-nav-gap))),
-					auto
-				)
-				1fr
-				auto;
+			grid-template-columns: auto 1fr auto;
 			align-content: center;
 		}
 	}
