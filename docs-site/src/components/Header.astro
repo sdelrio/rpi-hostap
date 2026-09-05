@@ -133,9 +133,6 @@ const isActive = (href: string) => href === '/rpi-hostap/' ? pathname === href :
 			justify-content: space-between;
 			align-items: center;
 			height: 100%;
-			padding: 0 var(--sl-nav-pad-x);
-			background-color: var(--sl-color-bg-nav, #ffffff);
-			border-bottom: 1px solid var(--sl-color-gray-5);
 		}
 
 		.title-wrapper {
@@ -318,6 +315,7 @@ const isActive = (href: string) => href === '/rpi-hostap/' ? pathname === href :
 					1fr
 					auto;
 				align-content: center;
+				padding-inline-end: 0;
 			}
 		}
 	}
@@ -327,6 +325,7 @@ const isActive = (href: string) => href === '/rpi-hostap/' ? pathname === href :
 			display: grid;
 			grid-template-columns: auto 1fr auto;
 			align-content: center;
+			padding-inline-end: 0;
 		}
 	}
 </style>
