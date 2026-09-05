@@ -20,6 +20,8 @@ const navLinks = [
 
 const pathname = Astro.url.pathname;
 const isActive = (href: string) => href === '/rpi-hostap/' ? pathname === href : pathname.startsWith(href);
+
+const navLinksJson = JSON.stringify(navLinks);
 ---
 
 <div class="header">
@@ -57,6 +59,8 @@ const isActive = (href: string) => href === '/rpi-hostap/' ? pathname === href :
 			aria-label={Astro.locals.t('menuButton.accessibleLabel')}
 			aria-controls="mobile-menu"
 			class="sl-flex lg:sl-hidden"
+			data-nav-links={navLinksJson}
+			data-current-path={pathname}
 		>
 			<svg class="open-menu" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 				<line x1="3" y1="6" x2="21" y2="6"></line>
@@ -71,35 +75,13 @@ const isActive = (href: string) => href === '/rpi-hostap/' ? pathname === href :
 	</starlight-menu-button>
 </div>
 
-<div class="mobile-menu sl-hidden print:hidden" id="mobile-menu">
-	<nav class="mobile-nav">
-		{navLinks.map(({ label, href }) => (
-			<a
-				href={href}
-				aria-current={isActive(href) ? 'page' : undefined}
-				class:list={{ active: isActive(href) }}
-			>
-				{label}
-			</a>
-		))}
-	</nav>
-	<div class="mobile-controls">
-		<ThemeSelect />
-		<LanguageSelect />
-	</div>
-</div>
-
 <script>
 	class StarlightMenuButton extends HTMLElement {
 		btn = this.querySelector('button')!;
-		menu = document.getElementById('mobile-menu')!;
+		menu: HTMLElement | null = null;
 
 		constructor() {
 			super();
-			// Move mobile menu out of the fixed header to document.body
-			// so it doesn't affect header layout
-			document.body.appendChild(this.menu);
-
 			this.btn.addEventListener('click', () => this.toggleExpanded());
 
 			document.addEventListener('keyup', (e) => {
@@ -112,9 +94,50 @@ const isActive = (href: string) => href === '/rpi-hostap/' ? pathname === href :
 			matchMedia('(min-width: 72rem)').addEventListener('change', () => this.setExpanded(false));
 		}
 
+		createMobileMenu() {
+			if (this.menu) return this.menu;
+
+			const navLinks = JSON.parse(this.btn.dataset.navLinks || '[]');
+			const currentPath = this.btn.dataset.currentPath || '/';
+
+			const isActive = (href: string) => href === '/rpi-hostap/' ? currentPath === href : currentPath.startsWith(href);
+
+			const menu = document.createElement('div');
+			menu.id = 'mobile-menu';
+			menu.className = 'mobile-menu print:hidden';
+			menu.innerHTML = `
+				<nav class="mobile-nav">
+					${navLinks.map(({ label, href }: { label: string; href: string }) => `
+						<a href="${href}" ${isActive(href) ? 'aria-current="page" class="active"' : ''}>${label}</a>
+					`).join('')}
+				</nav>
+				<div class="mobile-controls">
+					<starlight-theme-select>
+						<select aria-label="Select theme">
+							<option value="dark">Dark</option>
+							<option value="light">Light</option>
+							<option value="auto" selected>Auto</option>
+						</select>
+					</starlight-theme-select>
+					<div class="mobile-lang-placeholder"></div>
+				</div>
+			`;
+
+			document.body.appendChild(menu);
+			this.menu = menu;
+			return menu;
+		}
+
 		setExpanded(expanded: boolean) {
 			this.setAttribute('aria-expanded', String(expanded));
-			this.menu.classList.toggle('sl-hidden', !expanded);
+
+			if (expanded) {
+				const menu = this.createMobileMenu();
+				menu.style.display = '';
+			} else if (this.menu) {
+				this.menu.style.display = 'none';
+			}
+
 			document.body.toggleAttribute('data-mobile-menu-expanded', expanded);
 			document.querySelectorAll<HTMLElement>('.main-frame, .sl-skip-link').forEach((el) => {
 				el.toggleAttribute('inert', expanded);
@@ -228,6 +251,29 @@ const isActive = (href: string) => href === '/rpi-hostap/' ? pathname === href :
 			display: none;
 		}
 
+		:global([data-theme='light']) .starlight-menu-button > button {
+			background-color: var(--sl-color-black);
+			color: var(--sl-color-white);
+		}
+
+		:global([data-theme='light']) .starlight-menu-button[aria-expanded='true'] > button {
+			background-color: var(--sl-color-gray-5);
+		}
+	}
+</style>
+
+<style is:global>
+	@layer starlight.core {
+		[data-mobile-menu-expanded] {
+			overflow: hidden;
+		}
+
+		@media (min-width: 72rem) {
+			[data-mobile-menu-expanded] {
+				overflow: auto;
+			}
+		}
+
 		.mobile-menu {
 			position: fixed;
 			top: var(--sl-nav-height);
@@ -292,67 +338,6 @@ const isActive = (href: string) => href === '/rpi-hostap/' ? pathname === href :
 			margin-top: 1rem;
 			padding-top: 1rem;
 			border-top: 1px solid var(--sl-color-gray-5);
-		}
-
-		:global([data-theme='light']) .starlight-menu-button > button {
-			background-color: var(--sl-color-black);
-			color: var(--sl-color-white);
-		}
-
-		:global([data-theme='light']) .starlight-menu-button[aria-expanded='true'] > button {
-			background-color: var(--sl-color-gray-5);
-		}
-
-		@media (min-width: 50rem) {
-			:global(:root[data-has-sidebar]) {
-				--__sidebar-pad: calc(2 * var(--sl-nav-pad-x));
-			}
-			:global(:root:not([data-has-toc])) {
-				--__toc-width: 0rem;
-			}
-			.header {
-				--__sidebar-width: max(0rem, var(--sl-content-inline-start, 0rem) - var(--sl-nav-pad-x));
-				--__main-column-fr: calc(
-					(
-							100% + var(--__sidebar-pad, 0rem) - var(--__toc-width, var(--sl-sidebar-width)) -
-								(2 * var(--__toc-width, var(--sl-nav-pad-x))) - var(--sl-content-inline-start, 0rem) -
-								var(--sl-content-width)
-						) / 2
-				);
-				display: grid;
-				grid-template-columns:
-					minmax(
-						calc(var(--__sidebar-width) + max(0rem, var(--__main-column-fr) - var(--sl-nav-gap))),
-						auto
-					)
-					1fr
-					auto;
-				align-content: center;
-				padding-inline-end: 0;
-			}
-		}
-	}
-
-	@media (min-width: 50rem) and (max-width: 71.999rem) {
-		.header {
-			display: grid;
-			grid-template-columns: auto 1fr auto;
-			align-content: center;
-			padding-inline-end: 0;
-		}
-	}
-</style>
-
-<style is:global>
-	@layer starlight.core {
-		[data-mobile-menu-expanded] {
-			overflow: hidden;
-		}
-
-		@media (min-width: 72rem) {
-			[data-mobile-menu-expanded] {
-				overflow: auto;
-			}
 		}
 	}
 </style>

@@ -1,0 +1,180 @@
+---
+import EditLink from 'virtual:starlight/components/EditLink';
+import LastUpdated from 'virtual:starlight/components/LastUpdated';
+import Pagination from 'virtual:starlight/components/Pagination';
+import config from 'virtual:starlight/user-config';
+import { Icon } from '@astrojs/starlight/components';
+
+const base = import.meta.env.BASE_URL;
+---
+
+<footer class="site-footer">
+	<div class="footer-content">
+		<div class="footer-grid">
+			<div class="footer-section">
+				<h4>rpi-hostap</h4>
+				<p>Lightweight Docker container that turns a Raspberry Pi into a wireless Access Point.</p>
+			</div>
+
+			<div class="footer-section">
+				<h4>Documentation</h4>
+				<nav aria-label="Documentation">
+					<a href={`${base}configuration/`}>Configuration</a>
+					<a href={`${base}networking/`}>Networking</a>
+					<a href={`${base}operations/`}>Operations</a>
+					<a href={`${base}troubleshooting/`}>Troubleshooting</a>
+				</nav>
+			</div>
+
+			<div class="footer-section">
+				<h4>Resources</h4>
+				<nav aria-label="Resources">
+					<a href={`${base}validation/`}>Validation</a>
+					<a href={`${base}healthcheck/`}>Health Check</a>
+					<a href={`${base}ci/`}>CI / E2E Tests</a>
+					<a href={`${base}spec/`}>Specification</a>
+				</nav>
+			</div>
+
+			<div class="footer-section">
+				<h4>Community</h4>
+				<nav aria-label="Community">
+					<a href="https://github.com/sdelrio/rpi-hostap" rel="me">GitHub</a>
+					<a href="https://github.com/sdelrio/rpi-hostap/issues">Report Issue</a>
+					<a href={`${base}changelog/`}>Changelog</a>
+				</nav>
+			</div>
+		</div>
+
+		<div class="footer-meta">
+			<div class="footer-meta-left">
+				<EditLink />
+				<LastUpdated />
+			</div>
+			<div class="footer-meta-right">
+				<Pagination />
+			</div>
+		</div>
+
+		<div class="footer-bottom">
+			{
+				config.credits && (
+					<a class="kudos" href="https://starlight.astro.build">
+						<Icon name={'starlight'} /> {Astro.locals.t('builtWithStarlight.label')}
+					</a>
+				)
+			}
+		</div>
+	</div>
+</footer>
+
+<style>
+	@layer starlight.core {
+		.site-footer {
+			background-color: var(--sl-color-gray-7);
+			color: var(--sl-color-gray-1);
+			padding: 3rem 1.5rem 1.5rem;
+			margin-top: 3rem;
+		}
+
+		.footer-content {
+			max-width: 80rem;
+			margin: 0 auto;
+		}
+
+		.footer-grid {
+			display: grid;
+			grid-template-columns: repeat(4, 1fr);
+			gap: 2rem;
+			margin-bottom: 2rem;
+		}
+
+		@media (max-width: 768px) {
+			.footer-grid {
+				grid-template-columns: repeat(2, 1fr);
+			}
+		}
+
+		@media (max-width: 480px) {
+			.footer-grid {
+				grid-template-columns: 1fr;
+			}
+		}
+
+		.footer-section h4 {
+			color: var(--sl-color-white);
+			font-weight: 700;
+			font-size: var(--sl-text-sm);
+			margin: 0 0 0.75rem 0;
+		}
+
+		.footer-section p {
+			font-size: var(--sl-text-sm);
+			color: var(--sl-color-gray-2);
+			margin: 0;
+			line-height: 1.5;
+		}
+
+		.footer-section nav {
+			display: flex;
+			flex-direction: column;
+			gap: 0.5rem;
+		}
+
+		.footer-section a {
+			color: var(--sl-color-gray-2);
+			text-decoration: none;
+			font-size: var(--sl-text-sm);
+			transition: color 0.2s ease;
+		}
+
+		.footer-section a:hover {
+			color: var(--sl-color-white);
+			text-decoration: underline;
+		}
+
+		.footer-section a:focus-visible {
+			outline: 2px solid var(--sl-color-text-accent);
+			outline-offset: 2px;
+		}
+
+		.footer-meta {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			flex-wrap: wrap;
+			gap: 1rem;
+			padding-top: 1.5rem;
+			border-top: 1px solid var(--sl-color-gray-5);
+			font-size: var(--sl-text-sm);
+			color: var(--sl-color-gray-3);
+		}
+
+		.footer-meta-left {
+			display: flex;
+			gap: 2rem;
+			flex-wrap: wrap;
+		}
+
+		.footer-bottom {
+			text-align: center;
+			margin-top: 1.5rem;
+			padding-top: 1rem;
+			border-top: 1px solid var(--sl-color-gray-5);
+		}
+
+		.kudos {
+			display: inline-flex;
+			align-items: center;
+			gap: 0.5em;
+			font-size: var(--sl-text-xs);
+			text-decoration: none;
+			color: var(--sl-color-gray-3);
+			transition: color 0.15s ease;
+		}
+
+		.kudos:hover {
+			color: var(--sl-color-white);
+		}
+	}
+</style>
