@@ -66,6 +66,7 @@ export default defineConfig({
         {
           label: 'Networking',
           items: [
+            { label: 'Overview', link: '/networking' },
             { label: 'NAT / IP Forwarding', link: '/networking#nat--ip-forwarding' },
             { label: 'IPv6 Support', link: '/networking#ipv6-support-optional' },
             { label: 'Outgoing Interfaces', link: '/networking#outgoing-interfaces' },
@@ -75,12 +76,12 @@ export default defineConfig({
         { label: 'Operations', link: '/operations' },
         { label: 'Health Check', link: '/healthcheck' },
         { label: 'Troubleshooting', link: '/troubleshooting' },
-        { label: 'CI / E2E Tests', link: '/ci' },
         {
           label: 'Reference',
           items: [
             { label: 'Specification', link: '/spec' },
             { label: 'Changelog', link: '/changelog' },
+            { label: 'CI / E2E Tests', link: '/ci' },
           ],
         },
       ],
