@@ -4,6 +4,7 @@
 [![GHCR](https://img.shields.io/badge/GitHub-ghcr.io/sdelrio%2Frpi--hostap-blue)](https://ghcr.io/sdelrio/rpi-hostap)
 [![GitHub Release](https://img.shields.io/github/v/release/sdelrio/rpi-hostap)](https://github.com/sdelrio/rpi-hostap/releases)
 [![License](https://img.shields.io/github/license/sdelrio/rpi-hostap)](LICENSE)
+[![Docs](https://github.com/sdelrio/rpi-hostap/actions/workflows/pages.yml/badge.svg)](https://github.com/sdelrio/rpi-hostap/actions/workflows/pages.yml)
 
 Lightweight Docker container that turns a Raspberry Pi into a wireless Access Point with DHCP server. Built on Alpine Linux for minimal footprint.
 
