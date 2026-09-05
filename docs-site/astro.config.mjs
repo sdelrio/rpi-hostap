@@ -24,6 +24,23 @@ export default defineConfig({
       components: {
         ThemeProvider: './src/components/ThemeProvider.astro',
       },
+      head: [
+        {
+          tag: 'link',
+          attrs: { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+        },
+        {
+          tag: 'link',
+          attrs: { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: true },
+        },
+        {
+          tag: 'link',
+          attrs: {
+            rel: 'stylesheet',
+            href: 'https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap',
+          },
+        },
+      ],
       plugins: [
         starlightLinksValidator(),
       ],
