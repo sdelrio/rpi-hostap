@@ -16,6 +16,7 @@ export default defineConfig({
       logo: {
         src: './src/assets/logo.svg',
         alt: 'rpi-hostap logo',
+        replacesTitle: true,
       },
       editLink: {
         baseUrl: 'https://github.com/sdelrio/rpi-hostap/edit/master/',
