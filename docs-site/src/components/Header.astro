@@ -251,6 +251,29 @@ const navLinksJson = JSON.stringify(navLinks);
 			display: none;
 		}
 
+		:global([data-theme='light']) .starlight-menu-button > button {
+			background-color: var(--sl-color-black);
+			color: var(--sl-color-white);
+		}
+
+		:global([data-theme='light']) .starlight-menu-button[aria-expanded='true'] > button {
+			background-color: var(--sl-color-gray-5);
+		}
+	}
+</style>
+
+<style is:global>
+	@layer starlight.core {
+		[data-mobile-menu-expanded] {
+			overflow: hidden;
+		}
+
+		@media (min-width: 72rem) {
+			[data-mobile-menu-expanded] {
+				overflow: auto;
+			}
+		}
+
 		.mobile-menu {
 			position: fixed;
 			top: var(--sl-nav-height);
@@ -315,67 +338,6 @@ const navLinksJson = JSON.stringify(navLinks);
 			margin-top: 1rem;
 			padding-top: 1rem;
 			border-top: 1px solid var(--sl-color-gray-5);
-		}
-
-		:global([data-theme='light']) .starlight-menu-button > button {
-			background-color: var(--sl-color-black);
-			color: var(--sl-color-white);
-		}
-
-		:global([data-theme='light']) .starlight-menu-button[aria-expanded='true'] > button {
-			background-color: var(--sl-color-gray-5);
-		}
-
-		@media (min-width: 50rem) {
-			:global(:root[data-has-sidebar]) {
-				--__sidebar-pad: calc(2 * var(--sl-nav-pad-x));
-			}
-			:global(:root:not([data-has-toc])) {
-				--__toc-width: 0rem;
-			}
-			.header {
-				--__sidebar-width: max(0rem, var(--sl-content-inline-start, 0rem) - var(--sl-nav-pad-x));
-				--__main-column-fr: calc(
-					(
-							100% + var(--__sidebar-pad, 0rem) - var(--__toc-width, var(--sl-sidebar-width)) -
-								(2 * var(--__toc-width, var(--sl-nav-pad-x))) - var(--sl-content-inline-start, 0rem) -
-								var(--sl-content-width)
-						) / 2
-				);
-				display: grid;
-				grid-template-columns:
-					minmax(
-						calc(var(--__sidebar-width) + max(0rem, var(--__main-column-fr) - var(--sl-nav-gap))),
-						auto
-					)
-					1fr
-					auto;
-				align-content: center;
-				padding-inline-end: 0;
-			}
-		}
-	}
-
-	@media (min-width: 50rem) and (max-width: 71.999rem) {
-		.header {
-			display: grid;
-			grid-template-columns: auto 1fr auto;
-			align-content: center;
-			padding-inline-end: 0;
-		}
-	}
-</style>
-
-<style is:global>
-	@layer starlight.core {
-		[data-mobile-menu-expanded] {
-			overflow: hidden;
-		}
-
-		@media (min-width: 72rem) {
-			[data-mobile-menu-expanded] {
-				overflow: auto;
-			}
 		}
 	}
 </style>
