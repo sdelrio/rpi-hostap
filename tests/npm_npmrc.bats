@@ -11,8 +11,8 @@ NPMRC="docs-site/.npmrc"
     [ "$status" -eq 0 ]
 }
 
-@test "npmrc sets min-release-age=1" {
-    run grep -q '^min-release-age=1$' "$NPMRC"
+@test "npmrc sets min-release-age=3" {
+    run grep -q '^min-release-age=3$' "$NPMRC"
     [ "$status" -eq 0 ]
 }
 
