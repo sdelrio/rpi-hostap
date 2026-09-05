@@ -1,5 +1,42 @@
 # Changelog
 
+## [0.42.0](https://github.com/sdelrio/rpi-hostap/compare/v0.41.1...v0.42.0) (2026-09-05)
+
+
+### ✨ Features
+
+* **bootstrap:** add circular dependency detection ([#350](https://github.com/sdelrio/rpi-hostap/issues/350)) ([f18b825](https://github.com/sdelrio/rpi-hostap/commit/f18b825e83bf507aeca3870648bc9ec9dddb0414))
+* **docs-site:** add custom favicon for branding ([#383](https://github.com/sdelrio/rpi-hostap/issues/383)) ([#398](https://github.com/sdelrio/rpi-hostap/issues/398)) ([30cd6c1](https://github.com/sdelrio/rpi-hostap/commit/30cd6c163f4ca84d50e1b2e0d83c2469a0bb2578))
+* **docs-site:** add site logo to header ([#384](https://github.com/sdelrio/rpi-hostap/issues/384)) ([#396](https://github.com/sdelrio/rpi-hostap/issues/396)) ([c0da5cd](https://github.com/sdelrio/rpi-hostap/commit/c0da5cd32cacda48bedafb414969f528afb2829b))
+* **docs-site:** configure logo to replace site title text ([#401](https://github.com/sdelrio/rpi-hostap/issues/401)) ([#402](https://github.com/sdelrio/rpi-hostap/issues/402)) ([ea196b7](https://github.com/sdelrio/rpi-hostap/commit/ea196b7faa3d221ea4c32b8611c916b99d42929d))
+* **docs-site:** improve logo visibility and readability ([#399](https://github.com/sdelrio/rpi-hostap/issues/399)) ([d613f55](https://github.com/sdelrio/rpi-hostap/commit/d613f55d879e648277c556d96f59a56431c592dc))
+* **docs-site:** override Footer with light RPi-style footer ([#395](https://github.com/sdelrio/rpi-hostap/issues/395)) ([c7fd1fb](https://github.com/sdelrio/rpi-hostap/commit/c7fd1fbec7a70de6722e4321d57780c2daf561a2))
+* **docs-site:** override Header with RPi-style navigation ([#393](https://github.com/sdelrio/rpi-hostap/issues/393)) ([d420bbc](https://github.com/sdelrio/rpi-hostap/commit/d420bbc61807eb544f72fcaeda1d327401a5fa94))
+* **docs-site:** style nav links like Raspberry Pi site ([#394](https://github.com/sdelrio/rpi-hostap/issues/394)) ([148bd6a](https://github.com/sdelrio/rpi-hostap/commit/148bd6aa04d80ea774be55e46892d59ed03dc9bf))
+* **docs:** add docs-check smoke test for site build ([#355](https://github.com/sdelrio/rpi-hostap/issues/355)) ([03d92fc](https://github.com/sdelrio/rpi-hostap/commit/03d92fc86c5a3601e436f8d560881d13e84bbf79))
+* **docs:** add link checking for markdown files ([#356](https://github.com/sdelrio/rpi-hostap/issues/356)) ([e3e2792](https://github.com/sdelrio/rpi-hostap/commit/e3e27924f89b75c7455032bfc520ca34fea9000c))
+* **docs:** disable pagination links globally ([#404](https://github.com/sdelrio/rpi-hostap/issues/404)) ([f144ecd](https://github.com/sdelrio/rpi-hostap/commit/f144ecd4852ac3d0cef3e2b5136007cf96665f53))
+* **docs:** increase navigation bar height ([#372](https://github.com/sdelrio/rpi-hostap/issues/372)) ([#391](https://github.com/sdelrio/rpi-hostap/issues/391)) ([8169cc9](https://github.com/sdelrio/rpi-hostap/commit/8169cc9dee53034de5c773074623170673a1095d))
+* **docs:** update sidebar to clean white style ([#373](https://github.com/sdelrio/rpi-hostap/issues/373)) ([#392](https://github.com/sdelrio/rpi-hostap/issues/392)) ([5c38691](https://github.com/sdelrio/rpi-hostap/commit/5c386911ec23cd536eac76880b7fb40610ae531b))
+* **docs:** widen content area for desktop ([#371](https://github.com/sdelrio/rpi-hostap/issues/371)) ([#390](https://github.com/sdelrio/rpi-hostap/issues/390)) ([fa30b05](https://github.com/sdelrio/rpi-hostap/commit/fa30b05a48fee0ffeabcc5454959407c51fafcb3))
+* **npm:** add supply chain attack hardening to .npmrc ([#358](https://github.com/sdelrio/rpi-hostap/issues/358)) ([13f99b6](https://github.com/sdelrio/rpi-hostap/commit/13f99b6bfb69afc977d22803916f38c38dc9ad85))
+* **pages:** add GitHub Actions workflow for Pages deployment ([#343](https://github.com/sdelrio/rpi-hostap/issues/343)) ([4ea2a3f](https://github.com/sdelrio/rpi-hostap/commit/4ea2a3fd965e0d01b77f860b5ea3198a0d2133c8))
+* **pages:** prebuild script to copy markdown into content collections ([#342](https://github.com/sdelrio/rpi-hostap/issues/342)) ([6ac4865](https://github.com/sdelrio/rpi-hostap/commit/6ac4865b2cf46cd0ca8e72d5d6eb5d84c03a8445))
+* **pages:** scaffold Astro Starlight project in docs-site/ ([#341](https://github.com/sdelrio/rpi-hostap/issues/341)) ([0ac7bd8](https://github.com/sdelrio/rpi-hostap/commit/0ac7bd858c0992530757f07bcd84a4b5f46ac235)), closes [#336](https://github.com/sdelrio/rpi-hostap/issues/336)
+* **theme-1-core:** add Roboto font from Google Fonts ([#388](https://github.com/sdelrio/rpi-hostap/issues/388)) ([513d0f9](https://github.com/sdelrio/rpi-hostap/commit/513d0f9996a96720a6627fcf987f9e92d7b640f9)), closes [#369](https://github.com/sdelrio/rpi-hostap/issues/369)
+* **theme-1-core:** set light mode as default theme ([#386](https://github.com/sdelrio/rpi-hostap/issues/386)) ([611efb7](https://github.com/sdelrio/rpi-hostap/commit/611efb705c8059877bb328232f3c535c1132e0f6)), closes [#367](https://github.com/sdelrio/rpi-hostap/issues/367)
+* **theme-1-core:** update accent color to Raspberry Pi red ([#385](https://github.com/sdelrio/rpi-hostap/issues/385)) ([ad91abe](https://github.com/sdelrio/rpi-hostap/commit/ad91abe392ee328a8fd0f67f635f2d4edcb0f1ef)), closes [#366](https://github.com/sdelrio/rpi-hostap/issues/366)
+* **theme-1-core:** update body text color to match RPi style ([#389](https://github.com/sdelrio/rpi-hostap/issues/389)) ([1488f1e](https://github.com/sdelrio/rpi-hostap/commit/1488f1e8934e069ca0939f189a6e4fb7db8cc9c4)), closes [#370](https://github.com/sdelrio/rpi-hostap/issues/370)
+* **theme-1-core:** update grayscale palette to warmer tones ([#387](https://github.com/sdelrio/rpi-hostap/issues/387)) ([79c4e46](https://github.com/sdelrio/rpi-hostap/commit/79c4e4622fc7ff5442e5afed347a7e2d34bbda79)), closes [#368](https://github.com/sdelrio/rpi-hostap/issues/368)
+
+
+### 🩹 Fixes
+
+* **ci:** add prebuild step and scope deploy permissions ([#364](https://github.com/sdelrio/rpi-hostap/issues/364)) ([3778cc7](https://github.com/sdelrio/rpi-hostap/commit/3778cc7f3c21bcf1b20923048a6a7d051240b3cf)), closes [#360](https://github.com/sdelrio/rpi-hostap/issues/360)
+* **pages:** add docs-site artifacts to .gitignore ([#348](https://github.com/sdelrio/rpi-hostap/issues/348)) ([001cece](https://github.com/sdelrio/rpi-hostap/commit/001cece51daedec3df8b681f8bea9d306afdcce8))
+* **pages:** add frontmatter to copied docs for Starlight schema ([#346](https://github.com/sdelrio/rpi-hostap/issues/346)) ([0f6e66f](https://github.com/sdelrio/rpi-hostap/commit/0f6e66f21b2364d315a4cb492ace34a4dcb79761))
+* **pages:** strip markdown heading to prevent duplicated page titles ([#352](https://github.com/sdelrio/rpi-hostap/issues/352)) ([2685110](https://github.com/sdelrio/rpi-hostap/commit/268511012395fb678680bdfa24e0c46f21aa2951))
+
 ## [0.41.1](https://github.com/sdelrio/rpi-hostap/compare/v0.41.0...v0.41.1) (2026-09-04)
 
 
