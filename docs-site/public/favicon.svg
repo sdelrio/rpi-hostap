@@ -1,4 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <title>rpi-hostap WiFi icon</title>
   <rect width="32" height="32" rx="6" fill="#1a1a1a"/>
   <circle cx="16" cy="10" r="2.5" fill="#d62839"/>
   <path d="M11 14.5 Q16 9.5 21 14.5" stroke="#d62839" stroke-width="2" fill="none" stroke-linecap="round"/>
