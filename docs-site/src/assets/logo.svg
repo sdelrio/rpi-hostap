@@ -1,4 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 40" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 40" fill="none" role="img" aria-labelledby="logo-title">
+  <title id="logo-title">rpi-hostap logo</title>
   <rect width="120" height="40" rx="6" fill="#1a1a1a"/>
   <text x="12" y="28" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="700" fill="#fff" letter-spacing="-0.5">RPi</text>
   <text x="68" y="28" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="400" fill="#d62839" letter-spacing="-0.5">hostap</text>
