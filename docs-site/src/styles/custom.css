@@ -1,5 +1,14 @@
 :root {
   --sl-font: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --sl-content-width: 50rem;
+  --sl-content-pad-x: 2rem;
+}
+
+@media (min-width: 1200px) {
+  :root {
+    --sl-content-width: 55rem;
+    --sl-content-pad-x: 2.5rem;
+  }
 }
 
 :root,
