@@ -22,8 +22,6 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
   group: pages
@@ -41,6 +39,8 @@ jobs:
           cache-dependency-path: docs-site/package-lock.json
       - run: npm ci
         working-directory: docs-site
+      - run: npm run prebuild
+        working-directory: docs-site
       - run: npm run build
         working-directory: docs-site
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
@@ -50,6 +50,9 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
