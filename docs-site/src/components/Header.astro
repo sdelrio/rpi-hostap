@@ -156,12 +156,15 @@ const isActive = (href: string) => href === '/rpi-hostap/' ? pathname === href :
 			color: var(--sl-color-text);
 			text-decoration: none;
 			font-size: var(--sl-text-sm);
-			font-weight: 500;
-			transition: color 0.15s ease;
+			font-weight: 400;
+			padding: 0.5rem 0.75rem;
+			border-radius: 4px;
+			transition: background-color 0.2s, color 0.2s;
 		}
 
 		.nav-links a:hover {
-			color: var(--sl-color-text-accent);
+			background-color: var(--sl-color-black);
+			color: var(--sl-color-white);
 		}
 
 		.nav-links a:focus-visible {
@@ -170,7 +173,6 @@ const isActive = (href: string) => href === '/rpi-hostap/' ? pathname === href :
 		}
 
 		.nav-links a.active {
-			color: var(--sl-color-text-accent);
 			font-weight: 600;
 		}
 
@@ -260,20 +262,27 @@ const isActive = (href: string) => href === '/rpi-hostap/' ? pathname === href :
 			color: var(--sl-color-text);
 			text-decoration: none;
 			font-size: var(--sl-text-base);
-			padding: 0.5rem 0;
-			border-bottom: 1px solid var(--sl-color-gray-5);
+			font-weight: 400;
+			padding: 0.75rem 1rem;
+			border-radius: 4px;
+			transition: background-color 0.2s, color 0.2s;
+		}
+
+		.mobile-nav a:hover {
+			background-color: var(--sl-color-black);
+			color: var(--sl-color-white);
+		}
+
+		.mobile-nav a:focus-visible {
+			outline: 2px solid var(--sl-color-text-accent);
+			outline-offset: 2px;
 		}
 
 		.mobile-nav a:last-child {
 			border-bottom: none;
 		}
 
-		.mobile-nav a:hover {
-			color: var(--sl-color-text-accent);
-		}
-
 		.mobile-nav a.active {
-			color: var(--sl-color-text-accent);
 			font-weight: 600;
 		}
 
@@ -290,7 +299,7 @@ const isActive = (href: string) => href === '/rpi-hostap/' ? pathname === href :
 			color: var(--sl-color-white);
 		}
 
-		:global([data-theme='light']) [aria-expanded='true'] .starlight-menu-button > button {
+		:global([data-theme='light']) .starlight-menu-button[aria-expanded='true'] > button {
 			background-color: var(--sl-color-gray-5);
 		}
 
