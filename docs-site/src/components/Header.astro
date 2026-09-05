@@ -96,6 +96,10 @@ const isActive = (href: string) => href === '/rpi-hostap/' ? pathname === href :
 
 		constructor() {
 			super();
+			// Move mobile menu out of the fixed header to document.body
+			// so it doesn't affect header layout
+			document.body.appendChild(this.menu);
+
 			this.btn.addEventListener('click', () => this.toggleExpanded());
 
 			document.addEventListener('keyup', (e) => {
