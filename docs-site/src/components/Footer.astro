@@ -1,0 +1,211 @@
+---
+import EditLink from 'virtual:starlight/components/EditLink';
+import LastUpdated from 'virtual:starlight/components/LastUpdated';
+import Pagination from 'virtual:starlight/components/Pagination';
+import config from 'virtual:starlight/user-config';
+import { Icon } from '@astrojs/starlight/components';
+---
+
+<footer class="site-footer">
+	<div class="footer-content">
+		<div class="footer-grid">
+			<div class="footer-section">
+				<h4>rpi-hostap</h4>
+				<p>Lightweight Docker container that turns a Raspberry Pi into a wireless Access Point.</p>
+			</div>
+
+			<div class="footer-section">
+				<h4>Documentation</h4>
+				<nav>
+					<a href="/rpi-hostap/configuration/">Configuration</a>
+					<a href="/rpi-hostap/networking/">Networking</a>
+					<a href="/rpi-hostap/operations/">Operations</a>
+					<a href="/rpi-hostap/troubleshooting/">Troubleshooting</a>
+				</nav>
+			</div>
+
+			<div class="footer-section">
+				<h4>Resources</h4>
+				<nav>
+					<a href="/rpi-hostap/validation/">Validation</a>
+					<a href="/rpi-hostap/healthcheck/">Health Check</a>
+					<a href="/rpi-hostap/ci/">CI / E2E Tests</a>
+					<a href="/rpi-hostap/spec/">Specification</a>
+				</nav>
+			</div>
+
+			<div class="footer-section">
+				<h4>Community</h4>
+				<nav>
+					<a href="https://github.com/sdelrio/rpi-hostap" rel="me">GitHub</a>
+					<a href="https://github.com/sdelrio/rpi-hostap/issues">Report Issue</a>
+					<a href="https://github.com/sdelrio/rpi-hostap/blob/master/CHANGELOG.md">Changelog</a>
+				</nav>
+			</div>
+		</div>
+
+		<div class="footer-meta">
+			<div class="meta-left">
+				<EditLink />
+				<LastUpdated />
+			</div>
+			<div class="meta-right">
+				<Pagination />
+			</div>
+		</div>
+
+		<div class="footer-bottom">
+			{
+				config.credits && (
+					<a class="kudos" href="https://starlight.astro.build">
+						<Icon name={'starlight'} /> {Astro.locals.t('builtWithStarlight.label')}
+					</a>
+				)
+			}
+		</div>
+	</div>
+</footer>
+
+<style>
+	@layer starlight.core {
+		.site-footer {
+			background-color: #f5f6f9;
+			color: #333;
+			padding: 3rem 1.5rem 1.5rem;
+			margin-top: 3rem;
+		}
+
+		.footer-content {
+			max-width: 80rem;
+			margin: 0 auto;
+		}
+
+		.footer-grid {
+			display: grid;
+			grid-template-columns: repeat(4, 1fr);
+			gap: 2rem;
+			margin-bottom: 2rem;
+		}
+
+		@media (max-width: 768px) {
+			.footer-grid {
+				grid-template-columns: repeat(2, 1fr);
+			}
+		}
+
+		@media (max-width: 480px) {
+			.footer-grid {
+				grid-template-columns: 1fr;
+			}
+		}
+
+		.footer-section h4 {
+			color: #333;
+			font-weight: 700;
+			font-size: var(--sl-text-sm);
+			margin: 0 0 0.75rem 0;
+		}
+
+		.footer-section p {
+			font-size: var(--sl-text-sm);
+			color: #555;
+			margin: 0;
+			line-height: 1.5;
+		}
+
+		.footer-section nav {
+			display: flex;
+			flex-direction: column;
+			gap: 0.5rem;
+		}
+
+		.footer-section a {
+			color: #555;
+			text-decoration: none;
+			font-size: var(--sl-text-sm);
+			transition: color 0.15s ease;
+		}
+
+		.footer-section a:hover {
+			color: #333;
+			text-decoration: underline;
+		}
+
+		.footer-meta {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			flex-wrap: wrap;
+			gap: 1rem;
+			padding-top: 1.5rem;
+			border-top: 1px solid #ddd;
+			font-size: var(--sl-text-sm);
+			color: #666;
+		}
+
+		.meta-left {
+			display: flex;
+			gap: 2rem;
+			flex-wrap: wrap;
+		}
+
+		.footer-bottom {
+			text-align: center;
+			margin-top: 1.5rem;
+			padding-top: 1rem;
+			border-top: 1px solid #ddd;
+		}
+
+		.kudos {
+			display: inline-flex;
+			align-items: center;
+			gap: 0.5em;
+			font-size: var(--sl-text-xs);
+			text-decoration: none;
+			color: #888;
+			transition: color 0.15s ease;
+		}
+
+		.kudos:hover {
+			color: #333;
+		}
+
+		:global([data-theme='dark']) .site-footer {
+			background-color: var(--sl-color-gray-7);
+			color: var(--sl-color-gray-1);
+		}
+
+		:global([data-theme='dark']) .footer-section h4 {
+			color: var(--sl-color-white);
+		}
+
+		:global([data-theme='dark']) .footer-section p {
+			color: var(--sl-color-gray-2);
+		}
+
+		:global([data-theme='dark']) .footer-section a {
+			color: var(--sl-color-gray-2);
+		}
+
+		:global([data-theme='dark']) .footer-section a:hover {
+			color: var(--sl-color-white);
+		}
+
+		:global([data-theme='dark']) .footer-meta {
+			border-top-color: var(--sl-color-gray-5);
+			color: var(--sl-color-gray-3);
+		}
+
+		:global([data-theme='dark']) .footer-bottom {
+			border-top-color: var(--sl-color-gray-5);
+		}
+
+		:global([data-theme='dark']) .kudos {
+			color: var(--sl-color-gray-3);
+		}
+
+		:global([data-theme='dark']) .kudos:hover {
+			color: var(--sl-color-white);
+		}
+	}
+</style>
