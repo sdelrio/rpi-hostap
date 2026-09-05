@@ -4,6 +4,8 @@ import LastUpdated from 'virtual:starlight/components/LastUpdated';
 import Pagination from 'virtual:starlight/components/Pagination';
 import config from 'virtual:starlight/user-config';
 import { Icon } from '@astrojs/starlight/components';
+
+const base = import.meta.env.BASE_URL;
 ---
 
 <footer class="site-footer">
@@ -16,27 +18,27 @@ import { Icon } from '@astrojs/starlight/components';
 
 			<div class="footer-section">
 				<h4>Documentation</h4>
-				<nav>
-					<a href="/rpi-hostap/configuration/">Configuration</a>
-					<a href="/rpi-hostap/networking/">Networking</a>
-					<a href="/rpi-hostap/operations/">Operations</a>
-					<a href="/rpi-hostap/troubleshooting/">Troubleshooting</a>
+				<nav aria-label="Documentation">
+					<a href={`${base}configuration/`}>Configuration</a>
+					<a href={`${base}networking/`}>Networking</a>
+					<a href={`${base}operations/`}>Operations</a>
+					<a href={`${base}troubleshooting/`}>Troubleshooting</a>
 				</nav>
 			</div>
 
 			<div class="footer-section">
 				<h4>Resources</h4>
-				<nav>
-					<a href="/rpi-hostap/validation/">Validation</a>
-					<a href="/rpi-hostap/healthcheck/">Health Check</a>
-					<a href="/rpi-hostap/ci/">CI / E2E Tests</a>
-					<a href="/rpi-hostap/spec/">Specification</a>
+				<nav aria-label="Resources">
+					<a href={`${base}validation/`}>Validation</a>
+					<a href={`${base}healthcheck/`}>Health Check</a>
+					<a href={`${base}ci/`}>CI / E2E Tests</a>
+					<a href={`${base}spec/`}>Specification</a>
 				</nav>
 			</div>
 
 			<div class="footer-section">
 				<h4>Community</h4>
-				<nav>
+				<nav aria-label="Community">
 					<a href="https://github.com/sdelrio/rpi-hostap" rel="me">GitHub</a>
 					<a href="https://github.com/sdelrio/rpi-hostap/issues">Report Issue</a>
 					<a href="https://github.com/sdelrio/rpi-hostap/blob/master/CHANGELOG.md">Changelog</a>
@@ -69,8 +71,8 @@ import { Icon } from '@astrojs/starlight/components';
 <style>
 	@layer starlight.core {
 		.site-footer {
-			background-color: #f5f6f9;
-			color: #333;
+			background-color: var(--sl-color-gray-7);
+			color: var(--sl-color-gray-1);
 			padding: 3rem 1.5rem 1.5rem;
 			margin-top: 3rem;
 		}
@@ -100,7 +102,7 @@ import { Icon } from '@astrojs/starlight/components';
 		}
 
 		.footer-section h4 {
-			color: #333;
+			color: var(--sl-color-white);
 			font-weight: 700;
 			font-size: var(--sl-text-sm);
 			margin: 0 0 0.75rem 0;
@@ -108,7 +110,7 @@ import { Icon } from '@astrojs/starlight/components';
 
 		.footer-section p {
 			font-size: var(--sl-text-sm);
-			color: #555;
+			color: var(--sl-color-gray-2);
 			margin: 0;
 			line-height: 1.5;
 		}
@@ -120,14 +122,14 @@ import { Icon } from '@astrojs/starlight/components';
 		}
 
 		.footer-section a {
-			color: #555;
+			color: var(--sl-color-gray-2);
 			text-decoration: none;
 			font-size: var(--sl-text-sm);
 			transition: color 0.15s ease;
 		}
 
 		.footer-section a:hover {
-			color: #333;
+			color: var(--sl-color-white);
 			text-decoration: underline;
 		}
 
@@ -138,9 +140,9 @@ import { Icon } from '@astrojs/starlight/components';
 			flex-wrap: wrap;
 			gap: 1rem;
 			padding-top: 1.5rem;
-			border-top: 1px solid #ddd;
+			border-top: 1px solid var(--sl-color-gray-5);
 			font-size: var(--sl-text-sm);
-			color: #666;
+			color: var(--sl-color-gray-3);
 		}
 
 		.meta-left {
@@ -153,7 +155,7 @@ import { Icon } from '@astrojs/starlight/components';
 			text-align: center;
 			margin-top: 1.5rem;
 			padding-top: 1rem;
-			border-top: 1px solid #ddd;
+			border-top: 1px solid var(--sl-color-gray-5);
 		}
 
 		.kudos {
@@ -162,49 +164,11 @@ import { Icon } from '@astrojs/starlight/components';
 			gap: 0.5em;
 			font-size: var(--sl-text-xs);
 			text-decoration: none;
-			color: #888;
+			color: var(--sl-color-gray-3);
 			transition: color 0.15s ease;
 		}
 
 		.kudos:hover {
-			color: #333;
-		}
-
-		:global([data-theme='dark']) .site-footer {
-			background-color: var(--sl-color-gray-7);
-			color: var(--sl-color-gray-1);
-		}
-
-		:global([data-theme='dark']) .footer-section h4 {
-			color: var(--sl-color-white);
-		}
-
-		:global([data-theme='dark']) .footer-section p {
-			color: var(--sl-color-gray-2);
-		}
-
-		:global([data-theme='dark']) .footer-section a {
-			color: var(--sl-color-gray-2);
-		}
-
-		:global([data-theme='dark']) .footer-section a:hover {
-			color: var(--sl-color-white);
-		}
-
-		:global([data-theme='dark']) .footer-meta {
-			border-top-color: var(--sl-color-gray-5);
-			color: var(--sl-color-gray-3);
-		}
-
-		:global([data-theme='dark']) .footer-bottom {
-			border-top-color: var(--sl-color-gray-5);
-		}
-
-		:global([data-theme='dark']) .kudos {
-			color: var(--sl-color-gray-3);
-		}
-
-		:global([data-theme='dark']) .kudos:hover {
 			color: var(--sl-color-white);
 		}
 	}
