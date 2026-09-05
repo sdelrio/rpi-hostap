@@ -4,9 +4,30 @@
   --sl-color-accent-low: hsl(354, 80%, 90%);
   --sl-color-accent: hsl(354, 90%, 40%);
   --sl-color-accent-high: hsl(354, 80%, 30%);
+
+  --sl-color-gray-1: hsl(30, 12%, 20%);
+  --sl-color-gray-2: hsl(30, 10%, 40%);
+  --sl-color-gray-3: hsl(30, 8%, 55%);
+  --sl-color-gray-4: hsl(30, 8%, 75%);
+  --sl-color-gray-5: hsl(30, 15%, 89%);
+  --sl-color-gray-6: hsl(30, 15%, 93%);
+  --sl-color-gray-7: hsl(30, 12%, 95%);
+  --sl-color-black: hsl(30, 8%, 96%);
+  --sl-color-white: hsl(30, 14%, 12%);
 }
 [data-theme='dark'] {
+  --sl-hue-blue: 354;
   --sl-color-accent-low: hsl(354, 50%, 20%);
   --sl-color-accent: hsl(354, 100%, 60%);
   --sl-color-accent-high: hsl(354, 100%, 80%);
+
+  --sl-color-gray-1: hsl(30, 5%, 94%);
+  --sl-color-gray-2: hsl(30, 4%, 77%);
+  --sl-color-gray-3: hsl(30, 3%, 56%);
+  --sl-color-gray-4: hsl(30, 4%, 36%);
+  --sl-color-gray-5: hsl(30, 6%, 23%);
+  --sl-color-gray-6: hsl(30, 8%, 16%);
+  --sl-color-gray-7: hsl(30, 8%, 12%);
+  --sl-color-black: hsl(30, 8%, 10%);
+  --sl-color-white: hsl(0, 0%, 100%);
 }
