@@ -19,6 +19,11 @@
   --sl-color-black: hsl(30, 8%, 96%);
   --sl-color-white: hsl(30, 14%, 12%);
 }
+
+[data-theme='light'] {
+  --sl-color-text: hsl(30, 15%, 20%);
+  --sl-color-text-accent: hsl(354, 90%, 45%);
+}
 [data-theme='dark'] {
   --sl-hue-blue: 354;
   --sl-color-accent-low: hsl(354, 50%, 20%);
