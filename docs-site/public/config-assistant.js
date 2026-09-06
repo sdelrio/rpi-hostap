@@ -35,6 +35,15 @@ function configAssistant() {
     showPassphrase: false,
     pmfAuto: true,
     pmf: '0',
+    subnet: '192.168.254.0',
+    apAddr: '192.168.254.1',
+    dhcpRangeAuto: true,
+    dhcpRangeStart: '192.168.254.100',
+    dhcpRangeEnd: '192.168.254.200',
+    dhcpLease: '12h',
+    priDns: '8.8.8.8',
+    secDns: '8.8.4.4',
+    ipv6: false,
     htEnabled: false,
     htCapab: '',
     vhtEnabled: false,
@@ -45,6 +54,12 @@ function configAssistant() {
       const group = _countryGroup[this.countryCode]
       const list = this.hwMode === 'a' ? channels5G : channels2G
       return group ? (list[group] || []) : []
+    },
+
+    get subnetPrefix() {
+      const parts = this.subnet.split('.')
+      parts.length = 3
+      return parts.join('.')
     },
 
     init() {
@@ -69,6 +84,16 @@ function configAssistant() {
       this.$watch('countryCode', () => this._syncChannel())
       this.$watch('wpaVersion', () => { if (this.pmfAuto) this._derivePmf() })
       this.$watch('pmfAuto', (on) => { if (on) this._derivePmf() })
+      this.$watch('subnet', () => {
+        if (this.dhcpRangeAuto) this._syncDhcpRange()
+      })
+      this.$watch('dhcpRangeAuto', (on) => { if (on) this._syncDhcpRange() })
+    },
+
+    _syncDhcpRange() {
+      const prefix = this.subnetPrefix
+      this.dhcpRangeStart = prefix + '.100'
+      this.dhcpRangeEnd = prefix + '.200'
     },
 
     _syncChannel() {
@@ -122,6 +147,23 @@ function configAssistant() {
           cmd += ` \\
   -e HE_CAPAB="${this.heCapab}"`
         }
+      }
+
+      cmd += ` \\
+  -e SUBNET=${this.subnet} \\
+  -e AP_ADDR=${this.apAddr} \\
+  -e PRI_DNS=${this.priDns} \\
+  -e SEC_DNS=${this.secDns} \\
+  -e DHCP_LEASE=${this.dhcpLease}`
+
+      if (!this.dhcpRangeAuto) {
+        cmd += ` \\
+  -e DHCP_RANGE=${this.dhcpRangeStart},${this.dhcpRangeEnd},255.255.255.0,${this.dhcpLease}`
+      }
+
+      if (this.ipv6) {
+        cmd += ` \\
+  -e IPV6=1`
       }
       
       cmd += ` \\

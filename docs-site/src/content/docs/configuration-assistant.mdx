@@ -122,6 +122,62 @@ Configure advanced 802.11n/ac/ax capabilities for higher throughput.
   VHT (802.11ac) and HE (802.11ax) require the 5GHz band. Select "802.11a/n/ac/ax (5GHz)" in Radio Settings to enable these options.
 </div>
 
+### Network Settings
+
+Configure the LAN subnet, access point address, DHCP pool, and DNS servers.
+
+<div class="config-section">
+  <label for="subnet">Subnet</label>
+  <input id="subnet" type="text" x-model="subnet" placeholder="192.168.254.0" />
+  <div class="help-text">Network address for the access point LAN (e.g. 192.168.254.0).</div>
+</div>
+
+<div class="config-section">
+  <label for="ap-addr">AP Address</label>
+  <input id="ap-addr" type="text" x-model="apAddr" placeholder="192.168.254.1" />
+  <div class="help-text">IP address assigned to the access point interface. Must be inside the subnet.</div>
+</div>
+
+<div class="config-section">
+  <label for="dhcp-range-auto">
+    <input id="dhcp-range-auto" type="checkbox" x-model="dhcpRangeAuto" />
+    Auto-compute DHCP range from subnet
+  </label>
+  <div x-show="!dhcpRangeAuto">
+    <label for="dhcp-range-start">DHCP Range Start</label>
+    <input id="dhcp-range-start" type="text" x-model="dhcpRangeStart" placeholder="192.168.254.100" />
+    <label for="dhcp-range-end">DHCP Range End</label>
+    <input id="dhcp-range-end" type="text" x-model="dhcpRangeEnd" placeholder="192.168.254.200" />
+  </div>
+  <div class="help-text" x-show="dhcpRangeAuto">
+    Range will be computed as <span x-text="subnetPrefix + '.100'"></span> to <span x-text="subnetPrefix + '.200'"></span>.
+  </div>
+</div>
+
+<div class="config-section">
+  <label for="dhcp-lease">DHCP Lease Time</label>
+  <input id="dhcp-lease" type="text" x-model="dhcpLease" placeholder="12h" />
+  <div class="help-text">Lease duration for DHCP clients (e.g. 12h, 24h, 30m).</div>
+</div>
+
+<div class="config-section">
+  <label for="pri-dns">Primary DNS</label>
+  <input id="pri-dns" type="text" x-model="priDns" placeholder="8.8.8.8" />
+</div>
+
+<div class="config-section">
+  <label for="sec-dns">Secondary DNS</label>
+  <input id="sec-dns" type="text" x-model="secDns" placeholder="8.8.4.4" />
+</div>
+
+<div class="config-section">
+  <label for="ipv6">
+    <input id="ipv6" type="checkbox" x-model="ipv6" />
+    Enable IPv6
+  </label>
+  <div class="help-text">Enables IPv6 NAT and routing when checked.</div>
+</div>
+
 ### Generated Command
 
 The generated `docker run` command will appear here once all form sections are implemented.
