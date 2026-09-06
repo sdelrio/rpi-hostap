@@ -24,7 +24,7 @@ strip_title_heading() {
 
 # Copy docs/ files with frontmatter (rename CI.md -> ci.md for lowercase URLs)
 shopt -s nullglob
-for f in "$REPO_ROOT"/docs/*.md; do
+for f in "$REPO_ROOT"/docs/*.md "$REPO_ROOT"/docs/*.mdx; do
   name="$(basename "$f")"
   if [ "$name" = "CI.md" ]; then
     name="ci.md"
@@ -32,14 +32,19 @@ for f in "$REPO_ROOT"/docs/*.md; do
   if [ "$name" = "INDEX.md" ]; then
     name="index.mdx"
   fi
-  title="$(extract_title "$f")"
-  {
-    echo "---"
-    echo "title: \"$title\""
-    echo "---"
-    echo ""
-    cat "$f" | strip_title_heading
-  } > "$CONTENT_DIR/$name"
+  # If file already has frontmatter (starts with ---), copy as-is
+  if head -1 "$f" | grep -q '^---$'; then
+    cp "$f" "$CONTENT_DIR/$name"
+  else
+    title="$(extract_title "$f")"
+    {
+      echo "---"
+      echo "title: \"$title\""
+      echo "---"
+      echo ""
+      cat "$f" | strip_title_heading
+    } > "$CONTENT_DIR/$name"
+  fi
 done
 shopt -u nullglob
 

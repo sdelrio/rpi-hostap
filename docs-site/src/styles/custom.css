@@ -78,6 +78,25 @@
   font-size: 0.875em;
 }
 
+.config-section {
+  margin-bottom: 1rem;
+}
+
+.config-section label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.config-section select,
+.config-section input {
+  width: 100%;
+  max-width: 20rem;
+  padding: 0.5rem;
+  border-radius: var(--sl-border-radius-sm);
+  border: 1px solid var(--sl-color-border);
+}
+
 @layer starlight.core {
   .hero {
     background: var(--sl-color-bg, hsl(0 0% 100%));
