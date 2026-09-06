@@ -74,3 +74,30 @@
   border-radius: 4px;
   font-size: 0.875em;
 }
+
+@layer starlight.core {
+  .hero {
+    background: var(--sl-color-bg, hsl(0 0% 100%));
+    text-align: center;
+    padding: 3rem 1rem 4rem;
+  }
+
+  .hero-title {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 1rem;
+  }
+
+  .hero-tagline {
+    font-size: clamp(1rem, 2.5vw, 1.35rem);
+    color: var(--sl-color-gray-2);
+    max-width: 42rem;
+    margin: 0 auto 2rem;
+    line-height: 1.6;
+  }
+
+  .hero .sl-flex {
+    justify-content: center;
+  }
+}
