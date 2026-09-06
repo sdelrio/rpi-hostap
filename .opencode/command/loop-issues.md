@@ -41,7 +41,7 @@ the limit is reached. For each issue:
    until the current one is merged.
 7. **Finalize after merge**: squash-merge only if explicitly told
    (`gh pr merge <n> --squash --delete-branch`), then
-   `gh issue edit <n> --remove-label in_progress --add-label done`,
+   `gh issue close <n>`,
    `git checkout master && git pull`, and continue with the next issue.
 
 When no more matching open issues remain (or `--limit` is reached), summarize
