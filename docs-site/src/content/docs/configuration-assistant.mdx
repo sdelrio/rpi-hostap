@@ -1,0 +1,97 @@
+---
+title: "Configuration Assistant"
+---
+
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"></script>
+<script defer src="/rpi-hostap/config-assistant.js"></script>
+
+<div x-cloak x-data="configAssistant()">
+
+This interactive tool helps you compose the Docker environment variables needed to run rpi-hostap. Select your options below and the tool will generate the corresponding `docker run` command with all the correct flags.
+
+### Radio Settings
+
+Configure the basic wireless radio parameters.
+
+<div class="config-section">
+  <label for="hw-mode">Band</label>
+  <select id="hw-mode" x-model="hwMode">
+    <option value="b">802.11b (legacy, 2.4GHz only)</option>
+    <option value="g" selected>802.11g/n (2.4GHz, default)</option>
+    <option value="a">802.11a/n/ac/ax (5GHz)</option>
+  </select>
+</div>
+
+<div class="config-section">
+  <label for="country-code">Country</label>
+  <select id="country-code" x-model="countryCode">
+    <option value="">-- Select a country --</option>
+    <option value="US">United States</option>
+    <option value="CA">Canada</option>
+    <option value="MX">Mexico</option>
+    <option value="JP">Japan</option>
+    <option value="AU">Australia</option>
+  </select>
+</div>
+
+<div class="config-section">
+  <label for="channel">Channel</label>
+  <select id="channel" x-model="channel">
+    <option value="acs">Auto (ACS)</option>
+  </select>
+</div>
+
+### Security Settings
+
+Configure WPA authentication and passphrase.
+
+<div class="config-section">
+  <label for="wpa-version">WPA Version</label>
+  <select id="wpa-version" x-model="wpaVersion">
+    <option value="2">WPA2-PSK</option>
+    <option value="3">WPA3-SAE</option>
+    <option value="mixed">WPA2/WPA3 Transition Mode</option>
+  </select>
+</div>
+
+<div class="config-section">
+  <label for="wpa-passphrase">Passphrase</label>
+  <div class="passphrase-input">
+    <input
+      id="wpa-passphrase"
+      :type="showPassphrase ? 'text' : 'password'"
+      x-model="wpaPassphrase"
+      minlength="8"
+      required
+    />
+    <button
+      type="button"
+      class="passphrase-toggle"
+      @click="showPassphrase = !showPassphrase"
+      x-text="showPassphrase ? 'Hide' : 'Show'"
+    ></button>
+  </div>
+</div>
+
+<div class="config-section">
+  <label for="pmf-auto">
+    <input id="pmf-auto" type="checkbox" x-model="pmfAuto" />
+    Auto-derive PMF from WPA version
+  </label>
+  <div x-show="!pmfAuto">
+    <label for="pmf">Protected Management Frames (PMF)</label>
+    <select id="pmf" x-model="pmf">
+      <option value="0">Disabled (0)</option>
+      <option value="1">Optional (1)</option>
+      <option value="2">Required (2)</option>
+    </select>
+  </div>
+</div>
+
+### Generated Command
+
+The generated `docker run` command will appear here once all form sections are implemented.
+
+<pre><code x-text="generateCommand()"></code></pre>
+
+</div>

@@ -30,6 +30,11 @@ function configAssistant() {
     hwMode: 'g',
     countryCode: '',
     channel: '11',
+    wpaVersion: '2',
+    wpaPassphrase: 'passw0rd',
+    showPassphrase: false,
+    pmfAuto: true,
+    pmf: '0',
     get availableChannels() {
       const group = _countryGroup[this.countryCode]
       const list = this.hwMode === 'a' ? channels5G : channels2G
@@ -48,6 +53,8 @@ function configAssistant() {
       }
       this.$watch('hwMode', () => this._syncChannel())
       this.$watch('countryCode', () => this._syncChannel())
+      this.$watch('wpaVersion', () => { if (this.pmfAuto) this._derivePmf() })
+      this.$watch('pmfAuto', (on) => { if (on) this._derivePmf() })
     },
 
     _syncChannel() {
@@ -57,6 +64,11 @@ function configAssistant() {
       }
     },
 
+    _derivePmf() {
+      const map = { '2': '0', '3': '2', mixed: '1' }
+      this.pmf = map[this.wpaVersion] || '0'
+    },
+
     generateCommand() {
       const channelValue = this.channel === 'acs' ? 'acs' : this.channel
       return `docker run -d \
@@ -64,7 +76,9 @@ function configAssistant() {
   --net=host \
   --cap-add=NET_ADMIN \
   -e SSID=rpi-hostap \
-  -e WPA_PASSPHRASE=changeme \
+  -e WPA_PASSPHRASE=${this.wpaPassphrase} \
+  -e WPA_VERSION=${this.wpaVersion} \
+  -e PMF=${this.pmf} \
   -e CHANNEL=${channelValue} \
   -e HW_MODE=${this.hwMode} \
   -e COUNTRY_CODE=${this.countryCode} \
