@@ -81,18 +81,31 @@
 }
 
 .config-section {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.75rem;
   margin-bottom: 1rem;
 }
 
 .config-section label {
-  display: block;
+  display: inline;
   font-weight: 600;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0;
+  white-space: nowrap;
+}
+
+.config-section label:has(input) {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: normal;
 }
 
 .config-section select,
 .config-section input {
-  width: 100%;
+  flex: 1;
+  min-width: 10rem;
   max-width: 20rem;
   padding: 0.5rem;
   border-radius: var(--sl-border-radius-sm);
@@ -100,7 +113,7 @@
 }
 
 .passphrase-input {
-  display: flex;
+  display: inline-flex;
   gap: 0.5rem;
   max-width: 20rem;
 }
