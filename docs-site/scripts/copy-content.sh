@@ -93,17 +93,7 @@ if [[ -f "$REPO_ROOT/README.md" ]]; then
 
   {
     echo "---"
-    echo "title: \"rpi-hostap\""
-    echo "hero:"
-    echo "  title: \"rpi-hostap\""
-    echo "  tagline: \"$tagline\""
-    echo "  image:"
-    echo "    file: ../../assets/logo.svg"
-    echo "  actions:"
-    echo "    - text: Get Started"
-    echo "      link: /rpi-hostap/readme/#quick-start"
-    echo "      icon: right-arrow"
-    echo "      variant: primary"
+    echo "title: \"Readme\""
     echo "---"
     echo ""
     echo "$body"

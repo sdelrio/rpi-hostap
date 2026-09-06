@@ -65,6 +65,13 @@ export default defineConfig({
         {
           label: 'Configuration',
           items: [
+            { label: 'Quickstart', link: '/readme#quick-start' },
+            { label: 'Configuration', link: '/readme#configuration' },
+          ],
+        },
+        {
+          label: 'Advanced Configuration',
+          items: [
             { label: 'Overview', link: '/configuration' },
             { label: 'HT/VHT Tuning', link: '/configuration#htvht-80211nac-tuning' },
             { label: 'MAC Filtering', link: '/configuration#mac-address-filtering-optional' },
