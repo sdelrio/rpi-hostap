@@ -57,12 +57,20 @@ export default defineConfig({
         {
           label: 'Home',
           items: [
-            { label: 'README', link: '/readme' },
-            { label: 'INDEX', link: '/' },
+            { label: 'Home', link: '/home' },
+            { label: 'Readme', link: '/readme' },
+            { label: 'Index', link: '/' },
           ],
         },
         {
           label: 'Configuration',
+          items: [
+            { label: 'Quickstart', link: '/readme#quick-start' },
+            { label: 'Configuration', link: '/readme#configuration' },
+          ],
+        },
+        {
+          label: 'Advanced Configuration',
           items: [
             { label: 'Overview', link: '/configuration' },
             { label: 'HT/VHT Tuning', link: '/configuration#htvht-80211nac-tuning' },
