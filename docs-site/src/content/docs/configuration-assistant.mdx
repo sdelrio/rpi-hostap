@@ -1,0 +1,253 @@
+---
+title: "Configuration Assistant"
+---
+
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"></script>
+<script defer src="/rpi-hostap/config-assistant.js"></script>
+
+<div x-cloak x-data="configAssistant()">
+
+This interactive tool helps you compose the Docker environment variables needed to run rpi-hostap. Select your options below and the tool will generate the corresponding `docker run` command with all the correct flags.
+
+### Radio Settings
+
+Configure the basic wireless radio parameters.
+
+<div class="config-section">
+  <label for="hw-mode">Band</label>
+  <select id="hw-mode" x-model="hwMode">
+    <option value="b">802.11b (legacy, 2.4GHz only)</option>
+    <option value="g" selected>802.11g/n (2.4GHz, default)</option>
+    <option value="a">802.11a/n/ac/ax (5GHz)</option>
+  </select>
+</div>
+
+<div class="config-section">
+  <label for="country-code">Country</label>
+  <select id="country-code" x-model="countryCode">
+    <option value="">-- Select a country --</option>
+    <option value="US">United States</option>
+    <option value="CA">Canada</option>
+    <option value="MX">Mexico</option>
+    <option value="JP">Japan</option>
+    <option value="AU">Australia</option>
+  </select>
+</div>
+
+<div class="config-section">
+  <label for="channel">Channel</label>
+  <select id="channel" x-model="channel">
+    <option value="acs">Auto (ACS)</option>
+  </select>
+</div>
+
+### Security Settings
+
+Configure WPA authentication and passphrase.
+
+<div class="config-section">
+  <label for="wpa-version">WPA Version</label>
+  <select id="wpa-version" x-model="wpaVersion">
+    <option value="2">WPA2-PSK</option>
+    <option value="3">WPA3-SAE</option>
+    <option value="mixed">WPA2/WPA3 Transition Mode</option>
+  </select>
+</div>
+
+<div class="config-section">
+  <label for="wpa-passphrase">Passphrase</label>
+  <div class="passphrase-input">
+    <input id="wpa-passphrase" x-bind:type="showPassphrase ? 'text' : 'password'" x-model="wpaPassphrase" minlength="8" required />
+    <button type="button" class="passphrase-toggle" x-on:click="showPassphrase = !showPassphrase" x-text="showPassphrase ? 'Hide' : 'Show'"></button>
+  </div>
+</div>
+
+<div class="config-section">
+  <label for="pmf-auto">
+    <input id="pmf-auto" type="checkbox" x-model="pmfAuto" />
+    Auto-derive PMF from WPA version
+  </label>
+  <div x-show="!pmfAuto">
+    <label for="pmf">Protected Management Frames (PMF)</label>
+    <select id="pmf" x-model="pmf">
+      <option value="0">Disabled (0)</option>
+      <option value="1">Optional (1)</option>
+      <option value="2">Required (2)</option>
+    </select>
+  </div>
+</div>
+
+### Radio Capabilities
+
+Configure advanced 802.11n/ac/ax capabilities for higher throughput.
+
+<div class="config-section">
+  <label for="ht-enabled">
+    <input id="ht-enabled" type="checkbox" x-model="htEnabled" />
+    Enable HT (802.11n)
+  </label>
+  <div x-show="htEnabled">
+    <label for="ht-capab">HT Capabilities</label>
+    <input id="ht-capab" type="text" x-model="htCapab" placeholder="[HT40+][SHORT-GI-20][SHORT-GI-40]" />
+  </div>
+</div>
+
+<template x-if="hwMode === 'a'">
+  <div>
+    <div class="config-section">
+      <label for="vht-enabled">
+        <input id="vht-enabled" type="checkbox" x-model="vhtEnabled" />
+        Enable VHT (802.11ac)
+      </label>
+      <div x-show="vhtEnabled">
+        <label for="vht-capab">VHT Capabilities</label>
+        <input id="vht-capab" type="text" x-model="vhtCapab" placeholder="[MAX-MPDU-3895][SHORT-GI-80]" />
+      </div>
+    </div>
+
+    <div class="config-section">
+      <label for="he-enabled">
+        <input id="he-enabled" type="checkbox" x-model="heEnabled" />
+        Enable HE (802.11ax)
+      </label>
+      <div x-show="heEnabled">
+        <label for="he-capab">HE Capabilities</label>
+        <input id="he-capab" type="text" x-model="heCapab" placeholder="[HE80:[0x11ff:0xf]]" />
+      </div>
+    </div>
+  </div>
+</template>
+
+<div class="help-text" x-show="hwMode !== 'a'">
+  VHT (802.11ac) and HE (802.11ax) require the 5GHz band. Select "802.11a/n/ac/ax (5GHz)" in Radio Settings to enable these options.
+</div>
+
+### Network Settings
+
+Configure the LAN subnet, access point address, DHCP pool, and DNS servers.
+
+<div class="config-section">
+  <label for="subnet">Subnet</label>
+  <input id="subnet" type="text" x-model="subnet" placeholder="192.168.254.0" />
+  <div class="help-text">Network address for the access point LAN (e.g. 192.168.254.0).</div>
+</div>
+
+<div class="config-section">
+  <label for="ap-addr">AP Address</label>
+  <input id="ap-addr" type="text" x-model="apAddr" placeholder="192.168.254.1" />
+  <div class="help-text">IP address assigned to the access point interface. Must be inside the subnet.</div>
+</div>
+
+<div class="config-section">
+  <label for="dhcp-range-auto">
+    <input id="dhcp-range-auto" type="checkbox" x-model="dhcpRangeAuto" />
+    Auto-compute DHCP range from subnet
+  </label>
+  <div x-show="!dhcpRangeAuto">
+    <label for="dhcp-range-start">DHCP Range Start</label>
+    <input id="dhcp-range-start" type="text" x-model="dhcpRangeStart" placeholder="192.168.254.100" />
+    <label for="dhcp-range-end">DHCP Range End</label>
+    <input id="dhcp-range-end" type="text" x-model="dhcpRangeEnd" placeholder="192.168.254.200" />
+  </div>
+  <div class="help-text" x-show="dhcpRangeAuto">
+    Range will be computed as <span x-text="subnetPrefix + '.100'"></span> to <span x-text="subnetPrefix + '.200'"></span>.
+  </div>
+</div>
+
+<div class="config-section">
+  <label for="dhcp-lease">DHCP Lease Time</label>
+  <input id="dhcp-lease" type="text" x-model="dhcpLease" placeholder="12h" />
+  <div class="help-text">Lease duration for DHCP clients (e.g. 12h, 24h, 30m).</div>
+</div>
+
+<div class="config-section">
+  <label for="pri-dns">Primary DNS</label>
+  <input id="pri-dns" type="text" x-model="priDns" placeholder="8.8.8.8" />
+</div>
+
+<div class="config-section">
+  <label for="sec-dns">Secondary DNS</label>
+  <input id="sec-dns" type="text" x-model="secDns" placeholder="8.8.4.4" />
+</div>
+
+<div class="config-section">
+  <label for="ipv6">
+    <input id="ipv6" type="checkbox" x-model="ipv6" />
+    Enable IPv6
+  </label>
+  <div class="help-text">Enables IPv6 NAT and routing when checked.</div>
+</div>
+
+### Advanced Options
+
+Configure SSID, station limits, MAC filtering, and other advanced access point settings.
+
+<div class="config-section">
+  <label for="ssid">SSID</label>
+  <input id="ssid" type="text" x-model="ssid" placeholder="raspberry" />
+  <div class="help-text">Network name broadcast by the access point.</div>
+</div>
+
+<div class="config-section">
+  <label for="hide-ssid">
+    <input id="hide-ssid" type="checkbox" x-model="hideSsid" />
+    Hide SSID
+  </label>
+  <div class="help-text">When enabled, the access point will not broadcast its SSID. Clients must know the name to connect.</div>
+</div>
+
+<div class="config-section">
+  <label for="max-stations">Max Stations</label>
+  <input id="max-stations" type="number" x-model="maxStations" min="0" placeholder="0" />
+  <div class="help-text">Maximum number of associated stations. Set to 0 for unlimited (hostapd default).</div>
+</div>
+
+<div class="config-section">
+  <label for="ap-isolation">
+    <input id="ap-isolation" type="checkbox" x-model="apIsolation" />
+    AP Isolation
+  </label>
+  <div class="help-text">Prevents connected clients from communicating with each other. Useful for guest networks.</div>
+</div>
+
+<div class="config-section">
+  <label for="mac-filter">MAC Filter</label>
+  <select id="mac-filter" x-model="macFilter">
+    <option value="0">Disabled</option>
+    <option value="1">Allowlist (only listed clients)</option>
+    <option value="2">Denylist (block listed clients)</option>
+  </select>
+  <div class="help-text">Controls MAC address filtering. When enabled, requires a MAC ACL file.</div>
+</div>
+
+<div class="config-section" x-show="macFilter !== '0'">
+  <label for="mac-acl-file">MAC ACL File Path</label>
+  <input id="mac-acl-file" type="text" x-model="macAclFile" placeholder="/etc/hostapd/mac ACL file" />
+  <div class="help-text">Path to the MAC address list file inside the container (e.g. /etc/hostapd/accept or /etc/hostapd/deny).</div>
+</div>
+
+<div class="config-section">
+  <label for="tx-power">TX Power</label>
+  <input id="tx-power" type="text" x-model="txPower" placeholder="auto" />
+  <div class="help-text">Transmit power in dBm or "auto" to use the driver default. Leave empty to skip setting.</div>
+</div>
+
+<div class="config-section">
+  <label for="interface">Interface</label>
+  <input id="interface" type="text" x-model="interface" placeholder="wlan0" />
+  <div class="help-text">Wireless network interface to use. Default is wlan0.</div>
+</div>
+
+<div class="config-section">
+  <label for="driver">Driver</label>
+  <input id="driver" type="text" x-model="driver" placeholder="nl80211" />
+  <div class="help-text">hostapd driver override. Leave empty for the default nl80211 driver.</div>
+</div>
+
+### Generated Command
+
+The generated `docker run` command will appear here once all form sections are implemented.
+
+<pre><code x-text="generateCommand()"></code></pre>
+
+</div>

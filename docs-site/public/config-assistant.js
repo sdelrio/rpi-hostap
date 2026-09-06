@@ -30,10 +30,45 @@ function configAssistant() {
     hwMode: 'g',
     countryCode: '',
     channel: '11',
+    wpaVersion: '2',
+    wpaPassphrase: 'passw0rd',
+    showPassphrase: false,
+    pmfAuto: true,
+    pmf: '0',
+    subnet: '192.168.254.0',
+    apAddr: '192.168.254.1',
+    dhcpRangeAuto: true,
+    dhcpRangeStart: '192.168.254.100',
+    dhcpRangeEnd: '192.168.254.200',
+    dhcpLease: '12h',
+    priDns: '8.8.8.8',
+    secDns: '8.8.4.4',
+    ipv6: false,
+    ssid: 'raspberry',
+    hideSsid: false,
+    maxStations: '0',
+    apIsolation: false,
+    macFilter: '0',
+    macAclFile: '',
+    txPower: '',
+    interface: 'wlan0',
+    driver: '',
+    htEnabled: false,
+    htCapab: '',
+    vhtEnabled: false,
+    vhtCapab: '',
+    heEnabled: false,
+    heCapab: '',
     get availableChannels() {
       const group = _countryGroup[this.countryCode]
       const list = this.hwMode === 'a' ? channels5G : channels2G
       return group ? (list[group] || []) : []
+    },
+
+    get subnetPrefix() {
+      const parts = this.subnet.split('.')
+      parts.length = 3
+      return parts.join('.')
     },
 
     init() {
@@ -46,8 +81,28 @@ function configAssistant() {
           </template>
         `
       }
-      this.$watch('hwMode', () => this._syncChannel())
+      this.$watch('hwMode', (mode) => {
+        this._syncChannel()
+        if (mode !== 'a') {
+          this.vhtEnabled = false
+          this.vhtCapab = ''
+          this.heEnabled = false
+          this.heCapab = ''
+        }
+      })
       this.$watch('countryCode', () => this._syncChannel())
+      this.$watch('wpaVersion', () => { if (this.pmfAuto) this._derivePmf() })
+      this.$watch('pmfAuto', (on) => { if (on) this._derivePmf() })
+      this.$watch('subnet', () => {
+        if (this.dhcpRangeAuto) this._syncDhcpRange()
+      })
+      this.$watch('dhcpRangeAuto', (on) => { if (on) this._syncDhcpRange() })
+    },
+
+    _syncDhcpRange() {
+      const prefix = this.subnetPrefix
+      this.dhcpRangeStart = prefix + '.100'
+      this.dhcpRangeEnd = prefix + '.200'
     },
 
     _syncChannel() {
@@ -57,19 +112,102 @@ function configAssistant() {
       }
     },
 
+    _derivePmf() {
+      const map = { '2': '0', '3': '2', mixed: '1' }
+      this.pmf = map[this.wpaVersion] || '0'
+    },
+
     generateCommand() {
       const channelValue = this.channel === 'acs' ? 'acs' : this.channel
-      return `docker run -d \
+      let cmd = `docker run -d \
   --name rpi-hostap \
   --net=host \
   --cap-add=NET_ADMIN \
-  -e SSID=rpi-hostap \
-  -e WPA_PASSPHRASE=changeme \
+  -e SSID=${this.ssid} \
+  -e WPA_PASSPHRASE=${this.wpaPassphrase} \
+  -e WPA_VERSION=${this.wpaVersion} \
+  -e PMF=${this.pmf} \
   -e CHANNEL=${channelValue} \
   -e HW_MODE=${this.hwMode} \
   -e COUNTRY_CODE=${this.countryCode} \
-  -v /dev/net/tun:/dev/net/tun \
+  -e INTERFACE=${this.interface} \
+  -e MAX_STATIONS=${this.maxStations}`
+      
+      if (this.hideSsid) {
+        cmd += ` \\
+  -e HIDE_SSID=1`
+      }
+
+      if (this.apIsolation) {
+        cmd += ` \\
+  -e AP_ISOLATION=1`
+      }
+
+      if (this.macFilter !== '0') {
+        cmd += ` \\
+  -e MAC_FILTER=${this.macFilter} \\
+  -e MAC_ACL_FILE=${this.macAclFile}`
+      }
+
+      if (this.txPower) {
+        cmd += ` \\
+  -e TX_POWER=${this.txPower}`
+      }
+
+      if (this.driver) {
+        cmd += ` \\
+  -e DRIVER=${this.driver}`
+      }
+
+      if (this.htEnabled) {
+        cmd += ` \\
+  -e HT_ENABLED=1`
+        if (this.htCapab) {
+          cmd += ` \\
+  -e HT_CAPAB="${this.htCapab}"`
+        }
+      }
+      
+      if (this.vhtEnabled) {
+        cmd += ` \\
+  -e VHT_ENABLED=1`
+        if (this.vhtCapab) {
+          cmd += ` \\
+  -e VHT_CAPAB="${this.vhtCapab}"`
+        }
+      }
+      
+      if (this.heEnabled) {
+        cmd += ` \\
+  -e HE_ENABLED=1`
+        if (this.heCapab) {
+          cmd += ` \\
+  -e HE_CAPAB="${this.heCapab}"`
+        }
+      }
+
+      cmd += ` \\
+  -e SUBNET=${this.subnet} \\
+  -e AP_ADDR=${this.apAddr} \\
+  -e PRI_DNS=${this.priDns} \\
+  -e SEC_DNS=${this.secDns} \\
+  -e DHCP_LEASE=${this.dhcpLease}`
+
+      if (!this.dhcpRangeAuto) {
+        cmd += ` \\
+  -e DHCP_RANGE=${this.dhcpRangeStart},${this.dhcpRangeEnd},255.255.255.0,${this.dhcpLease}`
+      }
+
+      if (this.ipv6) {
+        cmd += ` \\
+  -e IPV6=1`
+      }
+      
+      cmd += ` \\
+  -v /dev/net/tun:/dev/net/tun \\
   sdelrio/rpi-hostap`
+      
+      return cmd
     }
   }
 }
