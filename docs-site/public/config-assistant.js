@@ -30,40 +30,30 @@ function configAssistant() {
     hwMode: 'g',
     countryCode: '',
     channel: '11',
-    dfsChannels,
-
     get availableChannels() {
-      const group = _countryGroup[this.countryCode] || this.countryCode
-      if (this.hwMode === 'a') {
-        return channels5G[group] || channels5G.US
-      }
-      return channels2G[group] || channels2G.US
+      const group = _countryGroup[this.countryCode]
+      const list = this.hwMode === 'a' ? channels5G : channels2G
+      return group ? (list[group] || []) : []
     },
 
     init() {
+      const channelSelect = document.getElementById('channel')
+      if (channelSelect) {
+        channelSelect.innerHTML = `
+          <option value="acs">Auto (ACS)</option>
+          <template x-for="ch in availableChannels" :key="ch">
+            <option :value="ch" x-text="dfsChannels.has(ch) ? ch + ' (DFS)' : ch"></option>
+          </template>
+        `
+      }
       this.$watch('hwMode', () => this._syncChannel())
       this.$watch('countryCode', () => this._syncChannel())
-      this._rebuildChannelOptions()
-    },
-
-    _rebuildChannelOptions() {
-      const select = document.getElementById('channel')
-      if (!select) return
-      select.querySelectorAll('option:not([value="acs"])').forEach(o => o.remove())
-      this.availableChannels.forEach(ch => {
-        const opt = document.createElement('option')
-        opt.value = ch
-        opt.textContent = dfsChannels.has(ch) ? ch + ' (DFS)' : ch
-        select.appendChild(opt)
-      })
     },
 
     _syncChannel() {
-      this._rebuildChannelOptions()
       if (this.channel === 'acs') return
-      const num = parseInt(this.channel, 10)
-      if (!this.availableChannels.includes(num)) {
-        this.channel = '11'
+      if (!this.availableChannels.includes(parseInt(this.channel, 10))) {
+        this.channel = this.availableChannels.length ? String(this.availableChannels[0]) : 'acs'
       }
     },
 
