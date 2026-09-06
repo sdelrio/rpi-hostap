@@ -189,7 +189,9 @@ const navLinksJson = JSON.stringify(navLinks);
 		}
 	}
 
-	customElements.define("starlight-menu-button", StarlightMenuButton);
+	if (!customElements.get("starlight-menu-button")) {
+		customElements.define("starlight-menu-button", StarlightMenuButton);
+	}
 </script>
 
 <style>
