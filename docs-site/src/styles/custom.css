@@ -259,3 +259,46 @@
     --sl-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.1);
   }
 }
+
+/* Custom CardGrid and LinkCard overrides */
+@layer starlight.core {
+
+  /* CardGrid overrides */
+  .card-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    margin: 2rem 0;
+  }
+
+  @media (min-width: 50rem) {
+    .card-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 72rem) {
+    .card-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  /* LinkCard overrides */
+  .link-card {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    height: 100%;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: var(--sl-border-radius-md);
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+
+  .link-card:hover,
+  .link-card:focus-visible {
+    box-shadow: var(--sl-shadow-lg);
+    border-color: var(--sl-color-text-accent);
+    outline: 2px solid var(--sl-color-text-accent);
+    outline-offset: 2px;
+  }
+}

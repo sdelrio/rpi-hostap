@@ -1,5 +1,6 @@
 ---
 title: "rpi-hostap"
+tableOfContents: false
 hero:
   title: "rpi-hostap"
   tagline: "Lightweight Docker container that turns a Raspberry Pi into a wireless Access Point with DHCP server. Built on Alpine Linux for minimal footprint."
@@ -12,3 +13,15 @@ hero:
       variant: primary
 ---
 
+import { LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+<CardGrid>
+  <LinkCard title="Configuration" icon="pencil" href="/rpi-hostap/configuration" description=" Environment variables, WiFi settings, WPA3/SAE, MAC filtering, and advanced hostapd options.">
+  </LinkCard>
+  <LinkCard title="Networking" icon="server" href="/rpi-hostap/networking" description="NAT/IP forwarding, IPv6 support, and outgoing interface configuration.">
+  </LinkCard>
+  <LinkCard title="Operations" icon="laptop" href="/rpi-hostap/operations" description="Client inspection, runtime management, and day-to-day operational tasks.">
+  </LinkCard>
+  <LinkCard title="Assistant" icon="rocket" href="/rpi-hostap/configuration-assistant" description="Interactive configuration assistant to guide you through setup. ">
+  </LinkCard>
+</CardGrid>
