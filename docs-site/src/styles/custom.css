@@ -1,4 +1,6 @@
-[x-cloak] { display: none !important; }
+[x-cloak] {
+  display: none !important;
+}
 
 :root {
   --sl-font: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -48,6 +50,7 @@
   --sl-color-bg-nav: hsl(220, 20%, 96%);
   --sl-color-border: hsl(220, 10%, 87%);
 }
+
 [data-theme='dark'] {
   --sl-hue-blue: 354;
   --sl-color-accent-low: hsl(354, 50%, 20%);
@@ -98,16 +101,16 @@
 .config-section label:has(input) {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.45rem;
   white-space: normal;
 }
 
 .config-section select,
 .config-section input {
   flex: 1;
-  min-width: 10rem;
-  max-width: 20rem;
-  padding: 0.5rem;
+  min-width: 2.5em;
+  max-width: 12em;
+  padding: 0.25rem;
   border-radius: var(--sl-border-radius-sm);
   border: 1px solid var(--sl-color-border);
 }
