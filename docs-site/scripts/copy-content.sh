@@ -5,16 +5,25 @@ REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 CONTENT_DIR="$(cd "$(dirname "$0")/.." && pwd)/src/content/docs"
 
 # Preserve files that live directly in docs-site (not copied from root)
-cp "$CONTENT_DIR/configuration-assistant.mdx" "$REPO_ROOT/tmp/configuration-assistant.mdx" 2>/dev/null || true
-cp "$CONTENT_DIR/home.mdx" "$REPO_ROOT/tmp/home.mdx" 2>/dev/null || true
+mkdir -p "$REPO_ROOT/tmp"
+if [[ -f "$CONTENT_DIR/configuration-assistant.mdx" ]]; then
+  cp "$CONTENT_DIR/configuration-assistant.mdx" "$REPO_ROOT/tmp/configuration-assistant.mdx"
+fi
+if [[ -f "$CONTENT_DIR/home.mdx" ]]; then
+  cp "$CONTENT_DIR/home.mdx" "$REPO_ROOT/tmp/home.mdx"
+fi
 
 # Clean and recreate content directory
 rm -rf "$CONTENT_DIR"
 mkdir -p "$CONTENT_DIR"
 
 # Restore preserved files
-cp "$REPO_ROOT/tmp/configuration-assistant.mdx" "$CONTENT_DIR/configuration-assistant.mdx" 2>/dev/null || true
-cp "$REPO_ROOT/tmp/home.mdx" "$CONTENT_DIR/home.mdx" 2>/dev/null || true
+if [[ -f "$REPO_ROOT/tmp/configuration-assistant.mdx" ]]; then
+  cp "$REPO_ROOT/tmp/configuration-assistant.mdx" "$CONTENT_DIR/configuration-assistant.mdx"
+fi
+if [[ -f "$REPO_ROOT/tmp/home.mdx" ]]; then
+  cp "$REPO_ROOT/tmp/home.mdx" "$CONTENT_DIR/home.mdx"
+fi
 
 # Extract title from first heading in markdown file
 extract_title() {
