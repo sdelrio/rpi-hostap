@@ -1,12 +1,16 @@
 # rpi-hostap
 
+<!-- DOCS_SITE_BADGES -->
 [![Docker Image](https://img.shields.io/docker/v/sdelrio/rpi-hostap?label=DockerHub)](https://hub.docker.com/r/sdelrio/rpi-hostap)
 [![GHCR](https://img.shields.io/badge/GitHub-ghcr.io/sdelrio%2Frpi--hostap-blue)](https://ghcr.io/sdelrio/rpi-hostap)
 [![GitHub Release](https://img.shields.io/github/v/release/sdelrio/rpi-hostap)](https://github.com/sdelrio/rpi-hostap/releases)
 [![License](https://img.shields.io/github/license/sdelrio/rpi-hostap)](LICENSE)
 [![Docs](https://github.com/sdelrio/rpi-hostap/actions/workflows/pages.yml/badge.svg)](https://github.com/sdelrio/rpi-hostap/actions/workflows/pages.yml)
+<!-- /DOCS_SITE_BADGES -->
 
+<!-- DOCS_SITE_TAGLINE -->
 Lightweight Docker container that turns a Raspberry Pi into a wireless Access Point with DHCP server. Built on Alpine Linux for minimal footprint.
+<!-- /DOCS_SITE_TAGLINE -->
 
 ## Overview
 
@@ -198,3 +202,10 @@ See [CI.md](CI.md) for details on the release process and versioning.
 ## License
 
 See [LICENSE](LICENSE) for details.
+
+<!-- DOCS_SITE_CARDS -->
+<!-- This marker is used by docs-site/scripts/copy-content.sh to inject a CardGrid.
+     The script reads this file, extracts badges/tagline/section markers, and composes
+     the Starlight readme.mdx with hero, badges, and navigation cards.
+     To update the cards, edit the CardGrid block in copy-content.sh. -->
+<!-- /DOCS_SITE_CARDS -->

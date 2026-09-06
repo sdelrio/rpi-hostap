@@ -54,7 +54,13 @@ export default defineConfig({
         starlightLinksValidator(),
       ],
       sidebar: [
-        { label: 'Home', link: '/readme' },
+        {
+          label: 'Home',
+          items: [
+            { label: 'README', link: '/readme' },
+            { label: 'INDEX', link: '/' },
+          ],
+        },
         {
           label: 'Configuration',
           items: [

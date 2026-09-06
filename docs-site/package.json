@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "prebuild": "bash scripts/copy-content.sh",
+    "predev": "rm -rf .astro && bash scripts/copy-content.sh",
     "build": "astro build",
     "dev": "astro dev",
     "preview": "astro preview"
