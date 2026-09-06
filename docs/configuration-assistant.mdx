@@ -2,13 +2,10 @@
 title: "Configuration Assistant"
 ---
 
-import { Tabs, TabItem } from '@astrojs/starlight/components';
-
-<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"></script>
+<script defer src="/rpi-hostap/config-assistant.js"></script>
 
 <div x-data="configAssistant()">
-
-## Configuration Assistant
 
 This interactive tool helps you compose the Docker environment variables needed to run rpi-hostap. Select your options below and the tool will generate the corresponding `docker run` command with all the correct flags.
 
@@ -26,20 +23,12 @@ Configure the basic wireless radio parameters.
 
 <div class="config-section">
   <label for="country-code">Country Code</label>
-  <input id="country-code" type="text" x-model="countryCode" maxlength="2" placeholder="EU" />
+  <input id="country-code" type="text" x-model="countryCode" maxlength="2" pattern="[A-Za-z]{2}" placeholder="US" />
 </div>
 
-### Placeholder: Security Settings
-
-WPA passphrase and security mode options will appear here in a future iteration.
-
-### Placeholder: HT/VHT Tuning
-
-High-throughput and very-high-throughput capability settings will appear here.
-
-### Placeholder: Advanced Options
-
-MAC filtering, NAT, and other advanced options will appear here.
+:::note[Coming Soon]
+Security settings, HT/VHT tuning, and advanced options will be available in a future release.
+:::
 
 ### Generated Command
 
@@ -48,25 +37,3 @@ The generated `docker run` command will appear here once all form sections are i
 <pre><code x-text="generateCommand()"></code></pre>
 
 </div>
-
-<script is:raw>
-function configAssistant() {
-  return {
-    hwMode: 'g',
-    countryCode: 'EU',
-    generateCommand() {
-      return `docker run -d \\
-  --name rpi-hostap \\
-  --net=host \\
-  --cap-add=NET_ADMIN \\
-  -e SSID=rpi-hostap \\
-  -e WPA_PASSPHRASE=changeme \\
-  -e CHANNEL=1 \\
-  -e HW_MODE=${this.hwMode} \\
-  -e COUNTRY_CODE=${this.countryCode} \\
-  -v /dev/net/tun:/dev/net/tun \\
-  sdelrio/rpi-hostap`;
-    }
-  }
-}
-</script>
