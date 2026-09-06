@@ -1,7 +1,7 @@
 function configAssistant() {
   return {
     hwMode: 'g',
-    countryCode: 'US',
+    countryCode: 'EU',
     generateCommand() {
       return `docker run -d \
   --name rpi-hostap \
