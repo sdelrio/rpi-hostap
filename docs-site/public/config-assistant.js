@@ -59,6 +59,73 @@ function configAssistant() {
     vhtCapab: '',
     heEnabled: false,
     heCapab: '',
+    showAllVars: false,
+    copied: false,
+
+    get envFileOutput() {
+      const defaults = {
+        SSID: 'raspberry',
+        WPA_PASSPHRASE: 'passw0rd',
+        WPA_VERSION: '2',
+        HW_MODE: 'g',
+        CHANNEL: 'acs',
+        COUNTRY_CODE: '',
+        SUBNET: '192.168.254.0',
+        AP_ADDR: '192.168.254.1',
+        PRI_DNS: '8.8.8.8',
+        SEC_DNS: '8.8.4.4',
+        DHCP_LEASE: '12h',
+        INTERFACE: 'wlan0',
+      }
+
+      const allVars = {
+        SSID: this.ssid,
+        WPA_PASSPHRASE: this.wpaPassphrase,
+        WPA_VERSION: this.wpaVersion,
+        PMF: this.pmf,
+        HW_MODE: this.hwMode,
+        CHANNEL: this.channel === 'acs' ? 'acs' : this.channel,
+        COUNTRY_CODE: this.countryCode,
+        SUBNET: this.subnet,
+        AP_ADDR: this.apAddr,
+        PRI_DNS: this.priDns,
+        SEC_DNS: this.secDns,
+        DHCP_LEASE: this.dhcpLease,
+        INTERFACE: this.interface,
+      }
+
+      if (this.hideSsid) allVars.HIDE_SSID = '1'
+      if (this.apIsolation) allVars.AP_ISOLATION = '1'
+      if (this.maxStations && this.maxStations !== '0') allVars.MAX_STATIONS = this.maxStations
+      if (this.macFilter !== '0') {
+        allVars.MAC_FILTER = this.macFilter
+        allVars.MAC_ACL_FILE = this.macAclFile
+      }
+      if (this.txPower) allVars.TX_POWER = this.txPower
+      if (this.driver) allVars.DRIVER = this.driver
+      if (this.htEnabled) {
+        allVars.HT_ENABLED = '1'
+        if (this.htCapab) allVars.HT_CAPAB = this.htCapab
+      }
+      if (this.vhtEnabled) {
+        allVars.VHT_ENABLED = '1'
+        if (this.vhtCapab) allVars.VHT_CAPAB = this.vhtCapab
+      }
+      if (this.heEnabled) {
+        allVars.HE_ENABLED = '1'
+        if (this.heCapab) allVars.HE_CAPAB = this.heCapab
+      }
+      if (this.ipv6) allVars.IPV6 = '1'
+
+      const vars = this.showAllVars
+        ? Object.entries(allVars)
+        : Object.entries(allVars).filter(([k, v]) => defaults[k] !== v)
+
+      if (vars.length === 0 && !this.showAllVars) return '# No non-default values'
+
+      return vars.map(([k, v]) => `${k}=${v}`).join('\n')
+    },
+
     get availableChannels() {
       const group = _countryGroup[this.countryCode]
       const list = this.hwMode === 'a' ? channels5G : channels2G
@@ -208,6 +275,18 @@ function configAssistant() {
   sdelrio/rpi-hostap`
       
       return cmd
+    },
+
+    copyToClipboard() {
+      const output = this.envFileOutput
+      navigator.clipboard.writeText(output).then(() => {
+        this.copied = true
+        setTimeout(() => { this.copied = false }, 2000)
+      })
+    },
+
+    toggleShowAll() {
+      this.showAllVars = !this.showAllVars
     }
   }
 }

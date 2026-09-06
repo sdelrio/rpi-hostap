@@ -99,6 +99,55 @@
   border: 1px solid var(--sl-color-border);
 }
 
+.passphrase-input {
+  display: flex;
+  gap: 0.5rem;
+  max-width: 20rem;
+}
+
+.passphrase-input input {
+  flex: 1;
+}
+
+.passphrase-toggle {
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+
+.btn {
+  padding: 0.5rem 1rem;
+  border-radius: var(--sl-border-radius-sm);
+  border: 1px solid var(--sl-color-border);
+  background: var(--sl-color-bg);
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.btn:hover {
+  background: var(--sl-color-gray-6);
+}
+
+.env-file-header {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.env-file-output {
+  width: 100%;
+  min-height: 10rem;
+  padding: 1rem;
+  border-radius: var(--sl-border-radius-md);
+  border: 1px solid var(--sl-color-border);
+  background: var(--sl-color-gray-7);
+  font-family: 'SF Mono', 'Fira Code', 'Fira Mono', 'Roboto Mono', 'Courier New', monospace;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  resize: vertical;
+  white-space: pre;
+  overflow-x: auto;
+}
+
 @layer starlight.core {
   .hero {
     background: var(--sl-color-bg, hsl(0 0% 100%));
