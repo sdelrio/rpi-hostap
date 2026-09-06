@@ -61,6 +61,8 @@ function configAssistant() {
     heCapab: '',
     showAllVars: false,
     copied: false,
+    containerName: 'rpi-hostap',
+    copiedDocker: false,
 
     get envFileOutput() {
       const defaults = {
@@ -184,97 +186,78 @@ function configAssistant() {
       this.pmf = map[this.wpaVersion] || '0'
     },
 
-    generateCommand() {
-      const channelValue = this.channel === 'acs' ? 'acs' : this.channel
-      let cmd = `docker run -d \
-  --name rpi-hostap \
-  --net=host \
-  --cap-add=NET_ADMIN \
-  -e SSID=${this.ssid} \
-  -e WPA_PASSPHRASE=${this.wpaPassphrase} \
-  -e WPA_VERSION=${this.wpaVersion} \
-  -e PMF=${this.pmf} \
-  -e CHANNEL=${channelValue} \
-  -e HW_MODE=${this.hwMode} \
-  -e COUNTRY_CODE=${this.countryCode} \
-  -e INTERFACE=${this.interface} \
-  -e MAX_STATIONS=${this.maxStations}`
-      
-      if (this.hideSsid) {
-        cmd += ` \\
-  -e HIDE_SSID=1`
+    get dockerRunCommand() {
+      const defaults = {
+        SSID: 'raspberry',
+        WPA_PASSPHRASE: 'passw0rd',
+        WPA_VERSION: '2',
+        HW_MODE: 'g',
+        CHANNEL: 'acs',
+        COUNTRY_CODE: '',
+        SUBNET: '192.168.254.0',
+        AP_ADDR: '192.168.254.1',
+        PRI_DNS: '8.8.8.8',
+        SEC_DNS: '8.8.4.4',
+        DHCP_LEASE: '12h',
+        INTERFACE: 'wlan0',
       }
 
-      if (this.apIsolation) {
-        cmd += ` \\
-  -e AP_ISOLATION=1`
+      const allVars = {
+        SSID: this.ssid,
+        WPA_PASSPHRASE: this.wpaPassphrase,
+        WPA_VERSION: this.wpaVersion,
+        PMF: this.pmf,
+        HW_MODE: this.hwMode,
+        CHANNEL: this.channel === 'acs' ? 'acs' : this.channel,
+        COUNTRY_CODE: this.countryCode,
+        SUBNET: this.subnet,
+        AP_ADDR: this.apAddr,
+        PRI_DNS: this.priDns,
+        SEC_DNS: this.secDns,
+        DHCP_LEASE: this.dhcpLease,
+        INTERFACE: this.interface,
       }
 
+      if (this.hideSsid) allVars.HIDE_SSID = '1'
+      if (this.apIsolation) allVars.AP_ISOLATION = '1'
+      if (this.maxStations && this.maxStations !== '0') allVars.MAX_STATIONS = this.maxStations
       if (this.macFilter !== '0') {
-        cmd += ` \\
-  -e MAC_FILTER=${this.macFilter} \\
-  -e MAC_ACL_FILE=${this.macAclFile}`
+        allVars.MAC_FILTER = this.macFilter
+        allVars.MAC_ACL_FILE = this.macAclFile
       }
-
-      if (this.txPower) {
-        cmd += ` \\
-  -e TX_POWER=${this.txPower}`
-      }
-
-      if (this.driver) {
-        cmd += ` \\
-  -e DRIVER=${this.driver}`
-      }
-
+      if (this.txPower) allVars.TX_POWER = this.txPower
+      if (this.driver) allVars.DRIVER = this.driver
       if (this.htEnabled) {
-        cmd += ` \\
-  -e HT_ENABLED=1`
-        if (this.htCapab) {
-          cmd += ` \\
-  -e HT_CAPAB="${this.htCapab}"`
-        }
+        allVars.HT_ENABLED = '1'
+        if (this.htCapab) allVars.HT_CAPAB = this.htCapab
       }
-      
       if (this.vhtEnabled) {
-        cmd += ` \\
-  -e VHT_ENABLED=1`
-        if (this.vhtCapab) {
-          cmd += ` \\
-  -e VHT_CAPAB="${this.vhtCapab}"`
-        }
+        allVars.VHT_ENABLED = '1'
+        if (this.vhtCapab) allVars.VHT_CAPAB = this.vhtCapab
       }
-      
       if (this.heEnabled) {
-        cmd += ` \\
-  -e HE_ENABLED=1`
-        if (this.heCapab) {
-          cmd += ` \\
-  -e HE_CAPAB="${this.heCapab}"`
-        }
+        allVars.HE_ENABLED = '1'
+        if (this.heCapab) allVars.HE_CAPAB = this.heCapab
+      }
+      if (this.ipv6) allVars.IPV6 = '1'
+
+      const nonDefault = Object.entries(allVars).filter(([k, v]) => defaults[k] !== v)
+
+      const envFlags = nonDefault.map(([k, v]) => `-e ${k}=${v}`).join(' \\\n  ')
+
+      let cmd = `docker run -d \\\n  --privileged \\\n  --net host \\\n  --name ${this.containerName} \\`
+
+      if (envFlags) {
+        cmd += `\n  ${envFlags} \\`
       }
 
-      cmd += ` \\
-  -e SUBNET=${this.subnet} \\
-  -e AP_ADDR=${this.apAddr} \\
-  -e PRI_DNS=${this.priDns} \\
-  -e SEC_DNS=${this.secDns} \\
-  -e DHCP_LEASE=${this.dhcpLease}`
+      cmd += `\n  ghcr.io/sdelrio/rpi-hostap`
 
-      if (!this.dhcpRangeAuto) {
-        cmd += ` \\
-  -e DHCP_RANGE=${this.dhcpRangeStart},${this.dhcpRangeEnd},255.255.255.0,${this.dhcpLease}`
-      }
-
-      if (this.ipv6) {
-        cmd += ` \\
-  -e IPV6=1`
-      }
-      
-      cmd += ` \\
-  -v /dev/net/tun:/dev/net/tun \\
-  sdelrio/rpi-hostap`
-      
       return cmd
+    },
+
+    generateCommand() {
+      return this.dockerRunCommand
     },
 
     copyToClipboard() {
@@ -282,6 +265,13 @@ function configAssistant() {
       navigator.clipboard.writeText(output).then(() => {
         this.copied = true
         setTimeout(() => { this.copied = false }, 2000)
+      })
+    },
+
+    copyDockerCommand() {
+      navigator.clipboard.writeText(this.dockerRunCommand).then(() => {
+        this.copiedDocker = true
+        setTimeout(() => { this.copiedDocker = false }, 2000)
       })
     },
 
