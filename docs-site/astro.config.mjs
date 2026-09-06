@@ -57,8 +57,9 @@ export default defineConfig({
         {
           label: 'Home',
           items: [
-            { label: 'README', link: '/readme' },
-            { label: 'INDEX', link: '/' },
+            { label: 'Home', link: '/home' },
+            { label: 'Readme', link: '/readme' },
+            { label: 'Index', link: '/' },
           ],
         },
         {

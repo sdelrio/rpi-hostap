@@ -4,9 +4,17 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 CONTENT_DIR="$(cd "$(dirname "$0")/.." && pwd)/src/content/docs"
 
+# Preserve files that live directly in docs-site (not copied from root)
+cp "$CONTENT_DIR/configuration-assistant.mdx" "$REPO_ROOT/tmp/configuration-assistant.mdx" 2>/dev/null || true
+cp "$CONTENT_DIR/home.mdx" "$REPO_ROOT/tmp/home.mdx" 2>/dev/null || true
+
 # Clean and recreate content directory
 rm -rf "$CONTENT_DIR"
 mkdir -p "$CONTENT_DIR"
+
+# Restore preserved files
+cp "$REPO_ROOT/tmp/configuration-assistant.mdx" "$CONTENT_DIR/configuration-assistant.mdx" 2>/dev/null || true
+cp "$REPO_ROOT/tmp/home.mdx" "$CONTENT_DIR/home.mdx" 2>/dev/null || true
 
 # Extract title from first heading in markdown file
 extract_title() {
@@ -56,7 +64,7 @@ shopt -u nullglob
 # Uses comment markers in README.md to extract sections dynamically:
 #   <!-- DOCS_SITE_TAGLINE -->...<!-- /DOCS_SITE_TAGLINE -->
 #   <!-- DOCS_SITE_BADGES -->...<!-- /DOCS_SITE_BADGES -->
-#   <!-- DOCS_SITE_CARDS -->...<!-- /DOCS_SITE_CARDS -->
+
 extract_between_markers() {
   local file="$1" start_marker="$2" end_marker="$3"
   sed -n "/$start_marker/,/$end_marker/{
@@ -79,7 +87,7 @@ if [[ -f "$REPO_ROOT/README.md" ]]; then
     sed '1{/^$/d;}' |
     sed '/<!-- DOCS_SITE_BADGES -->/,/<!-- \/DOCS_SITE_BADGES -->/d' |
     sed '/<!-- DOCS_SITE_TAGLINE -->/,/<!-- \/DOCS_SITE_TAGLINE -->/d' |
-    sed '/<!-- DOCS_SITE_CARDS -->/,/<!-- \/DOCS_SITE_CARDS -->/d' |
+
     strip_html_comments
   )"
 
@@ -98,21 +106,8 @@ if [[ -f "$REPO_ROOT/README.md" ]]; then
     echo "      variant: primary"
     echo "---"
     echo ""
-    echo "import { Card, CardGrid } from '@astrojs/starlight/components';"
-    echo ""
     echo "$body"
-    echo ""
-    echo "<CardGrid>"
-    echo "  <Card title=\"Configuration\" icon=\"pencil\">"
-    echo "    Environment variables, WiFi settings, WPA3/SAE, MAC filtering, and advanced hostapd options."
-    echo "  </Card>"
-    echo "  <Card title=\"Networking\" icon=\"server\">"
-    echo "    NAT/IP forwarding, IPv6 support, and outgoing interface configuration."
-    echo "  </Card>"
-    echo "  <Card title=\"Operations\" icon=\"laptop\">"
-    echo "    Client inspection, runtime management, and day-to-day operational tasks."
-    echo "  </Card>"
-    echo "</CardGrid>"
+
   } > "$CONTENT_DIR/readme.mdx"
 fi
 

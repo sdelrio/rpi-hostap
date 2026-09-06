@@ -7,5 +7,6 @@ docs-site/.astro/
 docs-site/dist/
 docs-site/src/content/docs/
 !docs-site/src/content/docs/configuration-assistant.mdx
+!docs-site/src/content/docs/home.mdx
 docs-site/.env
 docs-site/.env.*

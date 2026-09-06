@@ -202,10 +202,3 @@ See [CI.md](CI.md) for details on the release process and versioning.
 ## License
 
 See [LICENSE](LICENSE) for details.
-
-<!-- DOCS_SITE_CARDS -->
-<!-- This marker is used by docs-site/scripts/copy-content.sh to inject a CardGrid.
-     The script reads this file, extracts badges/tagline/section markers, and composes
-     the Starlight readme.mdx with hero, badges, and navigation cards.
-     To update the cards, edit the CardGrid block in copy-content.sh. -->
-<!-- /DOCS_SITE_CARDS -->
