@@ -77,6 +77,51 @@ Configure WPA authentication and passphrase.
   </div>
 </div>
 
+### Radio Capabilities
+
+Configure advanced 802.11n/ac/ax capabilities for higher throughput.
+
+<div class="config-section">
+  <label for="ht-enabled">
+    <input id="ht-enabled" type="checkbox" x-model="htEnabled" />
+    Enable HT (802.11n)
+  </label>
+  <div x-show="htEnabled">
+    <label for="ht-capab">HT Capabilities</label>
+    <input id="ht-capab" type="text" x-model="htCapab" placeholder="[HT40+][SHORT-GI-20][SHORT-GI-40]" />
+  </div>
+</div>
+
+<template x-if="hwMode === 'a'">
+  <div>
+    <div class="config-section">
+      <label for="vht-enabled">
+        <input id="vht-enabled" type="checkbox" x-model="vhtEnabled" />
+        Enable VHT (802.11ac)
+      </label>
+      <div x-show="vhtEnabled">
+        <label for="vht-capab">VHT Capabilities</label>
+        <input id="vht-capab" type="text" x-model="vhtCapab" placeholder="[MAX-MPDU-3895][SHORT-GI-80]" />
+      </div>
+    </div>
+
+    <div class="config-section">
+      <label for="he-enabled">
+        <input id="he-enabled" type="checkbox" x-model="heEnabled" />
+        Enable HE (802.11ax)
+      </label>
+      <div x-show="heEnabled">
+        <label for="he-capab">HE Capabilities</label>
+        <input id="he-capab" type="text" x-model="heCapab" placeholder="[HE80:[0x11ff:0xf]]" />
+      </div>
+    </div>
+  </div>
+</template>
+
+<div class="help-text" x-show="hwMode !== 'a'">
+  VHT (802.11ac) and HE (802.11ax) require the 5GHz band. Select "802.11a/n/ac/ax (5GHz)" in Radio Settings to enable these options.
+</div>
+
 ### Generated Command
 
 The generated `docker run` command will appear here once all form sections are implemented.

@@ -35,6 +35,12 @@ function configAssistant() {
     showPassphrase: false,
     pmfAuto: true,
     pmf: '0',
+    htEnabled: false,
+    htCapab: '',
+    vhtEnabled: false,
+    vhtCapab: '',
+    heEnabled: false,
+    heCapab: '',
     get availableChannels() {
       const group = _countryGroup[this.countryCode]
       const list = this.hwMode === 'a' ? channels5G : channels2G
@@ -51,7 +57,15 @@ function configAssistant() {
           </template>
         `
       }
-      this.$watch('hwMode', () => this._syncChannel())
+      this.$watch('hwMode', (mode) => {
+        this._syncChannel()
+        if (mode !== 'a') {
+          this.vhtEnabled = false
+          this.vhtCapab = ''
+          this.heEnabled = false
+          this.heCapab = ''
+        }
+      })
       this.$watch('countryCode', () => this._syncChannel())
       this.$watch('wpaVersion', () => { if (this.pmfAuto) this._derivePmf() })
       this.$watch('pmfAuto', (on) => { if (on) this._derivePmf() })
@@ -71,7 +85,7 @@ function configAssistant() {
 
     generateCommand() {
       const channelValue = this.channel === 'acs' ? 'acs' : this.channel
-      return `docker run -d \
+      let cmd = `docker run -d \
   --name rpi-hostap \
   --net=host \
   --cap-add=NET_ADMIN \
@@ -81,9 +95,40 @@ function configAssistant() {
   -e PMF=${this.pmf} \
   -e CHANNEL=${channelValue} \
   -e HW_MODE=${this.hwMode} \
-  -e COUNTRY_CODE=${this.countryCode} \
-  -v /dev/net/tun:/dev/net/tun \
+  -e COUNTRY_CODE=${this.countryCode}`
+      
+      if (this.htEnabled) {
+        cmd += ` \\
+  -e HT_ENABLED=1`
+        if (this.htCapab) {
+          cmd += ` \\
+  -e HT_CAPAB="${this.htCapab}"`
+        }
+      }
+      
+      if (this.vhtEnabled) {
+        cmd += ` \\
+  -e VHT_ENABLED=1`
+        if (this.vhtCapab) {
+          cmd += ` \\
+  -e VHT_CAPAB="${this.vhtCapab}"`
+        }
+      }
+      
+      if (this.heEnabled) {
+        cmd += ` \\
+  -e HE_ENABLED=1`
+        if (this.heCapab) {
+          cmd += ` \\
+  -e HE_CAPAB="${this.heCapab}"`
+        }
+      }
+      
+      cmd += ` \\
+  -v /dev/net/tun:/dev/net/tun \\
   sdelrio/rpi-hostap`
+      
+      return cmd
     }
   }
 }
