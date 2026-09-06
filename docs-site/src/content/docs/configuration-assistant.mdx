@@ -266,4 +266,23 @@ The generated environment file content for use with `--env-file` flag. Only non-
   <textarea class="env-file-output" readonly x-text="envFileOutput" rows="10"></textarea>
 </div>
 
+### Docker Run Command
+
+The complete `docker run` command with all required flags and non-default environment variables.
+
+<div class="config-section">
+  <label for="container-name">Container Name</label>
+  <input id="container-name" type="text" x-model="containerName" placeholder="rpi-hostap" />
+  <div class="help-text">Name assigned to the running container.</div>
+</div>
+
+<div class="config-section">
+  <div class="env-file-header">
+    <button type="button" class="btn" x-on:click="copyDockerCommand()">
+      <span x-text="copiedDocker ? 'Copied!' : 'Copy to clipboard'"></span>
+    </button>
+  </div>
+  <textarea class="env-file-output" readonly x-text="dockerRunCommand" rows="8" style="font-family: monospace;"></textarea>
+</div>
+
 </div>
