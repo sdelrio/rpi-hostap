@@ -26,6 +26,10 @@ strip_title_heading() {
 shopt -s nullglob
 for f in "$REPO_ROOT"/docs/*.md "$REPO_ROOT"/docs/*.mdx; do
   name="$(basename "$f")"
+  # Skip files that live directly in docs-site instead of being copied
+  if [[ "$name" == "configuration-assistant.mdx" ]]; then
+    continue
+  fi
   if [ "$name" = "CI.md" ]; then
     name="ci.md"
   fi
