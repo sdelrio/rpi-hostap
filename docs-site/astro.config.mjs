@@ -87,7 +87,7 @@ export default defineConfig({
         {
           label: 'Tools',
           items: [
-            { label: 'Configuration Assistant', link: '/configuration-assistant/' },
+            { label: 'Configuration Assistant', link: '/configuration-assistant' },
           ],
         },
         {

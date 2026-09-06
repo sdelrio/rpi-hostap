@@ -1,0 +1,39 @@
+---
+title: "Configuration Assistant"
+---
+
+<script defer src="../config-assistant.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"></script>
+
+<div x-data="configAssistant()">
+
+This interactive tool helps you compose the Docker environment variables needed to run rpi-hostap. Select your options below and the tool will generate the corresponding `docker run` command with all the correct flags.
+
+### Radio Settings
+
+Configure the basic wireless radio parameters.
+
+<div class="config-section">
+  <label for="hw-mode">Hardware Mode</label>
+  <select id="hw-mode" x-model="hwMode">
+    <option value="g">2.4 GHz (802.11g)</option>
+    <option value="a">5 GHz (802.11a)</option>
+  </select>
+</div>
+
+<div class="config-section">
+  <label for="country-code">Country Code</label>
+  <input id="country-code" type="text" x-model="countryCode" maxlength="2" placeholder="US" pattern="[A-Za-z]{2}" />
+</div>
+
+:::note[Coming Soon]
+Security settings, HT/VHT tuning, and advanced options will be available in a future release.
+:::
+
+### Generated Command
+
+The generated `docker run` command will appear here once all form sections are implemented.
+
+<pre><code x-text="generateCommand()"></code></pre>
+
+</div>
