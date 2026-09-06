@@ -178,6 +178,72 @@ Configure the LAN subnet, access point address, DHCP pool, and DNS servers.
   <div class="help-text">Enables IPv6 NAT and routing when checked.</div>
 </div>
 
+### Advanced Options
+
+Configure SSID, station limits, MAC filtering, and other advanced access point settings.
+
+<div class="config-section">
+  <label for="ssid">SSID</label>
+  <input id="ssid" type="text" x-model="ssid" placeholder="raspberry" />
+  <div class="help-text">Network name broadcast by the access point.</div>
+</div>
+
+<div class="config-section">
+  <label for="hide-ssid">
+    <input id="hide-ssid" type="checkbox" x-model="hideSsid" />
+    Hide SSID
+  </label>
+  <div class="help-text">When enabled, the access point will not broadcast its SSID. Clients must know the name to connect.</div>
+</div>
+
+<div class="config-section">
+  <label for="max-stations">Max Stations</label>
+  <input id="max-stations" type="number" x-model="maxStations" min="0" placeholder="0" />
+  <div class="help-text">Maximum number of associated stations. Set to 0 for unlimited (hostapd default).</div>
+</div>
+
+<div class="config-section">
+  <label for="ap-isolation">
+    <input id="ap-isolation" type="checkbox" x-model="apIsolation" />
+    AP Isolation
+  </label>
+  <div class="help-text">Prevents connected clients from communicating with each other. Useful for guest networks.</div>
+</div>
+
+<div class="config-section">
+  <label for="mac-filter">MAC Filter</label>
+  <select id="mac-filter" x-model="macFilter">
+    <option value="0">Disabled</option>
+    <option value="1">Allowlist (only listed clients)</option>
+    <option value="2">Denylist (block listed clients)</option>
+  </select>
+  <div class="help-text">Controls MAC address filtering. When enabled, requires a MAC ACL file.</div>
+</div>
+
+<div class="config-section" x-show="macFilter !== '0'">
+  <label for="mac-acl-file">MAC ACL File Path</label>
+  <input id="mac-acl-file" type="text" x-model="macAclFile" placeholder="/etc/hostapd/mac ACL file" />
+  <div class="help-text">Path to the MAC address list file inside the container (e.g. /etc/hostapd/accept or /etc/hostapd/deny).</div>
+</div>
+
+<div class="config-section">
+  <label for="tx-power">TX Power</label>
+  <input id="tx-power" type="text" x-model="txPower" placeholder="auto" />
+  <div class="help-text">Transmit power in dBm or "auto" to use the driver default. Leave empty to skip setting.</div>
+</div>
+
+<div class="config-section">
+  <label for="interface">Interface</label>
+  <input id="interface" type="text" x-model="interface" placeholder="wlan0" />
+  <div class="help-text">Wireless network interface to use. Default is wlan0.</div>
+</div>
+
+<div class="config-section">
+  <label for="driver">Driver</label>
+  <input id="driver" type="text" x-model="driver" placeholder="nl80211" />
+  <div class="help-text">hostapd driver override. Leave empty for the default nl80211 driver.</div>
+</div>
+
 ### Generated Command
 
 The generated `docker run` command will appear here once all form sections are implemented.

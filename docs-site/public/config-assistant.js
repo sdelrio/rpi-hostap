@@ -44,6 +44,15 @@ function configAssistant() {
     priDns: '8.8.8.8',
     secDns: '8.8.4.4',
     ipv6: false,
+    ssid: 'raspberry',
+    hideSsid: false,
+    maxStations: '0',
+    apIsolation: false,
+    macFilter: '0',
+    macAclFile: '',
+    txPower: '',
+    interface: 'wlan0',
+    driver: '',
     htEnabled: false,
     htCapab: '',
     vhtEnabled: false,
@@ -114,14 +123,42 @@ function configAssistant() {
   --name rpi-hostap \
   --net=host \
   --cap-add=NET_ADMIN \
-  -e SSID=rpi-hostap \
+  -e SSID=${this.ssid} \
   -e WPA_PASSPHRASE=${this.wpaPassphrase} \
   -e WPA_VERSION=${this.wpaVersion} \
   -e PMF=${this.pmf} \
   -e CHANNEL=${channelValue} \
   -e HW_MODE=${this.hwMode} \
-  -e COUNTRY_CODE=${this.countryCode}`
+  -e COUNTRY_CODE=${this.countryCode} \
+  -e INTERFACE=${this.interface} \
+  -e MAX_STATIONS=${this.maxStations}`
       
+      if (this.hideSsid) {
+        cmd += ` \\
+  -e HIDE_SSID=1`
+      }
+
+      if (this.apIsolation) {
+        cmd += ` \\
+  -e AP_ISOLATION=1`
+      }
+
+      if (this.macFilter !== '0') {
+        cmd += ` \\
+  -e MAC_FILTER=${this.macFilter} \\
+  -e MAC_ACL_FILE=${this.macAclFile}`
+      }
+
+      if (this.txPower) {
+        cmd += ` \\
+  -e TX_POWER=${this.txPower}`
+      }
+
+      if (this.driver) {
+        cmd += ` \\
+  -e DRIVER=${this.driver}`
+      }
+
       if (this.htEnabled) {
         cmd += ` \\
   -e HT_ENABLED=1`
