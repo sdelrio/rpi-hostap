@@ -85,6 +85,12 @@ export default defineConfig({
         { label: 'Health Check', link: '/healthcheck' },
         { label: 'Troubleshooting', link: '/troubleshooting' },
         {
+          label: 'Tools',
+          items: [
+            { label: 'Configuration Assistant', link: '/configuration-assistant/' },
+          ],
+        },
+        {
           label: 'Reference',
           items: [
             { label: 'Specification', link: '/spec' },
