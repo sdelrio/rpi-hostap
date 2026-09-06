@@ -250,4 +250,20 @@ The generated `docker run` command will appear here once all form sections are i
 
 <pre><code x-text="generateCommand()"></code></pre>
 
+### Generated Env File
+
+The generated environment file content for use with `--env-file` flag. Only non-default values are shown by default.
+
+<div class="config-section">
+  <div class="env-file-header">
+    <button type="button" class="btn" x-on:click="toggleShowAll()">
+      <span x-text="showAllVars ? 'Hide default variables' : 'Show all variables'"></span>
+    </button>
+    <button type="button" class="btn" x-on:click="copyToClipboard()">
+      <span x-text="copied ? 'Copied!' : 'Copy to clipboard'"></span>
+    </button>
+  </div>
+  <textarea class="env-file-output" readonly x-text="envFileOutput" rows="10"></textarea>
+</div>
+
 </div>
