@@ -1,5 +1,6 @@
 /tmp/
 node_modules/
+.opencode/plans/
 
 # docs-site build artifacts
 docs-site/.astro/
