@@ -59,3 +59,18 @@
   --sl-color-black: hsl(30, 8%, 10%);
   --sl-color-white: hsl(0, 0%, 100%);
 }
+
+[data-theme='light'] .sl-code,
+[data-theme='light'] pre {
+  background: hsl(220, 20%, 97%);
+  border: 1px solid hsl(220, 10%, 87%);
+  border-radius: 8px;
+  color: hsl(220, 15%, 20%);
+}
+
+[data-theme='light'] code {
+  background: hsl(220, 20%, 94%);
+  padding: 0.15em 0.3em;
+  border-radius: 4px;
+  font-size: 0.875em;
+}
