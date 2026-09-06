@@ -64,8 +64,8 @@ Configure WPA authentication and passphrase.
 
 <div class="config-section">
   <label for="pmf-auto">
-    <input id="pmf-auto" type="checkbox" x-model="pmfAuto" />
     Auto-derive PMF from WPA version
+    <input id="pmf-auto" type="checkbox" x-model="pmfAuto" />
   </label>
   <div x-show="!pmfAuto">
     <label for="pmf">Protected Management Frames (PMF)</label>
@@ -140,8 +140,8 @@ Configure the LAN subnet, access point address, DHCP pool, and DNS servers.
 
 <div class="config-section">
   <label for="dhcp-range-auto">
-    <input id="dhcp-range-auto" type="checkbox" x-model="dhcpRangeAuto" />
     Auto-compute DHCP range from subnet
+    <input id="dhcp-range-auto" type="checkbox" x-model="dhcpRangeAuto" />
   </label>
   <div x-show="!dhcpRangeAuto">
     <label for="dhcp-range-start">DHCP Range Start</label>
@@ -172,8 +172,8 @@ Configure the LAN subnet, access point address, DHCP pool, and DNS servers.
 
 <div class="config-section">
   <label for="ipv6">
-    <input id="ipv6" type="checkbox" x-model="ipv6" />
     Enable IPv6
+    <input id="ipv6" type="checkbox" x-model="ipv6" />
   </label>
   <div class="help-text">Enables IPv6 NAT and routing when checked.</div>
 </div>
@@ -190,8 +190,8 @@ Configure SSID, station limits, MAC filtering, and other advanced access point s
 
 <div class="config-section">
   <label for="hide-ssid">
-    <input id="hide-ssid" type="checkbox" x-model="hideSsid" />
     Hide SSID
+    <input id="hide-ssid" type="checkbox" x-model="hideSsid" />
   </label>
   <div class="help-text">When enabled, the access point will not broadcast its SSID. Clients must know the name to connect.</div>
 </div>
@@ -204,8 +204,8 @@ Configure SSID, station limits, MAC filtering, and other advanced access point s
 
 <div class="config-section">
   <label for="ap-isolation">
-    <input id="ap-isolation" type="checkbox" x-model="apIsolation" />
     AP Isolation
+    <input id="ap-isolation" type="checkbox" x-model="apIsolation" />
   </label>
   <div class="help-text">Prevents connected clients from communicating with each other. Useful for guest networks.</div>
 </div>
