@@ -57,19 +57,8 @@ Configure WPA authentication and passphrase.
 <div class="config-section">
   <label for="wpa-passphrase">Passphrase</label>
   <div class="passphrase-input">
-    <input
-      id="wpa-passphrase"
-      :type="showPassphrase ? 'text' : 'password'"
-      x-model="wpaPassphrase"
-      minlength="8"
-      required
-    />
-    <button
-      type="button"
-      class="passphrase-toggle"
-      @click="showPassphrase = !showPassphrase"
-      x-text="showPassphrase ? 'Hide' : 'Show'"
-    ></button>
+    <input id="wpa-passphrase" :type="showPassphrase ? 'text' : 'password'" x-model="wpaPassphrase" minlength="8" required />
+    <button type="button" class="passphrase-toggle" @click="showPassphrase = !showPassphrase" x-text="showPassphrase ? 'Hide' : 'Show'"></button>
   </div>
 </div>
 
