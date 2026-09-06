@@ -3,6 +3,9 @@
   --sl-content-width: 50rem;
   --sl-content-pad-x: 2rem;
   --sl-nav-height: 4rem;
+  --sl-border-radius-sm: 4px;
+  --sl-border-radius-md: 8px;
+  --sl-border-radius-lg: 12px;
 }
 
 @media (min-width: 72rem) {
@@ -64,14 +67,14 @@
 [data-theme='light'] pre {
   background: hsl(220, 20%, 97%);
   border: 1px solid hsl(220, 10%, 87%);
-  border-radius: 8px;
+  border-radius: var(--sl-border-radius-md);
   color: hsl(220, 15%, 20%);
 }
 
 [data-theme='light'] code {
   background: hsl(220, 20%, 94%);
   padding: 0.15em 0.3em;
-  border-radius: 4px;
+  border-radius: var(--sl-border-radius-sm);
   font-size: 0.875em;
 }
 
@@ -99,5 +102,22 @@
 
   .hero .sl-flex {
     justify-content: center;
+  }
+
+  .card {
+    border-radius: var(--sl-border-radius-md);
+  }
+
+  .aside {
+    border-radius: var(--sl-border-radius-md);
+  }
+
+  button {
+    border-radius: var(--sl-border-radius-sm);
+  }
+
+  .sl-code,
+  pre {
+    border-radius: var(--sl-border-radius-md);
   }
 }
