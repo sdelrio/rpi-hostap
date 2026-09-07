@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.0](https://github.com/sdelrio/rpi-hostap/compare/v0.42.0...v1.0.0) (2026-09-07)
+
+
+### ✨ Features
+
+* **docs-site:** documentation published in GitHub Pages including a tool to generate `docker run` commands
+
+
 ## [0.42.0](https://github.com/sdelrio/rpi-hostap/compare/v0.41.1...v0.42.0) (2026-09-07)
 
 
