@@ -9,6 +9,10 @@ title: "Configuration Assistant"
 
 This interactive tool helps you compose the Docker environment variables needed to run rpi-hostap. Select your options below and the tool will generate the corresponding `docker run` command with all the correct flags.
 
+<div style="margin-bottom: 1.5rem;">
+  <button type="button" class="btn btn-reset" x-on:click="resetToDefaults()">Reset to Defaults</button>
+</div>
+
 ### Radio Settings
 
 Configure the basic wireless radio parameters.
@@ -36,10 +40,11 @@ Configure the basic wireless radio parameters.
 
 <div class="config-section">
   <label for="channel">Channel</label>
-  <select id="channel" x-model="channel">
+  <select id="channel" x-model="channel" x-bind:class="{ 'invalid': validationErrors.channel }">
     <option value="acs">Auto (ACS)</option>
   </select>
 </div>
+<div class="validation-error" x-show="validationErrors.channel" x-text="validationErrors.channel"></div>
 
 ### Security Settings
 
@@ -57,10 +62,11 @@ Configure WPA authentication and passphrase.
 <div class="config-section">
   <label for="wpa-passphrase">Passphrase</label>
   <div class="passphrase-input">
-    <input id="wpa-passphrase" x-bind:type="showPassphrase ? 'text' : 'password'" x-model="wpaPassphrase" minlength="8" required />
+    <input id="wpa-passphrase" x-bind:type="showPassphrase ? 'text' : 'password'" x-model="wpaPassphrase" minlength="8" required x-bind:class="{ 'invalid': validationErrors.passphrase }" />
     <button type="button" class="passphrase-toggle" x-on:click="showPassphrase = !showPassphrase" x-text="showPassphrase ? 'Hide' : 'Show'"></button>
   </div>
 </div>
+<div class="validation-error" x-show="validationErrors.passphrase" x-text="validationErrors.passphrase"></div>
 
 <div class="config-section">
   <label for="pmf-auto">
@@ -128,9 +134,10 @@ Configure the LAN subnet, access point address, DHCP pool, and DNS servers.
 
 <div class="config-section">
   <label for="subnet">Subnet</label>
-  <input id="subnet" type="text" x-model="subnet" placeholder="192.168.254.0" />
+  <input id="subnet" type="text" x-model="subnet" placeholder="192.168.254.0" x-bind:class="{ 'invalid': validationErrors.subnet }" />
   <div class="help-text">Network address for the access point LAN (e.g. 192.168.254.0).</div>
 </div>
+<div class="validation-error" x-show="validationErrors.subnet" x-text="validationErrors.subnet"></div>
 
 <div class="config-section">
   <label for="ap-addr">AP Address</label>
@@ -184,9 +191,10 @@ Configure SSID, station limits, MAC filtering, and other advanced access point s
 
 <div class="config-section">
   <label for="ssid">SSID</label>
-  <input id="ssid" type="text" x-model="ssid" placeholder="raspberry" />
+  <input id="ssid" type="text" x-model="ssid" placeholder="raspberry" x-bind:class="{ 'invalid': validationErrors.ssid }" />
   <div class="help-text">Network name broadcast by the access point.</div>
 </div>
+<div class="validation-error" x-show="validationErrors.ssid" x-text="validationErrors.ssid"></div>
 
 <div class="config-section">
   <label for="hide-ssid">
@@ -198,9 +206,10 @@ Configure SSID, station limits, MAC filtering, and other advanced access point s
 
 <div class="config-section">
   <label for="max-stations">Max Stations</label>
-  <input id="max-stations" type="number" x-model="maxStations" min="0" placeholder="0" />
+  <input id="max-stations" type="number" x-model="maxStations" min="0" placeholder="0" x-bind:class="{ 'invalid': validationErrors.maxStations }" />
   <div class="help-text">Maximum number of associated stations. Set to 0 for unlimited (hostapd default).</div>
 </div>
+<div class="validation-error" x-show="validationErrors.maxStations" x-text="validationErrors.maxStations"></div>
 
 <div class="config-section">
   <label for="ap-isolation">
@@ -228,9 +237,10 @@ Configure SSID, station limits, MAC filtering, and other advanced access point s
 
 <div class="config-section">
   <label for="tx-power">TX Power</label>
-  <input id="tx-power" type="text" x-model="txPower" placeholder="auto" />
+  <input id="tx-power" type="text" x-model="txPower" placeholder="auto" x-bind:class="{ 'invalid': validationErrors.txPower }" />
   <div class="help-text">Transmit power in dBm or "auto" to use the driver default. Leave empty to skip setting.</div>
 </div>
+<div class="validation-error" x-show="validationErrors.txPower" x-text="validationErrors.txPower"></div>
 
 <div class="config-section">
   <label for="interface">Interface</label>

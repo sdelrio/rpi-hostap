@@ -164,6 +164,41 @@
   overflow-x: auto;
 }
 
+.config-section input.invalid,
+.config-section select.invalid {
+  border-color: hsl(0, 60%, 50%);
+  box-shadow: 0 0 0 1px hsl(0, 60%, 50%);
+}
+
+.config-section input.invalid:focus,
+.config-section select.invalid:focus {
+  border-color: hsl(0, 60%, 50%);
+  box-shadow: 0 0 0 2px hsl(0, 60%, 50%);
+  outline: none;
+}
+
+[data-theme='dark'] .config-section input.invalid,
+[data-theme='dark'] .config-section select.invalid {
+  border-color: hsl(0, 60%, 60%);
+  box-shadow: 0 0 0 1px hsl(0, 60%, 60%);
+}
+
+[data-theme='dark'] .config-section input.invalid:focus,
+[data-theme='dark'] .config-section select.invalid:focus {
+  border-color: hsl(0, 60%, 60%);
+  box-shadow: 0 0 0 2px hsl(0, 60%, 60%);
+}
+
+.validation-error {
+  color: hsl(0, 60%, 45%);
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+}
+
+[data-theme='dark'] .validation-error {
+  color: hsl(0, 60%, 65%);
+}
+
 @layer starlight.core {
   .hero {
     background: var(--sl-color-bg, hsl(0 0% 100%));
@@ -257,6 +292,30 @@
     --sl-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
     --sl-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
     --sl-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.1);
+  }
+
+  .btn-reset {
+    background: var(--sl-color-gray-6);
+    border: 1px solid var(--sl-color-border);
+  }
+
+  .btn-reset:hover {
+    background: var(--sl-color-gray-5);
+  }
+
+  .btn-primary {
+    background: var(--sl-color-accent);
+    color: var(--sl-color-white);
+    border: none;
+  }
+
+  .btn-primary:hover {
+    opacity: 0.9;
+  }
+
+  .btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 }
 
