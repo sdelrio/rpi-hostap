@@ -1,13 +1,43 @@
 ---
 title: "Configuration Assistant"
+description: "Interactive assistant to generate Docker environment files and run commands for rpi-hostap"
+---
+
+An interactive tool that generates a Docker environment file or `docker run` command for the rpi-hostap container. Select options below and copy the generated output.
+
+## How to Use
+
+1. **Select band and country** - Choose your wireless band (2.4GHz or 5GHz) and regulatory domain
+2. **Choose channel** - Pick a specific channel or use Auto (ACS) for automatic selection
+3. **Configure security settings** - Set WPA version, passphrase, and management frame protection
+4. **Adjust advanced options** - Configure SSID, network settings, and radio capabilities as needed
+5. **Copy the output** - Use the generated env file or docker run command
+
+## Output Options
+
+The tool generates two types of output:
+
+- **Env File** - A list of environment variables for use with `docker run --env-file .env`
+- **Docker Run Command** - A complete command you can copy and paste directly into your terminal
+
+## Required Docker Flags
+
+The generated command includes `--privileged` and `--net host` flags. These are required because rpi-hostap needs:
+- Full host capabilities to manage wireless hardware and networking (`--privileged`)
+- Host networking to bridge wireless traffic (`--net host`)
+
+See [Networking](/rpi-hostap/networking) for more details on network configuration.
+
+## Full Documentation
+
+For detailed parameter documentation, see [Configuration](/rpi-hostap/configuration).
+
 ---
 
 <script is:inline src="/rpi-hostap/config-assistant.js"></script>
 <script is:inline src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"></script>
 
 <div x-cloak x-data="configAssistant()">
-
-This interactive tool helps you compose the Docker environment variables needed to run rpi-hostap. Select your options below and the tool will generate the corresponding `docker run` command with all the correct flags.
 
 <div style="margin-bottom: 1.5rem;">
   <button type="button" class="btn btn-reset" x-on:click="resetToDefaults()">Reset to Defaults</button>
