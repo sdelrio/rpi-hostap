@@ -43,6 +43,9 @@ For detailed parameter documentation, see [Configuration](/rpi-hostap/configurat
   <button type="button" class="btn btn-reset" x-on:click="resetToDefaults()">Reset to Defaults</button>
 </div>
 
+<div class="config-assistant-layout">
+<div class="config-form-panel">
+
 ### Radio Settings
 
 Configure the basic wireless radio parameters.
@@ -74,7 +77,7 @@ Configure the basic wireless radio parameters.
     <option value="acs">Auto (ACS)</option>
   </select>
 </div>
-<div class="validation-error" x-show="validationErrors.channel" x-text="validationErrors.channel"></div>
+<div class="validation-error" role="alert" x-show="validationErrors.channel" x-text="validationErrors.channel"></div>
 
 ### Security Settings
 
@@ -93,10 +96,10 @@ Configure WPA authentication and passphrase.
   <label for="wpa-passphrase">Passphrase</label>
   <div class="passphrase-input">
     <input id="wpa-passphrase" x-bind:type="showPassphrase ? 'text' : 'password'" x-model="wpaPassphrase" minlength="8" required x-bind:class="{ 'invalid': validationErrors.passphrase }" />
-    <button type="button" class="passphrase-toggle" x-on:click="showPassphrase = !showPassphrase" x-text="showPassphrase ? 'Hide' : 'Show'"></button>
+    <button type="button" class="passphrase-toggle" x-on:click="showPassphrase = !showPassphrase" x-bind:aria-pressed="showPassphrase" aria-label="Toggle passphrase visibility" x-text="showPassphrase ? 'Hide' : 'Show'"></button>
   </div>
 </div>
-<div class="validation-error" x-show="validationErrors.passphrase" x-text="validationErrors.passphrase"></div>
+<div class="validation-error" role="alert" x-show="validationErrors.passphrase" x-text="validationErrors.passphrase"></div>
 
 <div class="config-section">
   <label for="pmf-auto">
@@ -167,7 +170,7 @@ Configure the LAN subnet, access point address, DHCP pool, and DNS servers.
   <input id="subnet" type="text" x-model="subnet" placeholder="192.168.254.0" x-bind:class="{ 'invalid': validationErrors.subnet }" />
   <div class="help-text">Network address for the access point LAN (e.g. 192.168.254.0).</div>
 </div>
-<div class="validation-error" x-show="validationErrors.subnet" x-text="validationErrors.subnet"></div>
+<div class="validation-error" role="alert" x-show="validationErrors.subnet" x-text="validationErrors.subnet"></div>
 
 <div class="config-section">
   <label for="ap-addr">AP Address</label>
@@ -224,7 +227,7 @@ Configure SSID, station limits, MAC filtering, and other advanced access point s
   <input id="ssid" type="text" x-model="ssid" placeholder="raspberry" x-bind:class="{ 'invalid': validationErrors.ssid }" />
   <div class="help-text">Network name broadcast by the access point.</div>
 </div>
-<div class="validation-error" x-show="validationErrors.ssid" x-text="validationErrors.ssid"></div>
+<div class="validation-error" role="alert" x-show="validationErrors.ssid" x-text="validationErrors.ssid"></div>
 
 <div class="config-section">
   <label for="hide-ssid">
@@ -239,7 +242,7 @@ Configure SSID, station limits, MAC filtering, and other advanced access point s
   <input id="max-stations" type="number" x-model="maxStations" min="0" placeholder="0" x-bind:class="{ 'invalid': validationErrors.maxStations }" />
   <div class="help-text">Maximum number of associated stations. Set to 0 for unlimited (hostapd default).</div>
 </div>
-<div class="validation-error" x-show="validationErrors.maxStations" x-text="validationErrors.maxStations"></div>
+<div class="validation-error" role="alert" x-show="validationErrors.maxStations" x-text="validationErrors.maxStations"></div>
 
 <div class="config-section">
   <label for="ap-isolation">
@@ -270,7 +273,7 @@ Configure SSID, station limits, MAC filtering, and other advanced access point s
   <input id="tx-power" type="text" x-model="txPower" placeholder="auto" x-bind:class="{ 'invalid': validationErrors.txPower }" />
   <div class="help-text">Transmit power in dBm or "auto" to use the driver default. Leave empty to skip setting.</div>
 </div>
-<div class="validation-error" x-show="validationErrors.txPower" x-text="validationErrors.txPower"></div>
+<div class="validation-error" role="alert" x-show="validationErrors.txPower" x-text="validationErrors.txPower"></div>
 
 <div class="config-section">
   <label for="interface">Interface</label>
@@ -284,9 +287,12 @@ Configure SSID, station limits, MAC filtering, and other advanced access point s
   <div class="help-text">hostapd driver override. Leave empty for the default nl80211 driver.</div>
 </div>
 
+</div>
+<div class="config-output-panel">
+
 ### Generated Env File
 
-The generated environment file content for use with `--env-file` flag. Only non-default values are shown by default.
+Environment file content for use with `--env-file`. Only non-default values are shown.
 
 <div class="config-section">
   <div class="env-file-header">
@@ -317,6 +323,9 @@ The complete `docker run` command with all required flags and non-default enviro
     </button>
   </div>
   <textarea class="env-file-output" readonly x-text="dockerRunCommand" rows="8" style="font-family: monospace;"></textarea>
+</div>
+
+</div>
 </div>
 
 </div>
