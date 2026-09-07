@@ -83,123 +83,152 @@
   font-size: 0.875em;
 }
 
-.config-section {
-  display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
+:root, [data-theme='light'] {
+  --sl-color-error: hsl(0, 60%, 50%);
+  --sl-color-error-text: hsl(0, 60%, 45%);
 }
 
-.config-section label {
-  display: inline;
-  font-weight: 600;
-  margin-bottom: 0;
-  white-space: nowrap;
-}
-
-.config-section label:has(input) {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  white-space: normal;
-}
-
-.config-section select,
-.config-section input {
-  flex: 1;
-  min-width: 2.5em;
-  max-width: 12em;
-  padding: 0.25rem;
-  border-radius: var(--sl-border-radius-sm);
-  border: 1px solid var(--sl-color-border);
-}
-
-.passphrase-input {
-  display: inline-flex;
-  gap: 0.5rem;
-  max-width: 20rem;
-}
-
-.passphrase-input input {
-  flex: 1;
-}
-
-.passphrase-toggle {
-  padding: 0.5rem 1rem;
-  cursor: pointer;
-}
-
-.btn {
-  padding: 0.5rem 1rem;
-  border-radius: var(--sl-border-radius-sm);
-  border: 1px solid var(--sl-color-border);
-  background: var(--sl-color-bg);
-  cursor: pointer;
-  font-weight: 500;
-}
-
-.btn:hover {
-  background: var(--sl-color-gray-6);
-}
-
-.env-file-header {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
-}
-
-.env-file-output {
-  width: 100%;
-  min-height: 10rem;
-  padding: 1rem;
-  border-radius: var(--sl-border-radius-md);
-  border: 1px solid var(--sl-color-border);
-  background: var(--sl-color-gray-7);
-  font-family: 'SF Mono', 'Fira Code', 'Fira Mono', 'Roboto Mono', 'Courier New', monospace;
-  font-size: 0.875rem;
-  line-height: 1.5;
-  resize: vertical;
-  white-space: pre;
-  overflow-x: auto;
-}
-
-.config-section input.invalid,
-.config-section select.invalid {
-  border-color: hsl(0, 60%, 50%);
-  box-shadow: 0 0 0 1px hsl(0, 60%, 50%);
-}
-
-.config-section input.invalid:focus,
-.config-section select.invalid:focus {
-  border-color: hsl(0, 60%, 50%);
-  box-shadow: 0 0 0 2px hsl(0, 60%, 50%);
-  outline: none;
-}
-
-[data-theme='dark'] .config-section input.invalid,
-[data-theme='dark'] .config-section select.invalid {
-  border-color: hsl(0, 60%, 60%);
-  box-shadow: 0 0 0 1px hsl(0, 60%, 60%);
-}
-
-[data-theme='dark'] .config-section input.invalid:focus,
-[data-theme='dark'] .config-section select.invalid:focus {
-  border-color: hsl(0, 60%, 60%);
-  box-shadow: 0 0 0 2px hsl(0, 60%, 60%);
-}
-
-.validation-error {
-  color: hsl(0, 60%, 45%);
-  font-size: 0.8rem;
-  margin-top: 0.25rem;
-}
-
-[data-theme='dark'] .validation-error {
-  color: hsl(0, 60%, 65%);
+[data-theme='dark'] {
+  --sl-color-error: hsl(0, 60%, 60%);
+  --sl-color-error-text: hsl(0, 60%, 65%);
 }
 
 @layer starlight.core {
+  /* Configuration Assistant Layout */
+  .config-assistant-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    margin-top: 1.5rem;
+  }
+
+  @media (min-width: 64rem) {
+    .config-assistant-layout {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  .config-form-panel,
+  .config-output-panel {
+    min-width: 0;
+  }
+
+  .config-section {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .config-section label {
+    display: inline;
+    font-weight: 600;
+    margin-bottom: 0;
+    white-space: nowrap;
+  }
+
+  .config-section label:has(input) {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    white-space: normal;
+  }
+
+  .config-section select,
+  .config-section input {
+    flex: 1;
+    min-width: 2.5em;
+    max-width: 12em;
+    padding: 0.25rem;
+    border-radius: var(--sl-border-radius-sm);
+    border: 1px solid var(--sl-color-border);
+  }
+
+  .config-section select:focus,
+  .config-section input:focus {
+    outline: 2px solid var(--sl-color-accent);
+    outline-offset: 1px;
+  }
+
+  .passphrase-input {
+    display: inline-flex;
+    gap: 0.5rem;
+    max-width: 20rem;
+  }
+
+  .passphrase-input input {
+    flex: 1;
+  }
+
+  .passphrase-toggle {
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+  }
+
+  .passphrase-toggle:focus-visible {
+    outline: 2px solid var(--sl-color-accent);
+    outline-offset: 1px;
+  }
+
+  .btn {
+    padding: 0.5rem 1rem;
+    border-radius: var(--sl-border-radius-sm);
+    border: 1px solid var(--sl-color-border);
+    background: var(--sl-color-bg);
+    cursor: pointer;
+    font-weight: 500;
+  }
+
+  .btn:hover {
+    background: var(--sl-color-gray-6);
+  }
+
+  .btn:focus-visible {
+    outline: 2px solid var(--sl-color-accent);
+    outline-offset: 1px;
+  }
+
+  .env-file-header {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .env-file-output {
+    width: 100%;
+    min-height: 10rem;
+    padding: 1rem;
+    border-radius: var(--sl-border-radius-md);
+    border: 1px solid var(--sl-color-border);
+    background: var(--sl-color-gray-7);
+    font-family: 'SF Mono', 'Fira Code', 'Fira Mono', 'Roboto Mono', 'Courier New', monospace;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    resize: vertical;
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  .config-section input.invalid,
+  .config-section select.invalid {
+    border-color: var(--sl-color-error);
+    box-shadow: 0 0 0 1px var(--sl-color-error);
+  }
+
+  .config-section input.invalid:focus,
+  .config-section select.invalid:focus {
+    border-color: var(--sl-color-error);
+    box-shadow: 0 0 0 2px var(--sl-color-error);
+    outline: none;
+  }
+
+  .validation-error {
+    color: var(--sl-color-error-text);
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
+  }
   .hero {
     background: var(--sl-color-bg, hsl(0 0% 100%));
     text-align: center;
