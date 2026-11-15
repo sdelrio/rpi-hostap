@@ -1,4 +1,4 @@
-FROM alpine:3.24.2
+FROM alpine:3.24.4
 
 LABEL maintainer="Sergio R. <sdelrio@users.noreply.github.com>"
 
